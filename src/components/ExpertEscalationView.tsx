@@ -24,6 +24,7 @@ interface ExpertEscalationViewProps {
   onUpgradePlan: () => void;
   prefillDomain?: Domain;
   prefillQuestion?: string;
+  onUpdateTicket?: (ticket: ExpertTicket) => void;
 }
 
 export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
@@ -34,7 +35,8 @@ export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
   onAddTicket,
   onUpgradePlan,
   prefillDomain = 'rh',
-  prefillQuestion = ''
+  prefillQuestion = '',
+  onUpdateTicket
 }) => {
   const [domain, setDomain] = useState<Domain>(prefillDomain);
   const [urgency, setUrgency] = useState<'normal_48h' | 'urgent'>('normal_48h');
@@ -42,6 +44,7 @@ export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
   const [question, setQuestion] = useState(prefillQuestion);
   const [selectedTicket, setSelectedTicket] = useState<ExpertTicket | null>(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [followUpText, setFollowUpText] = useState('');
 
   const quotaTotal = currentPlan.features.expertQuestionsMonth;
   const quotaUsed = subscription.questionsUsedThisMonth;
@@ -81,37 +84,38 @@ export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
   };
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--space-6)' }}>
+    <div className="animate-fade-in" style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 12px 80px' }}>
       {/* Header Banner */}
       <div className="card" style={{
         backgroundColor: 'var(--color-navy)',
         color: '#ffffff',
-        marginBottom: 'var(--space-8)',
+        marginBottom: 'var(--space-6)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '16px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             borderRadius: 'var(--radius-md)',
             backgroundColor: 'var(--color-lime)',
             color: 'var(--color-navy)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: 'var(--shadow-lime)'
+            boxShadow: 'var(--shadow-lime)',
+            flexShrink: 0
           }}>
-            <UserCheck size={28} />
+            <UserCheck size={24} />
           </div>
           <div>
-            <h1 style={{ color: '#ffffff', fontSize: 'var(--text-2xl)', marginBottom: '4px' }}>
+            <h1 style={{ color: '#ffffff', fontSize: 'var(--text-xl)', marginBottom: '2px' }}>
               Escalade vers l'Experte (Laetitia Badji)
             </h1>
-            <p style={{ color: '#cbd5e1', fontSize: 'var(--text-sm)' }}>
+            <p style={{ color: '#cbd5e1', fontSize: 'var(--text-xs)', margin: 0 }}>
               Analyse juridique et sociale personnalisée transmise sous 48h ouvrées par le Cabinet Maé.
             </p>
           </div>
@@ -121,17 +125,17 @@ export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
         <div style={{
           backgroundColor: 'rgba(255, 255, 255, 0.1)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
-          padding: '12px 20px',
+          padding: '8px 16px',
           borderRadius: 'var(--radius-md)',
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#cbd5e1', fontWeight: 600 }}>
-            Quota mensuel de questions
+            Quota mensuel
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-lime)' }}>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-lime)' }}>
             {quotaRemaining} / {quotaTotal}
           </div>
-          <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+          <div style={{ fontSize: '10px', color: '#94a3b8' }}>
             Renouvelé au 1er du mois
           </div>
         </div>
@@ -158,7 +162,7 @@ export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 'var(--space-8)' }}>
+      <div className="escalation-grid">
         {/* Form Submission */}
         <div>
           <div className="card">
@@ -410,30 +414,117 @@ export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
 
             {selectedTicket.status === 'answered' && selectedTicket.answer ? (
               <div style={{ marginTop: 'var(--space-6)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--space-2)' }}>
-                  <UserCheck size={18} style={{ color: 'var(--color-blue)' }} />
-                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--color-navy)' }}>
-                    Réponse officielle de Laetitia Badji (Cabinet Maé) :
-                  </span>
-                </div>
+                {/* Laetitia's Official Verified Answer */}
                 <div style={{
                   backgroundColor: '#ffffff',
-                  border: '1.5px solid var(--color-blue)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '16px',
-                  fontSize: 'var(--text-sm)',
-                  lineHeight: 1.6,
-                  color: 'var(--color-navy)',
-                  whiteSpace: 'pre-line'
+                  border: '2px solid var(--color-blue)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  boxShadow: 'var(--shadow-card)'
                 }}>
-                  {selectedTicket.answer}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '14px',
+                    paddingBottom: '12px',
+                    borderBottom: '1px solid var(--color-border)',
+                    flexWrap: 'wrap',
+                    gap: '10px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '10px',
+                        background: 'linear-gradient(135deg, var(--color-navy) 0%, #163659 100%)',
+                        color: 'var(--color-lime)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 800,
+                        fontSize: '14px',
+                        boxShadow: '0 2px 8px rgba(10, 37, 64, 0.2)'
+                      }}>
+                        LB
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--color-navy)' }}>
+                            Laetitia Badji
+                          </span>
+                          <span className="badge badge-lime" style={{ fontSize: '10px' }}>
+                            Experte Juridique & RH
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)' }}>
+                          Cabinet Maé / AKILIGUE SAS &bull; {selectedTicket.answeredAt ? new Date(selectedTicket.answeredAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Réponse transmise'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-lime-dark)', fontSize: '12px', fontWeight: 700 }}>
+                      <CheckCircle2 size={16} />
+                      <span>Avis certifié conforme</span>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    fontSize: 'var(--text-sm)',
+                    lineHeight: 1.65,
+                    color: 'var(--color-navy)',
+                    whiteSpace: 'pre-line',
+                    marginBottom: '16px'
+                  }}>
+                    {selectedTicket.answer}
+                  </div>
+
+                  {/* Follow-up question form */}
+                  <div style={{
+                    marginTop: '20px',
+                    paddingTop: '16px',
+                    borderTop: '1px solid var(--color-border)'
+                  }}>
+                    <label className="form-label" style={{ fontSize: '12px', marginBottom: '6px' }}>
+                      Besoin d'une précision supplémentaire sur cette réponse ?
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input
+                        type="text"
+                        className="input"
+                        placeholder="Ex: Merci pour ce retour. Pouvez-vous préciser le délai de prévenance ?"
+                        value={followUpText}
+                        onChange={(e) => setFollowUpText(e.target.value)}
+                        style={{ height: '40px', fontSize: '13px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!followUpText.trim() || !onUpdateTicket) return;
+                          const updated: ExpertTicket = {
+                            ...selectedTicket,
+                            question: `${selectedTicket.question}\n\n[Précision association le ${new Date().toLocaleTimeString('fr-FR')}] : ${followUpText.trim()}`,
+                            status: 'in_progress'
+                          };
+                          onUpdateTicket(updated);
+                          setSelectedTicket(updated);
+                          setFollowUpText('');
+                        }}
+                        className="btn btn-sm btn-primary"
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        <Send size={14} />
+                        <span>Envoyer</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div style={{ backgroundColor: 'var(--color-orange-light)', padding: '16px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Clock size={20} style={{ color: 'var(--color-orange-dark)' }} />
+              <div style={{ backgroundColor: 'var(--color-orange-light)', padding: '16px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
+                <Clock size={20} style={{ color: 'var(--color-orange-dark)', minWidth: 20 }} />
                 <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-orange-dark)', fontWeight: 500 }}>
-                  Cette question est en cours d'instruction par Laetitia Badji. La réponse argumentée sera notifiée avant l'échéance des 48h ouvrées.
+                  Cette question est en cours d'instruction par Laetitia Badji (Cabinet Maé). La réponse argumentée sera notifiée avant l'échéance des 48h ouvrées.
                 </span>
               </div>
             )}

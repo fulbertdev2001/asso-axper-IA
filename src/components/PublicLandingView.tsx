@@ -15,7 +15,9 @@ import {
   ChevronRight,
   Code2,
   FileSearch,
-  LogIn
+  LogIn,
+  Menu,
+  X
 } from 'lucide-react';
 
 interface PublicLandingViewProps {
@@ -33,6 +35,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
 }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [showJsonLdModal, setShowJsonLdModal] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const domains = [
     {
@@ -127,7 +130,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         borderBottom: '1px solid var(--color-border)',
         padding: '14px 24px',
         position: 'sticky',
-        top: 45,
+        top: 0,
         zIndex: 40,
         boxShadow: '0 2px 8px rgba(10, 37, 64, 0.04)'
       }}>
@@ -171,16 +174,16 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             </div>
           </div>
 
-          {/* Links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', fontSize: '14px', fontWeight: 600, color: 'var(--color-navy)' }}>
+          {/* Links (Desktop) */}
+          <div className="hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: '24px', fontSize: '14px', fontWeight: 600, color: 'var(--color-navy)' }}>
             <a href="#domaines" style={{ color: 'var(--color-navy)' }}>Les 4 Domaines</a>
             <a href="#tarifs" style={{ color: 'var(--color-navy)' }}>Tarifs</a>
             <a href="#experte" style={{ color: 'var(--color-navy)' }}>L'Experte</a>
             <a href="#faq" style={{ color: 'var(--color-navy)' }}>FAQ</a>
           </div>
 
-          {/* Connection Button for Visitors */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* Action & Mobile Hamburger */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               onClick={onOpenLogin}
               className="btn btn-sm btn-primary"
@@ -189,8 +192,63 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               <LogIn size={15} />
               <span>Se connecter</span>
             </button>
+
+            {/* Mobile Hamburger Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="show-on-mobile btn btn-sm btn-secondary"
+              style={{ display: 'none', padding: '0 10px', height: '38px', alignItems: 'center', justifyContent: 'center' }}
+              aria-label="Menu mobile"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {isMobileMenuOpen && (
+          <div
+            className="animate-fade-in show-on-mobile"
+            style={{
+              display: 'none',
+              backgroundColor: '#ffffff',
+              borderTop: '1px solid var(--color-border)',
+              padding: '16px 20px',
+              flexDirection: 'column',
+              gap: '14px',
+              boxShadow: 'var(--shadow-hover)'
+            }}
+          >
+            <a
+              href="#domaines"
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', padding: '6px 0' }}
+            >
+              Les 4 Domaines
+            </a>
+            <a
+              href="#tarifs"
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', padding: '6px 0' }}
+            >
+              Tarifs
+            </a>
+            <a
+              href="#experte"
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', padding: '6px 0' }}
+            >
+              L'Experte
+            </a>
+            <a
+              href="#faq"
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', padding: '6px 0' }}
+            >
+              FAQ
+            </a>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}

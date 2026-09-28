@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Organization, 
   Plan, 
@@ -13,72 +13,141 @@ import {
   INITIAL_TICKETS, 
   INITIAL_AI_USAGE 
 } from './data/mockData';
-import { PersonaSwitcher, PersonaRole } from './components/PersonaSwitcher';
 import { PublicLandingView } from './components/PublicLandingView';
 import { ClientAppLayout } from './components/ClientAppLayout';
 import { AdminPayloadView } from './components/AdminPayloadView';
-import { BossTestGuideModal } from './components/BossTestGuideModal';
-import { AuthModal } from './components/AuthModal';
+import { LoginPage } from './components/LoginPage';
 import { OnboardingFlow } from './components/OnboardingFlow';
 
+type AppRole = 'public' | 'login' | 'client_asso' | 'admin_laetitia';
+
+const DEFAULT_SUBSCRIPTIONS: Record<string, Subscription> = {
+  'org-1': {
+    planCode: 'pro',
+    status: 'active',
+    currentPeriodEnd: '30 octobre 2026',
+    graceUntil: null,
+    stripeCustomerId: 'cus_AkiligueEspoir75',
+    questionsUsedThisMonth: 1
+  },
+  'org-2': {
+    planCode: 'initiale',
+    status: 'active',
+    currentPeriodEnd: '30 octobre 2026',
+    graceUntil: null,
+    stripeCustomerId: 'cus_MptLilas93',
+    questionsUsedThisMonth: 1
+  },
+  'org-3': {
+    planCode: 'expert',
+    status: 'active',
+    currentPeriodEnd: '30 octobre 2026',
+    graceUntil: null,
+    stripeCustomerId: 'cus_PasserelleLyon69',
+    questionsUsedThisMonth: 0
+  }
+};
+
 export const App: React.FC = () => {
-  // Default start on Public Site for natural visitor journey
-  const [currentRole, setCurrentRole] = useState<PersonaRole>('public');
-  const [organizations, setOrganizations] = useState<Organization[]>(INITIAL_ORGANIZATIONS);
-  const [currentOrg, setCurrentOrg] = useState<Organization>(INITIAL_ORGANIZATIONS[0]);
-  const [plans, setPlans] = useState<Plan[]>(INITIAL_PLANS);
-  const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
-
-  // Modals & Flows
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-  const [isOnboardingActive, setIsOnboardingActive] = useState<boolean>(false);
-
-  // Subscriptions per org
-  const [subscriptions, setSubscriptions] = useState<Record<string, Subscription>>({
-    'org-1': {
-      planCode: 'pro',
-      status: 'active',
-      currentPeriodEnd: '30 septembre 2026',
-      graceUntil: null,
-      stripeCustomerId: 'cus_AkiligueEspoir75',
-      questionsUsedThisMonth: 0
-    },
-    'org-2': {
-      planCode: 'initiale',
-      status: 'active',
-      currentPeriodEnd: '30 septembre 2026',
-      graceUntil: null,
-      stripeCustomerId: 'cus_MptLilas93',
-      questionsUsedThisMonth: 0
-    },
-    'org-3': {
-      planCode: 'expert',
-      status: 'active',
-      currentPeriodEnd: '30 septembre 2026',
-      graceUntil: null,
-      stripeCustomerId: 'cus_PasserelleLyon69',
-      questionsUsedThisMonth: 1
-    }
+  // 1. Initial State with LocalStorage Persistence
+  const [currentRole, setCurrentRole] = useState<AppRole>(() => {
+    const saved = localStorage.getItem('asso_expert_role');
+    return (saved as AppRole) || 'public';
   });
 
-  const [tickets, setTickets] = useState<ExpertTicket[]>(INITIAL_TICKETS);
+  const [organizations, setOrganizations] = useState<Organization[]>(() => {
+    const saved = localStorage.getItem('asso_expert_orgs');
+    if (saved) {
+      try {
+        const parsed: Organization[] = JSON.parse(saved);
+        return parsed.map(o => {
+          const init = INITIAL_ORGANIZATIONS.find(io => io.id === o.id);
+          return {
+            ...o,
+            accountEmail: o.accountEmail || init?.accountEmail || 'contact@asso.org',
+            password: o.password || init?.password || 'Asso2026!'
+          };
+        });
+      } catch (e) { /* fallback */ }
+    }
+    return INITIAL_ORGANIZATIONS;
+  });
+
+  const [currentOrgId, setCurrentOrgId] = useState<string>(() => {
+    const saved = localStorage.getItem('asso_expert_current_org_id');
+    return saved || INITIAL_ORGANIZATIONS[0].id;
+  });
+
+  const [subscriptions, setSubscriptions] = useState<Record<string, Subscription>>(() => {
+    const saved = localStorage.getItem('asso_expert_subscriptions');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+    }
+    return DEFAULT_SUBSCRIPTIONS;
+  });
+
+  const [tickets, setTickets] = useState<ExpertTicket[]>(() => {
+    const saved = localStorage.getItem('asso_expert_tickets');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+    }
+    return INITIAL_TICKETS;
+  });
+
+  const [plans, setPlans] = useState<Plan[]>(() => {
+    const saved = localStorage.getItem('asso_expert_plans');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+    }
+    return INITIAL_PLANS;
+  });
+
   const [aiUsageRecords, setAiUsageRecords] = useState<AiUsageRecord[]>(INITIAL_AI_USAGE);
+  const [isOnboardingActive, setIsOnboardingActive] = useState<boolean>(false);
   const [prefillEscalation, setPrefillEscalation] = useState<{ domain: Domain; question: string } | null>(null);
+
+  // Sync to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('asso_expert_role', currentRole);
+  }, [currentRole]);
+
+  useEffect(() => {
+    localStorage.setItem('asso_expert_orgs', JSON.stringify(organizations));
+  }, [organizations]);
+
+  useEffect(() => {
+    localStorage.setItem('asso_expert_current_org_id', currentOrgId);
+  }, [currentOrgId]);
+
+  useEffect(() => {
+    localStorage.setItem('asso_expert_subscriptions', JSON.stringify(subscriptions));
+  }, [subscriptions]);
+
+  useEffect(() => {
+    localStorage.setItem('asso_expert_tickets', JSON.stringify(tickets));
+  }, [tickets]);
+
+  useEffect(() => {
+    localStorage.setItem('asso_expert_plans', JSON.stringify(plans));
+  }, [plans]);
+
+  // Derived state
+  const currentOrg = organizations.find(o => o.id === currentOrgId) || organizations[0];
 
   const currentSubscription = subscriptions[currentOrg.id] || {
     planCode: 'pro',
     status: 'active',
-    currentPeriodEnd: '30 septembre 2026',
+    currentPeriodEnd: '30 octobre 2026',
     graceUntil: null,
-    stripeCustomerId: 'cus_default',
+    stripeCustomerId: `cus_${currentOrg.id}`,
     questionsUsedThisMonth: 0
   };
 
   const currentPlan = plans.find(p => p.code === currentSubscription.planCode) || plans[1];
 
+  // Actions
   const handleUpdateOrg = (updatedOrg: Organization) => {
     setOrganizations(prev => prev.map(o => o.id === updatedOrg.id ? updatedOrg : o));
-    setCurrentOrg(updatedOrg);
   };
 
   const handleUpdateSubscription = (partialSub: Partial<Subscription>) => {
@@ -99,7 +168,6 @@ export const App: React.FC = () => {
         planCode
       }
     }));
-    setCurrentRole('client_asso');
   };
 
   const handleAddTicket = (newTicket: ExpertTicket) => {
@@ -135,7 +203,7 @@ export const App: React.FC = () => {
   // Complete Onboarding Handler (creates org, stripe subscription, connects to /app)
   const handleCompleteOnboarding = (newOrg: Organization, selectedPlanCode: 'initiale' | 'pro' | 'expert') => {
     setOrganizations(prev => [newOrg, ...prev]);
-    setCurrentOrg(newOrg);
+    setCurrentOrgId(newOrg.id);
 
     const renewalDate = new Date();
     renewalDate.setDate(renewalDate.getDate() + 30);
@@ -156,106 +224,82 @@ export const App: React.FC = () => {
     setCurrentRole('client_asso');
   };
 
-  const renderActiveWorkspace = () => {
-    if (isOnboardingActive) {
-      return (
-        <OnboardingFlow
-          plans={plans}
-          onCompleteOnboarding={handleCompleteOnboarding}
-          onCancel={() => setIsOnboardingActive(false)}
-        />
-      );
-    }
-
-    if (currentRole === 'public') {
-      return (
-        <PublicLandingView
-          plans={plans}
-          onOpenLogin={() => setIsAuthModalOpen(true)}
-          onStartOnboarding={(preferredPlan) => {
-            setIsOnboardingActive(true);
-          }}
-          currentOrg={currentOrg}
-        />
-      );
-    }
-
-    if (currentRole === 'client_asso') {
-      return (
-        <ClientAppLayout
-          currentOrg={currentOrg}
-          onUpdateOrg={handleUpdateOrg}
-          currentPlan={currentPlan}
-          plans={plans}
-          subscription={currentSubscription}
-          onUpdateSubscription={handleUpdateSubscription}
-          onSelectPlan={handleSelectPlan}
-          tickets={tickets}
-          onAddTicket={handleAddTicket}
-          onTrackAiUsage={handleTrackAiUsage}
-          onLogoutToPublic={() => setCurrentRole('public')}
-          prefillEscalation={prefillEscalation}
-          onClearPrefillEscalation={() => setPrefillEscalation(null)}
-        />
-      );
-    }
-
-    // currentRole === 'admin_laetitia'
+  // View Routing
+  if (isOnboardingActive) {
     return (
-      <AdminPayloadView
+      <OnboardingFlow
         plans={plans}
-        onUpdatePlans={(updated) => setPlans(updated)}
-        tickets={tickets}
-        onUpdateTicket={handleUpdateTicket}
-        aiUsageRecords={aiUsageRecords}
+        onCompleteOnboarding={handleCompleteOnboarding}
+        onCancel={() => setIsOnboardingActive(false)}
       />
     );
-  };
+  }
 
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Universal Persona Switcher Top Bar (Permet au boss de tester n'importe quel rôle à tout moment) */}
-      <PersonaSwitcher
-        currentRole={isOnboardingActive ? 'client_asso' : currentRole}
-        onRoleChange={(role) => {
-          setIsOnboardingActive(false);
-          setPrefillEscalation(null);
-          setCurrentRole(role);
-        }}
-        currentOrg={currentOrg}
+  if (currentRole === 'login') {
+    return (
+      <LoginPage
         organizations={organizations}
-        onOrgChange={(org) => setCurrentOrg(org)}
-        onOpenTestGuide={() => setIsGuideOpen(true)}
-      />
-
-      {/* Main Workspace Area */}
-      <main style={{ flexGrow: 1 }}>
-        {renderActiveWorkspace()}
-      </main>
-
-      {/* Login & Magic Link Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        organizations={organizations}
-        onSelectExistingOrg={(org) => {
-          setCurrentOrg(org);
+        onLoginAsOrg={(org) => {
+          setCurrentOrgId(org.id);
           setCurrentRole('client_asso');
+        }}
+        onLoginAsAdmin={() => {
+          setCurrentRole('admin_laetitia');
         }}
         onStartOnboarding={() => {
           setIsOnboardingActive(true);
         }}
-      />
-
-      {/* Boss Demo & Validation Guide Modal */}
-      <BossTestGuideModal
-        isOpen={isGuideOpen}
-        onClose={() => setIsGuideOpen(false)}
-        onSelectRole={(role) => {
-          setIsOnboardingActive(false);
-          setCurrentRole(role);
+        onBackToPublic={() => {
+          setCurrentRole('public');
         }}
       />
-    </div>
+    );
+  }
+
+  if (currentRole === 'public') {
+    return (
+      <PublicLandingView
+        plans={plans}
+        onOpenLogin={() => setCurrentRole('login')}
+        onStartOnboarding={(preferredPlan) => {
+          setIsOnboardingActive(true);
+        }}
+        currentOrg={currentOrg}
+      />
+    );
+  }
+
+  if (currentRole === 'client_asso') {
+    return (
+      <ClientAppLayout
+        currentOrg={currentOrg}
+        onUpdateOrg={handleUpdateOrg}
+        currentPlan={currentPlan}
+        plans={plans}
+        subscription={currentSubscription}
+        onUpdateSubscription={handleUpdateSubscription}
+        onSelectPlan={handleSelectPlan}
+        tickets={tickets}
+        onAddTicket={handleAddTicket}
+        onUpdateTicket={handleUpdateTicket}
+        onTrackAiUsage={handleTrackAiUsage}
+        onLogoutToPublic={() => setCurrentRole('login')}
+        prefillEscalation={prefillEscalation}
+        onClearPrefillEscalation={() => setPrefillEscalation(null)}
+      />
+    );
+  }
+
+  // currentRole === 'admin_laetitia'
+  return (
+    <AdminPayloadView
+      plans={plans}
+      onUpdatePlans={(updated) => setPlans(updated)}
+      tickets={tickets}
+      onUpdateTicket={handleUpdateTicket}
+      aiUsageRecords={aiUsageRecords}
+      onLogout={() => setCurrentRole('login')}
+    />
   );
 };
+export default App;

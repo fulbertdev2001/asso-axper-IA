@@ -1,5 +1,16 @@
 export type Domain = 'rh' | 'gouvernance' | 'finance' | 'conformite';
 
+export interface OrgMember {
+  id: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  email: string;
+  phone?: string;
+  idCardNumber?: string; // Champ optionnel : Numéro de carte d'identité ou passeport
+  joinedDate: string;
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -14,6 +25,9 @@ export interface Organization {
   governanceSummary: string;
   mainFunders: string[];
   establishmentsCount: number;
+  members?: OrgMember[];
+  accountEmail?: string;
+  password?: string;
 }
 
 export interface PlanFeatures {

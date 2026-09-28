@@ -145,13 +145,9 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
   };
 
   return (
-    <div style={{
+    <div className="chat-layout-grid" style={{
       maxWidth: 1400,
       margin: '0 auto',
-      padding: 'var(--space-6)',
-      display: 'grid',
-      gridTemplateColumns: '300px 1fr',
-      gap: 'var(--space-6)',
       minHeight: 'calc(100vh - 140px)'
     }}>
       {/* Sidebar Briques Thématiques */}
@@ -173,7 +169,7 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="chat-sidebar-briques">
             {/* Brique RH */}
             <button
               onClick={() => setSelectedDomain('rh')}
@@ -561,29 +557,29 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
               e.preventDefault();
               handleSendMessage();
             }}
-            style={{ display: 'flex', gap: '12px', alignItems: 'center' }}
+            style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
           >
             <input
               type="text"
               className="input"
-              placeholder={`Interroger l'assistant en ${getDomainLabel(selectedDomain)} (${currentOrg.ccn.split('(')[0]})...`}
+              placeholder={`Posez votre question (${getDomainLabel(selectedDomain)})...`}
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
               disabled={isTyping}
-              style={{ height: 52 }}
+              style={{ height: 48, flex: 1, minWidth: 0 }}
             />
             <button
               type="submit"
               className="btn btn-primary"
               disabled={isTyping || !inputQuery.trim()}
-              style={{ minWidth: 120, height: 52 }}
+              style={{ height: 48, padding: '0 16px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              <span>Envoyer</span>
+              <span className="hide-on-mobile">Envoyer</span>
               <Send size={16} />
             </button>
           </form>
           <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', marginTop: '8px', textAlign: 'center' }}>
-            Isolation stricte par organisation ({currentOrg.name.split('(')[0]}). Données protégées et non envoyées aux outils d'analytics.
+            Isolation stricte par organisation ({currentOrg.name.split('(')[0]}). Données protégées.
           </div>
         </div>
       </main>

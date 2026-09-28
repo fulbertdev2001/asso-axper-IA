@@ -48,6 +48,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
   const [selectedPlanCode, setSelectedPlanCode] = useState<'initiale' | 'pro' | 'expert'>('pro');
   const [isProcessingStripe, setIsProcessingStripe] = useState(false);
+  const [cardHolder, setCardHolder] = useState('Claire Delorme');
+  const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
+  const [cardExpiry, setCardExpiry] = useState('12/28');
+  const [cardCvc, setCardCvc] = useState('123');
 
   const ccnOptions = [
     'CCN 66 (Convention Collective Nationale de 1966)',
@@ -63,6 +67,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     setIsProcessingStripe(true);
 
     setTimeout(() => {
+      const names = leaderName.trim().split(' ');
+      const firstName = names[0] || 'Responsable';
+      const lastName = names.slice(1).join(' ') || 'Association';
+
       const newOrg: Organization = {
         id: 'org-' + Date.now(),
         name: orgName.trim(),
@@ -76,11 +84,23 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         usualAgMonth: usualAgMonth,
         governanceSummary: `Gouvernance déclarée par ${leaderName} (${leaderRole})`,
         mainFunders: mainFunders.split(',').map(s => s.trim()).filter(Boolean),
-        establishmentsCount: 1
+        establishmentsCount: 1,
+        accountEmail: leaderEmail.trim(),
+        password: 'Asso2026!',
+        members: [
+          {
+            id: 'mem-' + Date.now(),
+            firstName,
+            lastName,
+            role: leaderRole || 'Présidente / Direction',
+            email: leaderEmail,
+            joinedDate: new Date().toLocaleDateString('fr-FR')
+          }
+        ]
       };
 
       onCompleteOnboarding(newOrg, selectedPlanCode);
-    }, 1200);
+    }, 1500);
   };
 
   const selectedPlan = plans.find(p => p.code === selectedPlanCode) || plans[1];
@@ -430,52 +450,102 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             marginBottom: '24px'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)' }}>
-                Informations de carte bancaire (Stripe Checkout) :
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CreditCard size={16} style={{ color: 'var(--color-blue)' }} />
+                <span>Paiement sécurisé par carte bancaire (Stripe Elements) :</span>
               </div>
               <span className="badge badge-navy" style={{ fontSize: '10px' }}>Mode Test Stripe</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div>
+                <label className="form-label" style={{ fontSize: '11px', marginBottom: '4px' }}>Titulaire de la carte :</label>
                 <input
                   type="text"
                   className="input"
-                  value="4242 •••• •••• 4242"
-                  readOnly
-                  style={{ backgroundColor: '#ffffff', fontFamily: 'monospace', fontWeight: 600 }}
+                  value={cardHolder}
+                  onChange={(e) => setCardHolder(e.target.value)}
+                  placeholder="Nom Prénom"
+                  style={{ backgroundColor: '#ffffff', fontSize: '13px' }}
                 />
               </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '11px', marginBottom: '4px' }}>Numéro de carte :</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(e.target.value)}
+                  style={{ backgroundColor: '#ffffff', fontFamily: 'monospace', fontWeight: 600, fontSize: '13px' }}
+                />
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <input
-                  type="text"
-                  className="input"
-                  value="12 / 28"
-                  readOnly
-                  style={{ backgroundColor: '#ffffff', fontFamily: 'monospace' }}
-                />
-                <input
-                  type="text"
-                  className="input"
-                  value="CVC : 123"
-                  readOnly
-                  style={{ backgroundColor: '#ffffff', fontFamily: 'monospace' }}
-                />
+                <div>
+                  <label className="form-label" style={{ fontSize: '11px', marginBottom: '4px' }}>Date d'expiration :</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={cardExpiry}
+                    onChange={(e) => setCardExpiry(e.target.value)}
+                    placeholder="MM/AA"
+                    style={{ backgroundColor: '#ffffff', fontFamily: 'monospace', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label className="form-label" style={{ fontSize: '11px', marginBottom: '4px' }}>Cryptogramme (CVC) :</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={cardCvc}
+                    onChange={(e) => setCardCvc(e.target.value)}
+                    placeholder="123"
+                    maxLength={4}
+                    style={{ backgroundColor: '#ffffff', fontFamily: 'monospace', fontSize: '13px' }}
+                  />
+                </div>
               </div>
             </div>
 
             <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--color-navy-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Lock size={12} />
-              <span>Chiffrement TLS 256 bits direct vers l'infrastructure bancaire de Stripe.</span>
+              <span>Chiffrement SSL 256 bits direct vers l'infrastructure bancaire de Stripe. Sans engagement.</span>
             </div>
           </div>
 
-          {/* Summary */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '12px 16px', backgroundColor: 'var(--color-surface-subtle)', borderRadius: '12px' }}>
-            <span style={{ fontSize: '14px', color: 'var(--color-navy)' }}>Total débité aujourd'hui :</span>
-            <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-navy)' }}>
-              {selectedPlan.priceMonthly} € HT
-            </span>
+          {/* Pricing & VAT Breakdown */}
+          <div style={{
+            backgroundColor: 'var(--color-surface-subtle)',
+            borderRadius: '14px',
+            padding: '16px 20px',
+            marginBottom: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--color-navy-muted)' }}>
+              <span>Abonnement mensuel Formule {selectedPlan.label} :</span>
+              <span>{selectedPlan.priceMonthly},00 € HT</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--color-navy-muted)' }}>
+              <span>TVA (20,0%) :</span>
+              <span>{(selectedPlan.priceMonthly * 0.2).toFixed(2)} €</span>
+            </div>
+            <div style={{ height: '1px', backgroundColor: 'var(--color-border)', margin: '4px 0' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--color-navy)' }}>
+                  Total débité aujourd'hui :
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)' }}>
+                  Prochain renouvellement automatique à J+30
+                </div>
+              </div>
+              <span style={{ fontSize: '22px', fontWeight: 800, color: 'var(--color-blue)' }}>
+                {(selectedPlan.priceMonthly * 1.2).toFixed(2)} € TTC
+              </span>
+            </div>
           </div>
 
           {/* Action buttons */}
@@ -487,15 +557,18 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             <button
               onClick={handleFinish}
               className="btn btn-lime"
-              style={{ minWidth: 260, height: 48 }}
+              style={{ minWidth: 280, height: 48, fontSize: '14px', fontWeight: 800 }}
               disabled={isProcessingStripe}
             >
               {isProcessingStripe ? (
-                <span>Création du compte en cours...</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="live-dot" />
+                  <span>Validation bancaire Stripe en cours...</span>
+                </div>
               ) : (
                 <>
                   <CheckCircle2 size={18} />
-                  <span>Activer mon espace association</span>
+                  <span>Payer {(selectedPlan.priceMonthly * 1.2).toFixed(2)} € et Activer</span>
                 </>
               )}
             </button>

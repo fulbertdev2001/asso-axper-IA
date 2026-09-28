@@ -14,7 +14,40 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     usualAgMonth: 'Juin',
     governanceSummary: 'Conseil d administration de 9 membres bénévoles, bureau exécutif avec Présidente et Trésorier.',
     mainFunders: ['Conseil Départemental 75', 'ARS Île-de-France', 'Fonds Social Européen'],
-    establishmentsCount: 2
+    establishmentsCount: 2,
+    members: [
+      {
+        id: 'mem-1',
+        firstName: 'Claire',
+        lastName: 'Delorme',
+        role: 'Présidente',
+        email: 'claire.delorme@espoir-solidarite.org',
+        phone: '06 12 34 56 78',
+        idCardNumber: '240875102934',
+        joinedDate: '15/03/2021'
+      },
+      {
+        id: 'mem-2',
+        firstName: 'Marc',
+        lastName: 'Vasseur',
+        role: 'Trésorier',
+        email: 'marc.vasseur@espoir-solidarite.org',
+        phone: '06 87 65 43 21',
+        idCardNumber: '190592837401',
+        joinedDate: '10/06/2022'
+      },
+      {
+        id: 'mem-3',
+        firstName: 'Sophie',
+        lastName: 'Bertrand',
+        role: 'Directrice générale salariée',
+        email: 'direction@espoir-solidarite.org',
+        phone: '01 42 55 60 70',
+        joinedDate: '01/09/2023'
+      }
+    ],
+    accountEmail: 'contact@espoir-solidarite.org',
+    password: 'Asso2026!'
   },
   {
     id: 'org-2',
@@ -29,7 +62,30 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     usualAgMonth: 'Novembre',
     governanceSummary: 'Gouvernance collégiale, 12 administrateurs élus par les adhérents.',
     mainFunders: ['CAF Seine-Saint-Denis', 'Ville des Lilas', 'Subventions DRAC'],
-    establishmentsCount: 1
+    establishmentsCount: 1,
+    members: [
+      {
+        id: 'mem-4',
+        firstName: 'Julien',
+        lastName: 'Mercier',
+        role: 'Président',
+        email: 'presidence@mpt-lilas.fr',
+        phone: '06 44 22 11 33',
+        idCardNumber: '210993100234',
+        joinedDate: '05/01/2020'
+      },
+      {
+        id: 'mem-5',
+        firstName: 'Nadia',
+        lastName: 'Cherif',
+        role: 'Secrétaire générale',
+        email: 'nadia.cherif@mpt-lilas.fr',
+        phone: '06 99 88 77 66',
+        joinedDate: '12/11/2022'
+      }
+    ],
+    accountEmail: 'direction@mpt-lilas.fr',
+    password: 'Asso2026!'
   },
   {
     id: 'org-3',
@@ -44,7 +100,21 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     usualAgMonth: 'Mai',
     governanceSummary: 'CA de 7 membres, direction générale salariée avec délégation de pouvoir.',
     mainFunders: ['DREETS', 'Région Auvergne-Rhône-Alpes', 'Métropole de Lyon'],
-    establishmentsCount: 3
+    establishmentsCount: 3,
+    members: [
+      {
+        id: 'mem-6',
+        firstName: 'Alexandre',
+        lastName: 'Dupont',
+        role: 'Directeur Général',
+        email: 'alexandre.dupont@passerelle-avenir.org',
+        phone: '04 78 90 12 34',
+        idCardNumber: '180469103948',
+        joinedDate: '01/02/2019'
+      }
+    ],
+    accountEmail: 'direction@passerelle-avenir.org',
+    password: 'Asso2026!'
   }
 ];
 

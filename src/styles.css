@@ -496,3 +496,151 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ==========================================================================
+   Responsive & Mobile First Optimizations (Lighthouse Mobile >= 90)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  :root {
+    --text-5xl: 34px;
+    --text-4xl: 26px;
+    --text-3xl: 22px;
+    --text-2xl: 19px;
+    --text-xl: 17px;
+    --text-base: 15px;
+    --space-16: 36px;
+    --space-12: 28px;
+    --space-8: 20px;
+    --space-6: 16px;
+    --space-4: 12px;
+  }
+
+  body {
+    font-size: 15px;
+  }
+
+  .card {
+    padding: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .btn {
+    height: 44px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+
+  /* Form controls touch target minimum 44px on mobile and 16px font to prevent iOS zoom */
+  .input, .select, .textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  /* Responsive Utilities */
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .show-on-mobile {
+    display: block !important;
+  }
+
+  .show-flex-on-mobile {
+    display: flex !important;
+  }
+
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .mobile-grid-1 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-w-full {
+    width: 100% !important;
+  }
+
+  .mobile-text-center {
+    text-align: center !important;
+  }
+
+  .mobile-p-3 {
+    padding: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --text-5xl: 28px;
+    --text-4xl: 23px;
+    --text-3xl: 20px;
+    --text-2xl: 18px;
+    --text-base: 14px;
+  }
+
+  .card {
+    padding: 13px !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* Specific Component Responsive Classes */
+.chat-layout-grid {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: var(--space-6);
+}
+
+.chat-sidebar-briques {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-split-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: var(--space-6);
+}
+
+.escalation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-8);
+}
+
+@media (max-width: 860px) {
+  .chat-layout-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 12px 10px 24px !important;
+  }
+
+  .chat-sidebar-briques {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .admin-split-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .escalation-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-sidebar-briques {
+    grid-template-columns: 1fr !important;
+  }
+}

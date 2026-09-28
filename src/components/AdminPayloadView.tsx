@@ -12,7 +12,10 @@ import {
   Search,
   MessageSquare,
   Lock,
-  ArrowRight
+  ArrowRight,
+  LogOut,
+  Sparkles,
+  Scale
 } from 'lucide-react';
 
 interface AdminPayloadViewProps {
@@ -21,6 +24,7 @@ interface AdminPayloadViewProps {
   tickets: ExpertTicket[];
   onUpdateTicket: (updatedTicket: ExpertTicket) => void;
   aiUsageRecords: AiUsageRecord[];
+  onLogout?: () => void;
 }
 
 export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
@@ -28,7 +32,8 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
   onUpdatePlans,
   tickets,
   onUpdateTicket,
-  aiUsageRecords
+  aiUsageRecords,
+  onLogout
 }) => {
   const [activeTab, setActiveTab] = useState<'tickets' | 'plans' | 'ai_usage' | 'seo'>('tickets');
   const [selectedTicket, setSelectedTicket] = useState<ExpertTicket | null>(tickets[0] || null);
@@ -93,107 +98,254 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
     setTimeout(() => setSaveToast(false), 3000);
   };
 
+  const pendingTicketsCount = tickets.filter(t => t.status !== 'answered').length;
+
   return (
-    <div className="animate-fade-in" style={{ maxWidth: 1300, margin: '0 auto', padding: 'var(--space-6)' }}>
-      {/* Admin Header */}
-      <div className="card" style={{
-        backgroundColor: 'var(--color-navy)',
-        color: '#ffffff',
-        marginBottom: 'var(--space-8)',
+    <div className="animate-fade-in" style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg)' }}>
+      {/* SaaS Admin Header Bar for Laetitia Badji (All on 1 single row) */}
+      <header style={{
+        backgroundColor: '#ffffff',
+        borderBottom: '1px solid var(--color-border)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 40,
+        boxShadow: '0 2px 8px rgba(10, 37, 64, 0.04)',
+        padding: '0 20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '16px'
+        gap: '16px',
+        height: '62px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {/* Left: Identity & Status */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
           <div style={{
-            width: 48,
-            height: 48,
+            width: 36,
+            height: 36,
             borderRadius: 'var(--radius-md)',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            border: '2px solid var(--color-lime)',
+            background: 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--color-lime)'
+            color: '#ffffff',
+            boxShadow: '0 3px 10px rgba(0, 74, 173, 0.25)',
+            flexShrink: 0
           }}>
-            <Settings2 size={26} />
+            <Scale size={18} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ color: '#ffffff', fontSize: 'var(--text-2xl)' }}>
-                Espace Back-Office (Payload CMS)
-              </h1>
-              <span className="badge badge-lime" style={{ fontSize: '10px' }}>
-                Accès Laetitia Badji
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--color-navy)', letterSpacing: '-0.02em' }}>
+                Cabinet Maé
+              </span>
+              <span className="badge badge-lime" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                Payload CMS
               </span>
             </div>
-            <p style={{ color: '#cbd5e1', fontSize: 'var(--text-sm)' }}>
-              Gestion des questions expertes, édition des formules/tarifs sans développeur, suivi des coûts IA.
-            </p>
+            <div className="hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: 'var(--color-navy-muted)' }}>
+              <span style={{
+                display: 'inline-block',
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: '#10b981'
+              }} />
+              <span style={{ fontWeight: 600, color: 'var(--color-navy)' }}>Laetitia Badji</span>
+            </div>
           </div>
         </div>
 
-        {/* Admin Navigation Pills */}
-        <div style={{ display: 'flex', gap: '6px', backgroundColor: 'rgba(255, 255, 255, 0.08)', padding: '4px', borderRadius: 'var(--radius-md)' }}>
+        {/* Center: Navigation Tabs (On the SAME row) */}
+        <nav style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '2px',
+          overflowX: 'auto',
+          whiteSpace: 'nowrap',
+          scrollbarWidth: 'none',
+          height: '100%',
+          flex: 1,
+          justifyContent: 'center',
+          minWidth: 0
+        }}>
+          {/* Tab 1: Questions */}
           <button
             onClick={() => setActiveTab('tickets')}
             style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '0 14px',
+              height: '100%',
+              fontWeight: 700,
               fontSize: '13px',
-              fontWeight: 600,
-              backgroundColor: activeTab === 'tickets' ? 'var(--color-blue)' : 'transparent',
-              color: '#ffffff'
+              cursor: 'pointer',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: activeTab === 'tickets' ? 'var(--color-blue)' : 'var(--color-navy-muted)',
+              borderBottom: activeTab === 'tickets' ? '3px solid var(--color-blue)' : '3px solid transparent',
+              transition: 'all 0.15s ease',
+              flexShrink: 0
             }}
           >
-            Questions Expertes ({tickets.filter(t => t.status !== 'answered').length} à traiter)
+            <UserCheck size={16} />
+            <span>Questions & Arbitrages</span>
+            <span className={pendingTicketsCount > 0 ? "badge badge-orange" : "badge badge-lime"} style={{ fontSize: '9px', padding: '1px 5px' }}>
+              {pendingTicketsCount}
+            </span>
           </button>
 
+          {/* Tab 2: Plans */}
           <button
             onClick={() => setActiveTab('plans')}
             style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '0 14px',
+              height: '100%',
+              fontWeight: 700,
               fontSize: '13px',
-              fontWeight: 600,
-              backgroundColor: activeTab === 'plans' ? 'var(--color-blue)' : 'transparent',
-              color: '#ffffff'
+              cursor: 'pointer',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: activeTab === 'plans' ? 'var(--color-blue)' : 'var(--color-navy-muted)',
+              borderBottom: activeTab === 'plans' ? '3px solid var(--color-blue)' : '3px solid transparent',
+              transition: 'all 0.15s ease',
+              flexShrink: 0
             }}
           >
-            Formules & Quotas
+            <DollarSign size={16} />
+            <span>Formules & Quotas</span>
           </button>
 
+          {/* Tab 3: AI Telemetry */}
           <button
             onClick={() => setActiveTab('ai_usage')}
             style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '0 14px',
+              height: '100%',
+              fontWeight: 700,
               fontSize: '13px',
-              fontWeight: 600,
-              backgroundColor: activeTab === 'ai_usage' ? 'var(--color-blue)' : 'transparent',
-              color: '#ffffff'
+              cursor: 'pointer',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: activeTab === 'ai_usage' ? 'var(--color-blue)' : 'var(--color-navy-muted)',
+              borderBottom: activeTab === 'ai_usage' ? '3px solid var(--color-blue)' : '3px solid transparent',
+              transition: 'all 0.15s ease',
+              flexShrink: 0
             }}
           >
-            Télémétrie & Coûts IA
+            <Cpu size={16} />
+            <span>Télémétrie IA</span>
           </button>
 
+          {/* Tab 4: SEO CMS */}
           <button
             onClick={() => setActiveTab('seo')}
             style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '0 14px',
+              height: '100%',
+              fontWeight: 700,
               fontSize: '13px',
-              fontWeight: 600,
-              backgroundColor: activeTab === 'seo' ? 'var(--color-blue)' : 'transparent',
-              color: '#ffffff'
+              cursor: 'pointer',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: activeTab === 'seo' ? 'var(--color-blue)' : 'var(--color-navy-muted)',
+              borderBottom: activeTab === 'seo' ? '3px solid var(--color-blue)' : '3px solid transparent',
+              transition: 'all 0.15s ease',
+              flexShrink: 0
             }}
           >
-            CMS Pages SEO
+            <Globe2 size={16} />
+            <span>CMS SEO</span>
           </button>
+        </nav>
+
+        {/* Right actions: Counter, Avatar, Logout (On the SAME row) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          <div className="hide-on-mobile" style={{
+            backgroundColor: pendingTicketsCount > 0 ? '#fff7ed' : 'var(--color-surface-subtle)',
+            border: `1px solid ${pendingTicketsCount > 0 ? '#ffedd5' : 'var(--color-border)'}`,
+            padding: '4px 10px',
+            borderRadius: 'var(--radius-pill)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            fontSize: '11px'
+          }}>
+            <Sparkles size={13} style={{ color: pendingTicketsCount > 0 ? '#ea580c' : 'var(--color-lime-dark)' }} />
+            <span style={{
+              color: pendingTicketsCount > 0 ? '#c2410c' : 'var(--color-navy)',
+              fontWeight: 700
+            }}>
+              {pendingTicketsCount} à traiter
+            </span>
+          </div>
+
+          <div style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            backgroundColor: 'var(--color-navy)',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 800,
+            fontSize: '11px',
+            boxShadow: '0 2px 6px rgba(10, 37, 64, 0.2)'
+          }}>
+            LB
+          </div>
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="btn btn-sm"
+              style={{
+                fontSize: '12px',
+                padding: '3px 10px',
+                height: '30px',
+                color: 'var(--color-red)',
+                backgroundColor: 'var(--color-red-light)',
+                border: '1px solid rgba(229, 62, 62, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              title="Se déconnecter de l'espace experte"
+            >
+              <LogOut size={13} />
+              <span className="hide-on-mobile">Déconnexion</span>
+            </button>
+          )}
         </div>
-      </div>
+      </header>
+
+      {/* Main Back-Office Content Container */}
+      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '24px 24px' }}>
+        {/* Contextual Sub-header */}
+        <div style={{ marginBottom: '20px' }}>
+          <h1 style={{ fontSize: 'var(--text-2xl)', color: 'var(--color-navy)', marginBottom: '4px' }}>
+            {activeTab === 'tickets' && "File d'attente des arbitrages juridiques"}
+            {activeTab === 'plans' && "Gestion des formules d'abonnement & quotas"}
+            {activeTab === 'ai_usage' && "Supervision des modèles & télémétrie IA"}
+            {activeTab === 'seo' && "Éditeur de pages & référencement SEO"}
+          </h1>
+          <p style={{ color: 'var(--color-navy-muted)', fontSize: 'var(--text-sm)', margin: 0 }}>
+            {activeTab === 'tickets' && "Consultez les sollicitations escaladées par les associations clientes et rédigez vos réponses argumentées sous 48h."}
+            {activeTab === 'plans' && "Ajustez les tarifs mensuels et les plafonds de questions expertes en direct sans déploiement technique."}
+            {activeTab === 'ai_usage' && "Audit des tokens consommés et suivi des coûts des modèles d'IA par structure cliente."}
+            {activeTab === 'seo' && "Personnalisez les balises méta, titres H1 et contenus des pages sectorielles pour le moteur de recherche."}
+          </p>
+        </div>
 
       {saveToast && (
         <div className="card animate-fade-in" style={{
@@ -213,7 +365,7 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
 
       {/* TAB 1: Questions Expertes (Traitement) */}
       {activeTab === 'tickets' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 'var(--space-6)' }}>
+        <div className="admin-split-grid">
           {/* List of tickets */}
           <div className="card" style={{ padding: 'var(--space-4)' }}>
             <h3 style={{ fontSize: 'var(--text-base)', marginBottom: 'var(--space-4)', color: 'var(--color-navy)' }}>
@@ -294,14 +446,45 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
 
               {/* Response Editor */}
               <div style={{ marginBottom: 'var(--space-4)' }}>
-                <label className="form-label">
-                  Réponse juridique & sociale rédigée par Laetitia Badji (transmise par email et dans l'app) :
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                  <label className="form-label" style={{ margin: 0 }}>
+                    Réponse juridique & sociale rédigée par Laetitia Badji (transmise par email et dans l'app) :
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 600 }}>
+                      Modèles rapides :
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setExpertReply(`Bonjour,\n\nAprès analyse approfondie de votre situation au regard des dispositions légales et de votre convention collective (${selectedTicket.orgName}) :\n\n1. Cadre juridique applicable : La procédure requiert une convocation écrite avec délai de prévenance strict et information explicite sur la faculté d'assistance.\n\n2. Risques identifiés : Veillez à consigner l'accord dans le formulaire Cerfa réglementaire et respecter le délai d'homologation DREETS de 15 jours ouvrables.\n\n3. Recommandation du Cabinet Maé : Nous vous recommandons de formaliser l'entretien préalable par écrit avant toute signature de protocole transactionnel.\n\nRestant à votre entière disposition pour vous assister.\n\nBien cordialement,\nLaetitia Badji\nJuriste Référente Associations — Cabinet Maé / AKILIGUE SAS`);
+                      }}
+                      className="btn btn-sm"
+                      style={{ fontSize: '11px', padding: '3px 8px', backgroundColor: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}
+                    >
+                      <Sparkles size={12} style={{ color: 'var(--color-blue)' }} />
+                      <span>Modèle RH / Procédure</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setExpertReply(`Bonjour,\n\nConcernant votre problématique de gouvernance et de régularité des délibérations associatives :\n\n1. Règle statutaire : En l'absence de quorum suffisant lors de la première convocation, l'Assemblée ne peut valablement délibérer sous peine de nullité des résolutions adoptées.\n\n2. Procédure de régularisation : Vous devez adresser une seconde convocation dans un délai de 15 jours. Sauf stipulation contraire expresse de vos statuts, cette seconde AG délibérera valablement quel que soit le nombre de membres présents ou représentés.\n\n3. Formalités : Pensez à annexer la feuille d'émargement de la première séance infructueuse au procès-verbal définitif.\n\nBien à vous,\nLaetitia Badji\nCabinet Maé`);
+                      }}
+                      className="btn btn-sm"
+                      style={{ fontSize: '11px', padding: '3px 8px', backgroundColor: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}
+                    >
+                      <Sparkles size={12} style={{ color: 'var(--color-blue)' }} />
+                      <span>Modèle AG / Quorum</span>
+                    </button>
+                  </div>
+                </div>
+
                 <textarea
                   className="textarea"
                   value={expertReply}
                   onChange={(e) => setExpertReply(e.target.value)}
-                  rows={8}
+                  rows={9}
                   placeholder="Rédigez l'analyse juridique, les références conventionnelles et les préconisations concrètes..."
                 />
               </div>
@@ -485,6 +668,7 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
