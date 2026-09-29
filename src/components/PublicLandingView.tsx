@@ -197,7 +197,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="show-on-mobile btn btn-sm btn-secondary"
-              style={{ display: 'none', padding: '0 10px', height: '38px', alignItems: 'center', justifyContent: 'center' }}
+              style={{ padding: '0 10px', height: '38px', alignItems: 'center', justifyContent: 'center' }}
               aria-label="Menu mobile"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -208,42 +208,69 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
           <div
-            className="animate-fade-in show-on-mobile"
+            className="animate-fade-in show-flex-on-mobile"
             style={{
-              display: 'none',
               backgroundColor: '#ffffff',
               borderTop: '1px solid var(--color-border)',
               padding: '16px 20px',
               flexDirection: 'column',
-              gap: '14px',
+              gap: '10px',
               boxShadow: 'var(--shadow-hover)'
             }}
           >
             <a
               href="#domaines"
               onClick={() => setIsMobileMenuOpen(false)}
-              style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', padding: '6px 0' }}
+              style={{
+                fontSize: '15px',
+                fontWeight: 700,
+                color: 'var(--color-navy)',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--color-surface-subtle)'
+              }}
             >
               Les 4 Domaines
             </a>
             <a
               href="#tarifs"
               onClick={() => setIsMobileMenuOpen(false)}
-              style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', padding: '6px 0' }}
+              style={{
+                fontSize: '15px',
+                fontWeight: 700,
+                color: 'var(--color-navy)',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--color-surface-subtle)'
+              }}
             >
               Tarifs
             </a>
             <a
               href="#experte"
               onClick={() => setIsMobileMenuOpen(false)}
-              style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', padding: '6px 0' }}
+              style={{
+                fontSize: '15px',
+                fontWeight: 700,
+                color: 'var(--color-navy)',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--color-surface-subtle)'
+              }}
             >
               L'Experte
             </a>
             <a
               href="#faq"
               onClick={() => setIsMobileMenuOpen(false)}
-              style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', padding: '6px 0' }}
+              style={{
+                fontSize: '15px',
+                fontWeight: 700,
+                color: 'var(--color-navy)',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--color-surface-subtle)'
+              }}
             >
               FAQ
             </a>
@@ -313,7 +340,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: 'var(--space-12)' }}>
             <button
               onClick={() => onStartOnboarding('pro')}
-              className="btn btn-primary"
+              className="btn btn-primary mobile-w-full"
               style={{ height: 54, padding: '0 32px', fontSize: 'var(--text-base)', boxShadow: '0 8px 24px rgba(0, 74, 173, 0.28)' }}
             >
               <span>Créer mon compte & Démarrer l'essai</span>
@@ -321,7 +348,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             </button>
             <button
               onClick={onOpenLogin}
-              className="btn btn-secondary"
+              className="btn btn-secondary mobile-w-full"
               style={{ height: 54, padding: '0 26px' }}
             >
               <LogIn size={18} style={{ color: 'var(--color-blue)' }} />
@@ -497,8 +524,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: 'var(--space-8)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 'var(--space-6)',
             alignItems: 'stretch'
           }}>
             {plans.map((p) => (

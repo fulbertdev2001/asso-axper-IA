@@ -155,8 +155,8 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
           </div>
         </div>
 
-        {/* Center: Navigation Tabs (On the SAME row) */}
-        <nav style={{
+        {/* Center: Navigation Tabs (On Desktop / Tablet) */}
+        <nav className="header-desktop-nav" style={{
           display: 'flex',
           alignItems: 'center',
           gap: '2px',
@@ -330,7 +330,7 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
       </header>
 
       {/* Main Back-Office Content Container */}
-      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '24px 24px' }}>
+      <div className="has-mobile-bottom-nav" style={{ maxWidth: 1400, margin: '0 auto', padding: '16px 16px' }}>
         {/* Contextual Sub-header */}
         <div style={{ marginBottom: '20px' }}>
           <h1 style={{ fontSize: 'var(--text-2xl)', color: 'var(--color-navy)', marginBottom: '4px' }}>
@@ -669,6 +669,61 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
         </div>
       )}
       </div>
+
+      {/* Mobile Bottom Navigation Bar for Admin */}
+      <nav className="mobile-bottom-nav" aria-label="Navigation administration mobile">
+        <div className="mobile-bottom-nav-inner">
+          <button
+            onClick={() => setActiveTab('tickets')}
+            className={`mobile-nav-item ${activeTab === 'tickets' ? 'active' : ''}`}
+            aria-label="Questions et Arbitrages"
+          >
+            <div style={{ position: 'relative', display: 'inline-flex' }}>
+              <UserCheck size={20} />
+              {pendingTicketsCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: -2,
+                  right: -4,
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: '#ea580c',
+                  border: '1.5px solid #ffffff'
+                }} />
+              )}
+            </div>
+            <span>Questions</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('plans')}
+            className={`mobile-nav-item ${activeTab === 'plans' ? 'active' : ''}`}
+            aria-label="Gestion des formules"
+          >
+            <DollarSign size={20} />
+            <span>Formules</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ai_usage')}
+            className={`mobile-nav-item ${activeTab === 'ai_usage' ? 'active' : ''}`}
+            aria-label="Télémétrie IA"
+          >
+            <Cpu size={20} />
+            <span>Télémétrie</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('seo')}
+            className={`mobile-nav-item ${activeTab === 'seo' ? 'active' : ''}`}
+            aria-label="CMS SEO"
+          >
+            <Globe2 size={20} />
+            <span>SEO</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };

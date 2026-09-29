@@ -170,7 +170,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           maxWidth: '520px',
           backgroundColor: '#ffffff',
           borderRadius: '20px',
-          padding: '36px 32px',
+          padding: 'clamp(20px, 5vw, 36px) clamp(16px, 4vw, 32px)',
           boxShadow: 'var(--shadow-float)',
           border: '1px solid var(--color-border)'
         }}
@@ -442,7 +442,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               border: '1px solid var(--color-border)',
               borderRadius: '14px'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <KeyRound size={15} style={{ color: 'var(--color-blue)' }} />
                   <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-navy)' }}>

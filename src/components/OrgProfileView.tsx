@@ -548,7 +548,7 @@ export const OrgProfileView: React.FC<OrgProfileViewProps> = ({
             </div>
 
             <form onSubmit={handleAddMember} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
                 <div>
                   <label className="form-label">Prénom * :</label>
                   <input
@@ -592,7 +592,7 @@ export const OrgProfileView: React.FC<OrgProfileViewProps> = ({
                 </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
                 <div>
                   <label className="form-label">Email professionnel * :</label>
                   <input

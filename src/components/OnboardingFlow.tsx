@@ -108,17 +108,17 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   return (
     <div className="animate-fade-in" style={{
       maxWidth: 860,
-      margin: '40px auto 80px',
-      padding: '0 24px'
+      margin: '24px auto 60px',
+      padding: '0 clamp(14px, 3vw, 24px)'
     }}>
       {/* Progress Steps Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
             <span className="badge badge-blue" style={{ marginBottom: '6px' }}>
               Parcours Onboarding Association (Lot 2 & 3)
             </span>
-            <h1 style={{ fontSize: '28px', color: 'var(--color-navy)', margin: 0 }}>
+            <h1 style={{ fontSize: 'var(--text-2xl)', color: 'var(--color-navy)', margin: 0 }}>
               Configuration de votre association
             </h1>
           </div>
@@ -127,8 +127,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           </button>
         </div>
 
-        {/* Steps Breadcrumbs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+        {/* Desktop Steps Breadcrumbs */}
+        <div className="hide-on-mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
           {[
             { step: 1, title: '1. Responsable' },
             { step: 2, title: '2. Association' },
@@ -152,11 +152,35 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             </div>
           ))}
         </div>
+
+        {/* Mobile Stepper Bar */}
+        <div className="show-on-mobile" style={{ display: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-blue)' }}>
+              Étape {currentStep} sur 4
+            </span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-navy-muted)' }}>
+              {currentStep === 1 && "Responsable"}
+              {currentStep === 2 && "Association"}
+              {currentStep === 3 && "Convention"}
+              {currentStep === 4 && "Formule & Stripe"}
+            </span>
+          </div>
+          <div style={{ height: '6px', borderRadius: '3px', backgroundColor: 'var(--color-surface-subtle)', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: `${currentStep * 25}%`,
+              backgroundColor: 'var(--color-blue)',
+              borderRadius: '3px',
+              transition: 'width 0.3s ease'
+            }} />
+          </div>
+        </div>
       </div>
 
       {/* STEP 1: Responsable & Contact */}
       {currentStep === 1 && (
-        <div className="card animate-fade-in" style={{ padding: '32px' }}>
+        <div className="card animate-fade-in" style={{ padding: 'clamp(18px, 4vw, 32px)' }}>
           <h2 style={{ fontSize: '20px', color: 'var(--color-navy)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Users size={22} style={{ color: 'var(--color-blue)' }} />
             <span>Identité du responsable de compte</span>
@@ -217,7 +241,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       {/* STEP 2: Identité Légale de l'Association */}
       {currentStep === 2 && (
-        <div className="card animate-fade-in" style={{ padding: '32px' }}>
+        <div className="card animate-fade-in" style={{ padding: 'clamp(18px, 4vw, 32px)' }}>
           <h2 style={{ fontSize: '20px', color: 'var(--color-navy)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Building2 size={22} style={{ color: 'var(--color-blue)' }} />
             <span>Identité légale et déclarative (CDC §12.1)</span>
@@ -335,7 +359,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       {/* STEP 3: Convention Collective (CCN) */}
       {currentStep === 3 && (
-        <div className="card animate-fade-in" style={{ padding: '32px' }}>
+        <div className="card animate-fade-in" style={{ padding: 'clamp(18px, 4vw, 32px)' }}>
           <h2 style={{ fontSize: '20px', color: 'var(--color-navy)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Award size={22} style={{ color: 'var(--color-blue)' }} />
             <span>Convention collective applicable</span>
@@ -380,7 +404,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             </span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px', flexWrap: 'wrap', gap: '10px' }}>
             <button onClick={() => setCurrentStep(2)} className="btn btn-secondary">
               <ArrowLeft size={16} />
               <span>Précédent</span>
@@ -395,7 +419,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       {/* STEP 4: Formule & Simulation Stripe Checkout (Lot 3) */}
       {currentStep === 4 && (
-        <div className="card animate-fade-in" style={{ padding: '32px' }}>
+        <div className="card animate-fade-in" style={{ padding: 'clamp(18px, 4vw, 32px)' }}>
           <h2 style={{ fontSize: '20px', color: 'var(--color-navy)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <CreditCard size={22} style={{ color: 'var(--color-blue)' }} />
             <span>Choix de la formule & Activation Stripe</span>

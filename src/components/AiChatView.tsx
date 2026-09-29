@@ -173,6 +173,7 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
             {/* Brique RH */}
             <button
               onClick={() => setSelectedDomain('rh')}
+              className="chat-brique-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -182,19 +183,22 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
                 background: selectedDomain === 'rh' ? 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)' : 'transparent',
                 color: selectedDomain === 'rh' ? '#ffffff' : 'var(--color-navy)',
                 boxShadow: selectedDomain === 'rh' ? '0 4px 12px rgba(0, 74, 173, 0.25)' : 'none',
-                textAlign: 'left'
+                textAlign: 'left',
+                border: 'none',
+                cursor: 'pointer'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Users size={18} />
                 <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>RH & Conventions</span>
               </div>
-              <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px' }}>Active</span>
+              <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px', marginLeft: 8 }}>Active</span>
             </button>
 
             {/* Brique Gouvernance */}
             <button
               onClick={() => setSelectedDomain('gouvernance')}
+              className="chat-brique-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -204,19 +208,22 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
                 background: selectedDomain === 'gouvernance' ? 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)' : 'transparent',
                 color: selectedDomain === 'gouvernance' ? '#ffffff' : 'var(--color-navy)',
                 boxShadow: selectedDomain === 'gouvernance' ? '0 4px 12px rgba(0, 74, 173, 0.25)' : 'none',
-                textAlign: 'left'
+                textAlign: 'left',
+                border: 'none',
+                cursor: 'pointer'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Scale size={18} />
                 <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>Gouvernance 1901</span>
               </div>
-              <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px' }}>Active</span>
+              <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px', marginLeft: 8 }}>Active</span>
             </button>
 
             {/* Brique Finance */}
             <button
               onClick={() => setSelectedDomain('finance')}
+              className="chat-brique-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -226,7 +233,9 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
                 background: selectedDomain === 'finance' ? 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)' : 'transparent',
                 color: selectedDomain === 'finance' ? '#ffffff' : 'var(--color-navy)',
                 boxShadow: selectedDomain === 'finance' ? '0 4px 12px rgba(0, 74, 173, 0.25)' : 'none',
-                textAlign: 'left'
+                textAlign: 'left',
+                border: 'none',
+                cursor: 'pointer'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -234,15 +243,16 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
                 <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>Finance & Subventions</span>
               </div>
               {currentPlan.features.briqueFinance ? (
-                <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px' }}>Active</span>
+                <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px', marginLeft: 8 }}>Active</span>
               ) : (
-                <Lock size={14} style={{ color: 'var(--color-orange)' }} />
+                <Lock size={14} style={{ color: 'var(--color-orange)', marginLeft: 8 }} />
               )}
             </button>
 
             {/* Brique Conformité */}
             <button
               onClick={() => setSelectedDomain('conformite')}
+              className="chat-brique-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -252,7 +262,9 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
                 background: selectedDomain === 'conformite' ? 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)' : 'transparent',
                 color: selectedDomain === 'conformite' ? '#ffffff' : 'var(--color-navy)',
                 boxShadow: selectedDomain === 'conformite' ? '0 4px 12px rgba(0, 74, 173, 0.25)' : 'none',
-                textAlign: 'left'
+                textAlign: 'left',
+                border: 'none',
+                cursor: 'pointer'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -260,16 +272,16 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
                 <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>Conformité DUERP</span>
               </div>
               {currentPlan.features.briqueConformite ? (
-                <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px' }}>Active</span>
+                <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px', marginLeft: 8 }}>Active</span>
               ) : (
-                <Lock size={14} style={{ color: 'var(--color-orange)' }} />
+                <Lock size={14} style={{ color: 'var(--color-orange)', marginLeft: 8 }} />
               )}
             </button>
           </div>
         </div>
 
-        {/* Association Context Box */}
-        <div className="card" style={{ padding: 'var(--space-4)', fontSize: 'var(--text-xs)', lineHeight: 1.55 }}>
+        {/* Association Context Box (Desktop / Tablet only) */}
+        <div className="card hide-on-mobile" style={{ padding: 'var(--space-4)', fontSize: 'var(--text-xs)', lineHeight: 1.55 }}>
           <div style={{ fontWeight: 800, color: 'var(--color-navy)', marginBottom: 'var(--space-2)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Cpu size={14} style={{ color: 'var(--color-blue)' }} />
             <span>Profil injecté dans le prompt :</span>
@@ -289,7 +301,7 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
         {messages.length > 0 && (
           <button
             onClick={handleClearHistory}
-            className="btn btn-sm btn-secondary"
+            className="btn btn-sm btn-secondary hide-on-mobile"
             style={{ width: '100%', color: 'var(--color-red)' }}
           >
             <Trash2 size={14} />
@@ -351,12 +363,12 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
         <div className="card" style={{
           flexGrow: 1,
           overflowY: 'auto',
-          minHeight: '440px',
-          maxHeight: '580px',
+          minHeight: '340px',
+          height: 'calc(100vh - 300px)',
           display: 'flex',
           flexDirection: 'column',
           gap: 'var(--space-6)',
-          padding: 'var(--space-6)',
+          padding: 'var(--space-4)',
           backgroundColor: '#ffffff'
         }}>
           {messages.length === 0 && !isTyping && (
@@ -501,7 +513,7 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
                   )}
 
                   {/* 5. Bouton obligatoire : Poser à l'experte */}
-                  <div style={{
+                  <div className="mobile-stack" style={{
                     marginTop: 'var(--space-6)',
                     paddingTop: 'var(--space-4)',
                     borderTop: '1px solid var(--color-border)',
@@ -519,7 +531,7 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
                         m.structuredAnswer?.suggestedTicketDomain || selectedDomain,
                         m.structuredAnswer?.suggestedTicketQuestion || 'Question issue de la conversation'
                       )}
-                      className="btn btn-sm btn-lime"
+                      className="btn btn-sm btn-lime mobile-w-full"
                       style={{ padding: '0 16px' }}
                     >
                       <UserCheck size={16} />

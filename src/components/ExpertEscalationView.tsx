@@ -231,7 +231,7 @@ export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
                 {/* Urgency */}
                 <div>
                   <label className="form-label">Délai de traitement souhaité :</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
                     <label style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -488,14 +488,14 @@ export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
                     <label className="form-label" style={{ fontSize: '12px', marginBottom: '6px' }}>
                       Besoin d'une précision supplémentaire sur cette réponse ?
                     </label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="mobile-stack" style={{ display: 'flex', gap: '8px' }}>
                       <input
                         type="text"
                         className="input"
                         placeholder="Ex: Merci pour ce retour. Pouvez-vous préciser le délai de prévenance ?"
                         value={followUpText}
                         onChange={(e) => setFollowUpText(e.target.value)}
-                        style={{ height: '40px', fontSize: '13px' }}
+                        style={{ height: '40px', fontSize: '13px', flex: 1 }}
                       />
                       <button
                         type="button"

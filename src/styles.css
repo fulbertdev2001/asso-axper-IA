@@ -498,19 +498,129 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 
 /* ==========================================================================
-   Responsive & Mobile First Optimizations (Lighthouse Mobile >= 90)
+   Responsive & Mobile First Optimizations (Mobile <= 768px, <= 480px, <= 360px)
    ========================================================================== */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  min-width: 320px;
+}
+
+img, svg, video, canvas, audio, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Anti-débordement de texte */
+.break-word {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Tableaux avec scroll horizontal fluide sur mobile */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: var(--space-4);
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--color-border-hover);
+  border-radius: 4px;
+}
+
+/* Mobile Bottom Navigation Bar pour ClientApp et AdminPayload */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -4px 20px rgba(10, 37, 64, 0.1);
+  z-index: 1000;
+  padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  touch-action: manipulation;
+}
+
+.mobile-bottom-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  max-width: 520px;
+  margin: 0 auto;
+  gap: 6px;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  min-height: 48px;
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  color: var(--color-navy-muted);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all var(--transition-fast);
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.95);
+}
+
+.mobile-nav-item.active {
+  color: var(--color-blue);
+  background-color: var(--color-blue-light);
+}
+
+.mobile-nav-item svg {
+  transition: transform var(--transition-fast);
+}
+
+.mobile-nav-item.active svg {
+  transform: translateY(-1px);
+}
+
+/* Espace réservé en bas de page pour la bottom nav */
+.has-mobile-bottom-nav {
+  padding-bottom: 78px;
+}
 
 @media (max-width: 768px) {
   :root {
-    --text-5xl: 34px;
+    --text-5xl: 32px;
     --text-4xl: 26px;
     --text-3xl: 22px;
     --text-2xl: 19px;
     --text-xl: 17px;
     --text-base: 15px;
     --space-16: 36px;
-    --space-12: 28px;
+    --space-12: 26px;
     --space-8: 20px;
     --space-6: 16px;
     --space-4: 12px;
@@ -535,6 +645,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .input, .select, .textarea {
     font-size: 16px !important;
     min-height: 44px;
+  }
+
+  /* Activation de la bottom nav bar sur smartphone / tablette */
+  .mobile-bottom-nav {
+    display: block !important;
+  }
+
+  /* Masquer le menu d'onglets du header sur mobile au profit de la bottom bar */
+  .header-desktop-nav {
+    display: none !important;
   }
 
   /* Responsive Utilities */
@@ -574,8 +694,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 @media (max-width: 480px) {
   :root {
-    --text-5xl: 28px;
-    --text-4xl: 23px;
+    --text-5xl: 26px;
+    --text-4xl: 22px;
     --text-3xl: 20px;
     --text-2xl: 18px;
     --text-base: 14px;
@@ -592,6 +712,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   display: grid;
   grid-template-columns: 290px 1fr;
   gap: var(--space-6);
+  padding: 0 20px 24px;
 }
 
 .chat-sidebar-briques {
@@ -612,18 +733,32 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   gap: var(--space-8);
 }
 
-@media (max-width: 860px) {
+@media (max-width: 920px) {
   .chat-layout-grid {
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
-    padding: 12px 10px 24px !important;
+    padding: 8px 12px 24px !important;
   }
 
+  /* Briques thématiques en barre horizontale scrollable ultra-compacte */
   .chat-sidebar-briques {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     gap: 8px !important;
+    padding-bottom: 4px !important;
+    scrollbar-width: none !important;
+  }
+  .chat-sidebar-briques::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .chat-brique-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 10px 14px !important;
   }
 
   .admin-split-grid {
@@ -637,10 +772,33 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     flex-direction: column !important;
     gap: 16px !important;
   }
+
+  .chat-bubble-user {
+    max-width: 92% !important;
+    padding: 12px 16px !important;
+  }
+
+  .chat-bubble-ai {
+    max-width: 98% !important;
+    padding: 14px !important;
+  }
 }
 
 @media (max-width: 480px) {
-  .chat-sidebar-briques {
-    grid-template-columns: 1fr !important;
+  .chat-brique-btn {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+  }
+
+  .chat-bubble-user {
+    max-width: 95% !important;
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+  }
+
+  .chat-bubble-ai {
+    max-width: 100% !important;
+    padding: 12px !important;
+    font-size: 14px !important;
   }
 }

@@ -111,8 +111,8 @@ export const ClientAppLayout: React.FC<ClientAppLayoutProps> = ({
           </div>
         </div>
 
-        {/* Center: Navigation Menu Tabs (On the SAME row) */}
-        <nav style={{
+        {/* Center: Navigation Menu Tabs (On Desktop / Tablet) */}
+        <nav className="header-desktop-nav" style={{
           display: 'flex',
           alignItems: 'center',
           gap: '2px',
@@ -340,8 +340,8 @@ export const ClientAppLayout: React.FC<ClientAppLayoutProps> = ({
         )}
       </div>
 
-      {/* Tab Content */}
-      <div style={{ flexGrow: 1 }}>
+      {/* Tab Content with responsive padding */}
+      <div className="has-mobile-bottom-nav" style={{ flexGrow: 1 }}>
         {activeTab === 'chat' && (
           <AiChatView
             currentOrg={currentOrg}
@@ -386,6 +386,68 @@ export const ClientAppLayout: React.FC<ClientAppLayoutProps> = ({
           />
         )}
       </div>
+
+      {/* Mobile Bottom Navigation Bar (Visible only on screens <= 768px) */}
+      <nav className="mobile-bottom-nav" aria-label="Navigation principale mobile">
+        <div className="mobile-bottom-nav-inner">
+          {/* Tab 1: Chat IA */}
+          <button
+            onClick={() => {
+              onClearPrefillEscalation();
+              setActiveTab('chat');
+            }}
+            className={`mobile-nav-item ${activeTab === 'chat' ? 'active' : ''}`}
+            aria-label="Assistant IA"
+          >
+            <MessageSquare size={20} />
+            <span>Chat IA</span>
+          </button>
+
+          {/* Tab 2: Experte 48h */}
+          <button
+            onClick={() => setActiveTab('escalation')}
+            className={`mobile-nav-item ${activeTab === 'escalation' ? 'active' : ''}`}
+            aria-label="Questions Expertes 48h"
+          >
+            <div style={{ position: 'relative', display: 'inline-flex' }}>
+              <UserCheck size={20} />
+              {answeredTickets.length > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: -2,
+                  right: -4,
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--color-lime)',
+                  border: '1.5px solid #ffffff'
+                }} />
+              )}
+            </div>
+            <span>Experte 48h</span>
+          </button>
+
+          {/* Tab 3: Profil Asso */}
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+            aria-label="Fiche Association"
+          >
+            <Building2 size={20} />
+            <span>Profil Asso</span>
+          </button>
+
+          {/* Tab 4: Abonnement */}
+          <button
+            onClick={() => setActiveTab('subscription')}
+            className={`mobile-nav-item ${activeTab === 'subscription' ? 'active' : ''}`}
+            aria-label="Forfait et Abonnement"
+          >
+            <CreditCard size={20} />
+            <span>Forfait</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };

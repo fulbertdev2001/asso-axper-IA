@@ -230,18 +230,20 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
           </div>
         </div>
 
-        <div style={{ backgroundColor: 'var(--color-surface-subtle)', borderRadius: 'var(--radius-md)', padding: '12px', fontSize: '13px', fontFamily: 'monospace' }}>
+        <div className="table-responsive" style={{ backgroundColor: 'var(--color-surface-subtle)', borderRadius: 'var(--radius-md)', padding: '12px', fontSize: '13px', fontFamily: 'monospace' }}>
           <div style={{ fontWeight: 700, marginBottom: '8px', color: 'var(--color-navy)' }}>
             Journal d'idempotence des événements Stripe :
           </div>
-          {stripeEvents.map((evt) => (
-            <div key={evt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #cbd5e1' }}>
-              <span style={{ color: 'var(--color-blue)' }}>{evt.id}</span>
-              <span style={{ color: 'var(--color-navy)' }}>{evt.type}</span>
-              <span style={{ color: '#64748b' }}>{evt.processedAt}</span>
-              <span className="badge badge-lime" style={{ fontSize: '10px' }}>Idempotent OK</span>
-            </div>
-          ))}
+          <div style={{ minWidth: 480 }}>
+            {stripeEvents.map((evt) => (
+              <div key={evt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed #cbd5e1', gap: '10px' }}>
+                <span style={{ color: 'var(--color-blue)' }}>{evt.id}</span>
+                <span style={{ color: 'var(--color-navy)', fontWeight: 600 }}>{evt.type}</span>
+                <span style={{ color: '#64748b', fontSize: '11px' }}>{evt.processedAt}</span>
+                <span className="badge badge-lime" style={{ fontSize: '10px' }}>Idempotent OK</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -258,9 +260,9 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 100,
-          padding: '24px'
+          padding: '16px'
         }}>
-          <div className="card animate-fade-in" style={{ maxWidth: 600, width: '100%', padding: 'var(--space-8)' }}>
+          <div className="card animate-fade-in" style={{ maxWidth: 600, width: '100%', padding: 'clamp(18px, 4vw, 32px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <CreditCard size={22} style={{ color: 'var(--color-blue)' }} />
@@ -290,7 +292,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
                 </ul>
               </div>
 
-              <div style={{ marginTop: 'var(--space-4)', display: 'flex', gap: '12px' }}>
+              <div className="mobile-stack" style={{ marginTop: 'var(--space-4)', display: 'flex', gap: '12px' }}>
                 <button
                   onClick={() => {
                     alert('Simulation : Carte mise à jour sur Stripe avec succès.');
