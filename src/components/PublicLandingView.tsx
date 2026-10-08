@@ -32,7 +32,10 @@ import {
   AlertCircle,
   FolderCheck,
   Database,
-  Building
+  Building,
+  Sliders,
+  Play,
+  CheckCircle
 } from 'lucide-react';
 
 interface PublicLandingViewProps {
@@ -54,6 +57,13 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
   const [activeSolutionTab, setActiveSolutionTab] = useState<string>('centralisation');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
+  // Dynamic ROI Simulator State
+  const [employeeCount, setEmployeeCount] = useState<number>(24);
+  const [selectedCcn, setSelectedCcn] = useState<string>('CCN 66');
+
+  // Interactive Live AI Query Demonstration
+  const [activeQueryIndex, setActiveQueryIndex] = useState<number>(0);
+
   // Interactive Demo Modal State
   const [isDemoModalOpen, setIsDemoModalOpen] = useState<boolean>(false);
   const [demoSubmitted, setDemoSubmitted] = useState<boolean>(false);
@@ -69,6 +79,15 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
   // Newsletter feedback state
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
+
+  // Dynamic ROI calculations
+  const hoursSaved = Math.round(5 + employeeCount * 0.4);
+  const moneySaved = Math.round(120 + employeeCount * 12);
+  const recommendedPlanName = employeeCount < 10 
+    ? 'Formule Initiale (49 € / mois)' 
+    : employeeCount <= 40 
+      ? 'Formule Pro (149 € / mois) — Recommandé' 
+      : 'Formule Expert (299 € / mois)';
 
   // Solutions data inspired by PilotAsso
   const solutions = [
@@ -190,6 +209,64 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
 
   const currentSolution = solutions.find(s => s.id === activeSolutionTab) || solutions[0];
 
+  // Interactive Live Queries
+  const sampleQueries = [
+    {
+      id: 0,
+      title: 'CCN 66 — Congés trimestriels & ancienneté',
+      tag: 'RH & CCN 66',
+      question: 'Quels sont les congés conventionnels d’ancienneté et congés trimestriels pour nos éducateurs spécialisés sous CCN 66 ?',
+      response: {
+        synthese: 'En sus des 2,5 jours ouvrables légaux de congés payés par mois, l’article 22 de la CCN 66 accorde 2 jours ouvrables supplémentaires par tranche de 5 ans d’ancienneté (plafonnés à 6 jours). Pour vos éducateurs spécialisés (Annexe 3), s’y ajoutent impérativement 6 jours de congés trimestriels consécutifs au cours de chacun des 3 trimestres ne comprenant pas les congés annuels.',
+        references: 'CCN 66 Art. 22 & Annexe 3 (Éducateurs) • Code du travail Art. L. 3141-10.',
+        calcul: 'Pour un salarié ayant 12 ans d’ancienneté : 25 jours légaux + 4 jours d’ancienneté + 18 jours trimestriels = 47 jours de repos annuels garantis.',
+        vigilance: 'Les congés trimestriels doivent être pris dans le trimestre civil considéré. Ils ne peuvent être reportés ni indemnisés sauf impossibilité imputable à l’employeur.',
+        experte: 'Analyse d’impact sur votre planning et vos fiches de paie validée par Laetitia Badji (Cabinet Maé) sous 48h ouvrées.'
+      }
+    },
+    {
+      id: 1,
+      title: 'Finance — Reliquat de subvention CER',
+      tag: 'Finance & Subventions',
+      question: 'Comment traiter un reliquat de subvention municipale non consommé en fin d’exercice dans notre Compte d’Emploi des Ressources (CER) ?',
+      response: {
+        synthese: 'Le reliquat doit être inscrit au passif du bilan en « Fonds dédiés » (compte 194) si la convention de subvention prévoit explicitement le report sur l’exercice suivant pour financer la poursuite de l’action. Sans clause de report ou accord écrit du financeur, la somme doit être constatée en dette (compte 467) en vue d’un reversement.',
+        references: 'Règlement ANC n° 2018-06 (comptabilité des organismes sans but lucratif) • Décret n° 2001-495 relatif au CER.',
+        calcul: 'Montant non engagé : 14 500 € ➔ Inscription au tableau de variation des fonds dédiés et mention obligatoire dans l’annexe comptable.',
+        vigilance: 'Attention au risque de requalification fiscale ou d’ordre de reversement lors du contrôle de la Chambre Régionale des Comptes.',
+        experte: 'Revue de votre convention de financement et de votre bilan CER par Laetitia Badji sous 48h ouvrées.'
+      }
+    },
+    {
+      id: 2,
+      title: 'Gouvernance — Quorum AG & Procurations',
+      tag: 'Gouvernance Loi 1901',
+      question: 'Le quorum statutaire n’est pas atteint pour notre Assemblée Générale Ordinaire. Pouvons-nous voter avec les procurations reçues ?',
+      response: {
+        synthese: 'Les procurations comptent dans le calcul du quorum uniquement si les statuts de votre association le prévoient expressément et dans la limite des plafonds statutaires (ex. maximum 2 ou 3 pouvoirs par membre). Si le quorum demeure insuffisant, l’AG ne peut valablement délibérer : les votes seraient frappés de nullité absolue.',
+        references: 'Loi du 1er juillet 1901 Art. 5 • Cass. 1ère Civ., 13 novembre 2008, n° 07-17.842.',
+        calcul: 'Membres à jour : 84. Quorum requis (statuts 50%) : 42. Présents (28) + Pouvoirs valides (8) = 36. Quorum non atteint de 6 voix.',
+        vigilance: 'Consigner impérativement le défaut de quorum au procès-verbal et convoquer une seconde AG selon les délais statutaires d’urgence.',
+        experte: 'Rédaction sécurisée du PV de carence et de la convocation de la 2nde AG par Laetitia Badji sous 48h ouvrées.'
+      }
+    },
+    {
+      id: 3,
+      title: 'CCN 51 — Rupture conventionnelle & Préavis',
+      tag: 'RH & CCN 51',
+      question: 'Quelles sont les spécificités d’une rupture conventionnelle et de calcul d’indemnité pour un cadre sous convention collective CCN 51 ?',
+      response: {
+        synthese: 'Sous CCN 51 (FEHAP), l’indemnité spécifique de rupture conventionnelle ne peut être inférieure à l’indemnité conventionnelle de licenciement si celle-ci est plus favorable que l’indemnité légale, ce qui est le cas après quelques années d’ancienneté.',
+        references: 'CCN 51 FEHAP Art. 15.02.2 & 15.03 • Code du travail Art. L. 1237-13.',
+        calcul: 'Pour un cadre avec 6 ans d’ancienneté : 1 mois par année sur les 5 premières années, puis fraction majorée. Montant conventionnel supérieur d’environ 45% au barème légal.',
+        vigilance: 'Respecter scrupuleusement le délai de rétractation de 15 jours calendaires avant télétransmission TéléRC à la DREETS.',
+        experte: 'Audit préalable du protocole de rupture et sécurisation juridique par Laetitia Badji sous 48h ouvrées.'
+      }
+    }
+  ];
+
+  const currentQuery = sampleQueries[activeQueryIndex];
+
   const faqs = [
     {
       q: 'En quoi AssoExpert IA est-il différent d’un outil généraliste comme ChatGPT ?',
@@ -278,9 +355,6 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
   const handleDemoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setDemoSubmitted(true);
-    setTimeout(() => {
-      // Auto close after 3 seconds or allow user to click
-    }, 3000);
   };
 
   return (
@@ -326,7 +400,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         </button>
       </div>
 
-      {/* Main Sticky Navbar */}
+      {/* Main Sticky Navbar (Always on 1 line on desktop) */}
       <nav style={{
         backgroundColor: '#ffffff',
         borderBottom: '1px solid var(--color-border)',
@@ -393,6 +467,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             <a href="#finances" className="pilot-nav-link">Finances</a>
             <a href="#financements" className="pilot-nav-link">Financements</a>
             <a href="#rh" className="pilot-nav-link" style={{ whiteSpace: 'nowrap' }}>RH &amp; CCN</a>
+            <a href="#simulateur" className="pilot-nav-link" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>Simulateur IA</a>
             <a href="#gouvernance" className="pilot-nav-link">Gouvernance</a>
             <a href="#tarifs" className="pilot-nav-link">Tarifs</a>
             <a href="#faq" className="pilot-nav-link">FAQ</a>
@@ -448,6 +523,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             <a href="#finances" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>Pilotez vos finances</a>
             <a href="#financements" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>Trouvez et suivez vos financements</a>
             <a href="#rh" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>RH & Conventions Collectives</a>
+            <a href="#simulateur" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 700, color: 'var(--color-blue)' }}>Simulateur interactif en direct</a>
             <a href="#gouvernance" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>Gouvernance Loi 1901</a>
             <a href="#tarifs" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>Tarifs</a>
             <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>FAQ</a>
@@ -465,7 +541,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       </nav>
 
       {/* =========================================================================
-          HERO SECTION (PilotAsso Style)
+          HERO SECTION WITH REALISTIC MOCKUP PHOTO & LIVE INTERFACE
           ========================================================================= */}
       <section style={{
         position: 'relative',
@@ -486,23 +562,23 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           pointerEvents: 'none'
         }} />
 
-        <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           {/* Top Pill Badge */}
           <div style={{ marginBottom: 'var(--space-6)' }}>
             <span className="pilot-pill-badge">
               <span className="pilot-live-indicator" />
-              <span>18 associations participent actuellement à la construction d'AssoExpert IA</span>
+              <span>18 associations & fédérations construisent activement AssoExpert IA</span>
             </span>
           </div>
 
           {/* Main Hero Headline */}
           <h1 style={{
-            fontSize: 'clamp(36px, 5.5vw, 60px)',
+            fontSize: 'clamp(36px, 5.5vw, 58px)',
             fontWeight: 800,
             color: 'var(--color-navy)',
             lineHeight: 1.12,
             letterSpacing: '-0.035em',
-            maxWidth: 960,
+            maxWidth: 980,
             margin: '0 auto var(--space-6)'
           }}>
             Centralisez vos finances, vos projets et vos règles RH associatives
@@ -533,7 +609,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               className="btn btn-primary mobile-w-full"
               style={{
                 height: 52,
-                padding: '0 32px',
+                padding: '0 34px',
                 fontSize: '16px',
                 fontWeight: 700,
                 borderRadius: 'var(--radius-pill)',
@@ -544,128 +620,129 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               <ArrowRight size={18} />
             </button>
 
-            <button
-              onClick={() => onStartOnboarding('pro')}
+            <a
+              href="#simulateur"
               className="btn btn-secondary mobile-w-full"
               style={{
                 height: 52,
-                padding: '0 26px',
+                padding: '0 28px',
                 fontSize: '15px',
                 fontWeight: 600,
-                borderRadius: 'var(--radius-pill)'
+                borderRadius: 'var(--radius-pill)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px'
               }}
             >
-              <span>S'abonner & Démarrer l'essai</span>
-            </button>
+              <Sparkles size={16} style={{ color: 'var(--color-blue)' }} />
+              <span>Tester le simulateur en direct</span>
+            </a>
           </div>
 
           <div style={{ fontSize: '13px', color: 'var(--color-navy-muted)', fontWeight: 500, marginBottom: 'var(--space-12)' }}>
             30 minutes, sans engagement. Une plateforme construite avec des associations, pour les associations.
           </div>
 
-          {/* Hero Live Interface Cockpit Preview (PilotAsso Style) */}
+          {/* RICH VISUAL HERO PRESENTATION: Photorealistic Mockup & Live Dashboard */}
           <div style={{
-            maxWidth: 980,
+            maxWidth: 1040,
             margin: '0 auto',
-            backgroundColor: '#ffffff',
-            borderRadius: '22px',
-            border: '1.5px solid var(--color-border)',
-            boxShadow: 'var(--shadow-float)',
+            position: 'relative',
+            borderRadius: '24px',
             overflow: 'hidden',
-            textAlign: 'left'
+            boxShadow: 'var(--shadow-float)',
+            border: '2px solid rgba(0, 74, 173, 0.12)'
           }}>
-            {/* Window bar */}
-            <div style={{
-              backgroundColor: '#f8fafc',
-              borderBottom: '1px solid var(--color-border)',
-              padding: '12px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#ef4444' }} />
-                <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-                <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#10b981' }} />
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)', marginLeft: 8 }}>
-                  Tableau de bord : {currentOrg.name}
-                </span>
-                <span className="badge badge-blue" style={{ fontSize: '10px', padding: '2px 8px' }}>
-                  {currentOrg.ccn.split('(')[0]}
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: 'var(--color-navy-muted)' }}>
+            {/* Real Editorial Image in Hero */}
+            <div style={{ position: 'relative', width: '100%', maxHeight: 460, overflow: 'hidden' }}>
+              <img
+                src="/images/hero-dashboard.jpg"
+                alt="Tableau de bord AssoExpert IA affiché sur un ordinateur portable dans un bureau associatif"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  objectFit: 'cover'
+                }}
+              />
+
+              {/* Floating Dynamic Badge 1 (Top Left) */}
+              <div style={{
+                position: 'absolute',
+                top: 20,
+                left: 20,
+                backgroundColor: 'rgba(255, 255, 255, 0.94)',
+                backdropFilter: 'blur(10px)',
+                padding: '8px 16px',
+                borderRadius: 'var(--radius-pill)',
+                border: '1px solid rgba(0, 74, 173, 0.2)',
+                boxShadow: '0 8px 24px rgba(10, 37, 64, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: 'var(--color-navy)'
+              }}>
                 <span className="live-dot" />
-                <span>Synchronisé &bull; Conforme Loi 1901</span>
+                <span>CCN 66 &bull; Congés trimestriels synchronisés</span>
+              </div>
+
+              {/* Floating Dynamic Badge 2 (Bottom Right) */}
+              <div style={{
+                position: 'absolute',
+                bottom: 20,
+                right: 20,
+                backgroundColor: 'rgba(10, 37, 64, 0.92)',
+                backdropFilter: 'blur(10px)',
+                padding: '10px 18px',
+                borderRadius: 'var(--radius-pill)',
+                border: '1px solid rgba(193, 255, 114, 0.4)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#ffffff'
+              }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-lime)', boxShadow: '0 0 8px var(--color-lime)' }} />
+                <span>Validation juridique signée sous 48h (Cabinet Maé)</span>
               </div>
             </div>
 
-            {/* Dashboard Mockup Grid */}
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: '16px'
-              }}>
-                {/* Tile 1: CCN & RH */}
-                <div style={{ padding: '16px', borderRadius: '14px', backgroundColor: '#f8fafc', border: '1px solid var(--color-border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy-muted)', textTransform: 'uppercase' }}>RH & CCN 66</span>
-                    <span className="badge badge-lime" style={{ fontSize: '9px', padding: '1px 6px' }}>À jour</span>
-                  </div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)' }}>Congés trimestriels</div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', marginTop: '4px' }}>T1 calculé pour 18 salariés de l'équipe</div>
-                </div>
-
-                {/* Tile 2: Finances */}
-                <div style={{ padding: '16px', borderRadius: '14px', backgroundColor: '#f8fafc', border: '1px solid var(--color-border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy-muted)', textTransform: 'uppercase' }}>Trésorerie & Budget</span>
-                    <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700 }}>+4.2%</span>
-                  </div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)' }}>420 000 € / an</div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', marginTop: '4px' }}>Projections de trésorerie glissantes sur 12 mois</div>
-                </div>
-
-                {/* Tile 3: Financements */}
-                <div style={{ padding: '16px', borderRadius: '14px', backgroundColor: '#f8fafc', border: '1px solid var(--color-border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy-muted)', textTransform: 'uppercase' }}>Échéance CER</span>
-                    <span className="badge badge-orange" style={{ fontSize: '9px', padding: '1px 6px' }}>J-14</span>
-                  </div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)' }}>Dépôt Subvention CAF</div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', marginTop: '4px' }}>Dossier financier prérempli sans oubli</div>
-                </div>
-
-                {/* Tile 4: Escalade Experte */}
-                <div style={{ padding: '16px', borderRadius: '14px', backgroundColor: '#ebf3fd', border: '1px solid rgba(0, 74, 173, 0.2)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-blue)', textTransform: 'uppercase' }}>Cabinet Maé</span>
-                    <span className="badge badge-blue" style={{ fontSize: '9px', padding: '1px 6px' }}>48h ouvrées</span>
-                  </div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)' }}>Validation Juriste</div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', marginTop: '4px' }}>Dernière note signée par Laetitia Badji</div>
-                </div>
+            {/* Sub-bar with Live Interactive KPI summary */}
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderTop: '1px solid var(--color-border)',
+              padding: '20px 24px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '16px',
+              textAlign: 'left'
+            }}>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Structure pilote active</div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-navy)', marginTop: 2 }}>{currentOrg.name}</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-blue)', fontWeight: 600 }}>{currentOrg.ccn.split('(')[0]} &bull; 28 salariés</div>
               </div>
 
-              {/* Sample AI Answer inside Interface */}
-              <div style={{
-                backgroundColor: '#ffffff',
-                border: '1px solid var(--color-border)',
-                borderRadius: '14px',
-                padding: '16px 20px',
-                boxShadow: '0 2px 8px rgba(10, 37, 64, 0.04)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                  <Sparkles size={16} style={{ color: 'var(--color-blue)' }} />
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)' }}>
-                    Exemple de question résolue : « Comment appliquer les congés conventionnels d’ancienneté CCN 66 ? »
-                  </span>
-                </div>
-                <p style={{ fontSize: '13px', color: 'var(--color-navy-muted)', lineHeight: 1.55, margin: 0 }}>
-                  <strong>Synthèse immédiate :</strong> Selon l'article 22 de la CCN 66, vos salariés bénéficient de 2 jours de congés supplémentaires par tranche de 5 ans d'ancienneté (plafonnés à 6 jours). Ils se cumulent avec les 2,5 jours ouvrables légaux. Pour vos éducateurs spécialisés, les congés trimestriels s'y ajoutent conformément aux dispositions de l'annexe 3.
-                </p>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Suivi Budgétaire & CER</div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-navy)', marginTop: 2 }}>420 000 € prévisionnel</div>
+                <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 600 }}>Fonds dédiés 14.5 k€ reportés</div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Prochaine échéance</div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-navy)', marginTop: 2 }}>Dépôt CER &bull; J-14</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-orange-dark)', fontWeight: 600 }}>Subvention CAF pré-remplie</div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Garantie humaine</div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-blue)', marginTop: 2 }}>Cabinet Maé &bull; Laetitia Badji</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', fontWeight: 600 }}>Délai garanti 48h ouvrées</div>
               </div>
             </div>
           </div>
@@ -673,7 +750,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       </section>
 
       {/* =========================================================================
-          SIGNATURE PILOTASSO SECTION:
+          SIGNATURE PILOTASSO SECTION WITH REAL DESK PHOTOGRAPHY:
           "Combien de fichiers devez-vous ouvrir pour savoir où en est votre association ?"
           ========================================================================= */}
       <section style={{
@@ -681,7 +758,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         padding: 'var(--space-16) var(--space-6)',
         borderBottom: '1px solid var(--color-border)'
       }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-12)' }}>
             <span style={{
@@ -708,29 +785,84 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               fontSize: 'var(--text-lg)',
               color: 'var(--color-navy-muted)',
               lineHeight: 1.6,
-              maxWidth: 780,
+              maxWidth: 820,
               margin: '0 auto'
             }}>
               Un tableau Excel pour le budget, un autre pour la trésorerie, un espace partagé pour les subventions, des documents dispersés pour les projets et les conventions collectives... Chaque réponse demande d'ouvrir plusieurs outils, et l'information n'est jamais tout à fait à jour.
             </p>
           </div>
 
-          {/* Centralizing Message */}
+          {/* Centralizing Message + Photo & Comparative Grid */}
           <div style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            border: '1.5px solid var(--color-border)',
-            padding: '32px',
-            marginBottom: 'var(--space-12)',
-            textAlign: 'center',
-            boxShadow: 'var(--shadow-card)'
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+            gap: 'var(--space-8)',
+            alignItems: 'center',
+            marginBottom: 'var(--space-12)'
           }}>
-            <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '8px' }}>
-              Vos outils peuvent rester. Votre pilotage se centralise.
-            </h3>
-            <p style={{ fontSize: '15px', color: 'var(--color-navy-muted)', maxWidth: 720, margin: '0 auto', lineHeight: 1.6 }}>
-              AssoExpert IA ne vous demande pas de tout remplacer. La plateforme se connecte progressivement à ce que vous utilisez déjà pour vous donner un point central où retrouver l'essentiel en toute sérénité.
-            </p>
+            {/* Visual Reality Photo */}
+            <div style={{
+              borderRadius: '20px',
+              overflow: 'hidden',
+              boxShadow: 'var(--shadow-card)',
+              border: '1.5px solid var(--color-border)',
+              position: 'relative'
+            }}>
+              <img
+                src="/images/finances-subventions.jpg"
+                alt="Documents financiers associatifs, formulaires CER et dossiers subventions"
+                style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
+              />
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: 'linear-gradient(to top, rgba(10,37,64,0.95) 0%, rgba(10,37,64,0.4) 70%, transparent 100%)',
+                padding: '24px 20px 16px',
+                color: '#ffffff'
+              }}>
+                <div style={{ fontSize: '14px', fontWeight: 700 }}>
+                  La réalité quotidienne des employeurs associatifs
+                </div>
+                <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: 4 }}>
+                  Formulaires CER, bilans, conventions collectives et statuts dispersés sur plusieurs bureaux et disques durs.
+                </div>
+              </div>
+            </div>
+
+            {/* Centralizing Callout */}
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              border: '1.5px solid var(--color-border)',
+              padding: '32px',
+              boxShadow: 'var(--shadow-card)'
+            }}>
+              <span className="badge badge-blue" style={{ marginBottom: '12px' }}>
+                Pilotage unifié
+              </span>
+              <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '12px' }}>
+                Vos outils peuvent rester. Votre pilotage se centralise.
+              </h3>
+              <p style={{ fontSize: '15px', color: 'var(--color-navy-muted)', lineHeight: 1.6, marginBottom: '20px' }}>
+                AssoExpert IA ne vous demande pas de tout remplacer. La plateforme se connecte progressivement à ce que vous utilisez déjà pour vous donner un point central où retrouver l'essentiel en toute sécurité.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, color: 'var(--color-navy)' }}>
+                  <CheckCircle size={18} style={{ color: 'var(--color-blue)' }} />
+                  <span>Conservation de vos tableurs et logiciels de paie actuels</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, color: 'var(--color-navy)' }}>
+                  <CheckCircle size={18} style={{ color: 'var(--color-blue)' }} />
+                  <span>Centralisation immédiate des règles RH et conventions</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, color: 'var(--color-navy)' }}>
+                  <CheckCircle size={18} style={{ color: 'var(--color-blue)' }} />
+                  <span>Escalade humaine en 48h dès qu'un point sensible l'exige</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* The Famous 2-Card Comparison: Avant vs Avec (Signature PilotAsso) */}
@@ -830,6 +962,315 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                     <span style={{ fontWeight: 500 }}>{item}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          DYNAMIC INTERACTIVE SECTION 1:
+          ESTIMATEUR DE GAINS & ROI EN DIRECT (DYNAMIC SLIDER & CALCULATIONS)
+          ========================================================================= */}
+      <section id="simulateur" style={{
+        padding: 'var(--space-16) var(--space-6)',
+        backgroundColor: '#ffffff',
+        borderBottom: '1px solid var(--color-border)'
+      }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 'var(--space-10)' }}>
+            <span className="badge badge-lime" style={{ marginBottom: '8px' }}>
+              Simulateur interactif en direct
+            </span>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, color: 'var(--color-navy)' }}>
+              Estimez le gain de temps et les économies de votre structure
+            </h2>
+            <p style={{ fontSize: '16px', color: 'var(--color-navy-muted)', maxWidth: 680, margin: '8px auto 0' }}>
+              Ajustez l’effectif de votre association et découvrez instantanément le volume d’heures récupérées et la formule adaptée.
+            </p>
+          </div>
+
+          <div className="card" style={{
+            padding: '36px',
+            borderRadius: '24px',
+            backgroundColor: '#f8fafc',
+            border: '2px solid rgba(0, 74, 173, 0.15)',
+            boxShadow: 'var(--shadow-hover)'
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: 'var(--space-8)',
+              alignItems: 'center'
+            }}>
+              {/* Left Controls */}
+              <div>
+                <div style={{ marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-navy)' }}>
+                      Taille de l'équipe salariée :
+                    </label>
+                    <span style={{
+                      backgroundColor: 'var(--color-blue)',
+                      color: '#ffffff',
+                      padding: '4px 14px',
+                      borderRadius: 'var(--radius-pill)',
+                      fontWeight: 800,
+                      fontSize: '15px'
+                    }}>
+                      {employeeCount} salariés
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="80"
+                    value={employeeCount}
+                    onChange={(e) => setEmployeeCount(parseInt(e.target.value, 10))}
+                    style={{
+                      width: '100%',
+                      accentColor: 'var(--color-blue)',
+                      cursor: 'pointer',
+                      height: 8
+                    }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--color-navy-muted)', marginTop: 4 }}>
+                    <span>1 salarié (Très petite asso)</span>
+                    <span>40 salariés</span>
+                    <span>80 salariés (Réseau / Fédération)</span>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)', display: 'block', marginBottom: '8px' }}>
+                    Convention collective principale :
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {['CCN 66', 'CCN 51 (FEHAP)', 'ÉCLAT (Animation)', 'ALISFA'].map(ccn => (
+                      <button
+                        key={ccn}
+                        onClick={() => setSelectedCcn(ccn)}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: 'var(--radius-pill)',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          backgroundColor: selectedCcn === ccn ? 'var(--color-navy)' : '#ffffff',
+                          color: selectedCcn === ccn ? '#ffffff' : 'var(--color-navy)',
+                          border: '1px solid var(--color-border)',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {ccn}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', lineHeight: 1.5 }}>
+                  Calculs basés sur le temps moyen de recherche juridique, de vérification des bulletins et de montage des dossiers CER observé sur notre panel associatif.
+                </div>
+              </div>
+
+              {/* Right Live Results Widget */}
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '18px',
+                border: '1px solid var(--color-border)',
+                padding: '28px',
+                boxShadow: 'var(--shadow-card)'
+              }}>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-blue)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px' }}>
+                  Résultat estimé pour votre association :
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                  <div style={{ backgroundColor: 'var(--color-blue-light)', padding: '16px', borderRadius: '12px' }}>
+                    <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--color-blue)', fontFamily: 'var(--font-display)' }}>
+                      +{hoursSaved}h
+                    </div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy)', marginTop: 2 }}>
+                      récupérées / mois
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', marginTop: 2 }}>
+                      Moins de ressaisies et calculs manuels
+                    </div>
+                  </div>
+
+                  <div style={{ backgroundColor: 'rgba(193, 255, 114, 0.3)', padding: '16px', borderRadius: '12px' }}>
+                    <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--color-lime-dark)', fontFamily: 'var(--font-display)' }}>
+                      {moneySaved}&nbsp;€
+                    </div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy)', marginTop: 2 }}>
+                      économisés / mois
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', marginTop: 2 }}>
+                      En temps administratif libéré
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '16px', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)' }}>Formule conseillée :</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--color-navy)', marginTop: 2 }}>
+                    {recommendedPlanName}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setIsDemoModalOpen(true)}
+                  className="btn btn-primary"
+                  style={{ width: '100%', height: 46, borderRadius: 'var(--radius-pill)', fontWeight: 700 }}
+                >
+                  <span>Valider cette simulation en démo (30 min)</span>
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          DYNAMIC INTERACTIVE SECTION 2:
+          TESTEZ L'ANALYSE IA EN DIRECT SUR UNE QUESTION RÉELLE
+          ========================================================================= */}
+      <section style={{
+        padding: 'var(--space-16) var(--space-6)',
+        backgroundColor: '#f8fafc',
+        borderBottom: '1px solid var(--color-border)'
+      }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
+            <span className="badge badge-blue" style={{ marginBottom: '8px' }}>
+              Démonstration instantanée
+            </span>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, color: 'var(--color-navy)' }}>
+              Testez l’analyse en direct sur un cas concret de votre secteur
+            </h2>
+            <p style={{ fontSize: '16px', color: 'var(--color-navy-muted)', maxWidth: 680, margin: '8px auto 0' }}>
+              Cliquez sur l'une des 4 situations ci-dessous pour voir comment l’IA structure sa réponse et prépare l’escalade juridique.
+            </p>
+
+            {/* Clickable Question Pills */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              flexWrap: 'wrap',
+              marginTop: 'var(--space-6)'
+            }}>
+              {sampleQueries.map((q) => (
+                <button
+                  key={q.id}
+                  onClick={() => setActiveQueryIndex(q.id)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 'var(--radius-pill)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    backgroundColor: activeQueryIndex === q.id ? 'var(--color-blue)' : '#ffffff',
+                    color: activeQueryIndex === q.id ? '#ffffff' : 'var(--color-navy)',
+                    border: activeQueryIndex === q.id ? '1px solid var(--color-blue)' : '1px solid var(--color-border)',
+                    boxShadow: activeQueryIndex === q.id ? '0 4px 12px rgba(0, 74, 173, 0.25)' : 'none',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {q.title}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Dynamic AI Response Card */}
+          <div className="card animate-fade-in" style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            border: '1.5px solid var(--color-border)',
+            padding: '28px',
+            boxShadow: 'var(--shadow-card)'
+          }}>
+            {/* Header Question */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
+              borderBottom: '1px solid var(--color-border)',
+              paddingBottom: '16px',
+              marginBottom: '18px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="badge badge-lime" style={{ fontSize: '10px', fontWeight: 800 }}>
+                  {currentQuery.tag}
+                </span>
+                <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-navy)' }}>
+                  Question posée : « {currentQuery.question} »
+                </span>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', fontWeight: 600 }}>
+                Format officiel CDC &bull; 5 sections
+              </div>
+            </div>
+
+            {/* 5 Structured Sections */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '14px', lineHeight: 1.6 }}>
+              <div style={{ backgroundColor: '#f8fafc', padding: '14px', borderRadius: '12px', borderLeft: '4px solid var(--color-blue)' }}>
+                <strong style={{ color: 'var(--color-navy)' }}>1. Synthèse directe :</strong> {currentQuery.response.synthese}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                <div style={{ padding: '12px 14px', borderRadius: '10px', backgroundColor: '#ffffff', border: '1px solid var(--color-border)' }}>
+                  <strong style={{ color: 'var(--color-navy)' }}>2. Références textuelles :</strong><br />
+                  <span style={{ color: 'var(--color-navy-muted)', fontSize: '13px' }}>{currentQuery.response.references}</span>
+                </div>
+
+                <div style={{ padding: '12px 14px', borderRadius: '10px', backgroundColor: '#ffffff', border: '1px solid var(--color-border)' }}>
+                  <strong style={{ color: 'var(--color-navy)' }}>3. Calcul & Chiffrage :</strong><br />
+                  <span style={{ color: 'var(--color-navy-muted)', fontSize: '13px' }}>{currentQuery.response.calcul}</span>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: 'var(--color-orange-light)', padding: '12px 14px', borderRadius: '10px', borderLeft: '4px solid var(--color-orange)', color: 'var(--color-orange-dark)', fontSize: '13px' }}>
+                <strong>4. Point de vigilance :</strong> {currentQuery.response.vigilance}
+              </div>
+
+              {/* Escalade Experte Highlight */}
+              <div style={{
+                backgroundColor: 'var(--color-blue-light)',
+                padding: '16px',
+                borderRadius: '12px',
+                border: '1.5px solid rgba(0, 74, 173, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Award size={22} style={{ color: 'var(--color-blue)', minWidth: 22 }} />
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-navy)' }}>
+                      5. Option Escalade Juridique : {currentQuery.response.experte}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)' }}>
+                      Délai garanti de réponse argumentée : sous 48h ouvrées par le Cabinet Maé.
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setIsDemoModalOpen(true)}
+                  className="btn btn-sm btn-primary"
+                  style={{ borderRadius: 'var(--radius-pill)', fontWeight: 700 }}
+                >
+                  <span>Tester cette escalade en démo</span>
+                  <ArrowRight size={14} />
+                </button>
               </div>
             </div>
           </div>
@@ -995,100 +1436,147 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       </section>
 
       {/* =========================================================================
-          PILOTASSO VALUES / BENEFIT SECTION:
+          PILOTASSO VALUES / BENEFIT SECTION WITH REAL TEAM PHOTOGRAPHY:
           "Moins de tâches répétitives, plus de temps pour piloter"
           ========================================================================= */}
       <section style={{
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#ffffff',
         padding: 'var(--space-16) var(--space-6)',
         borderTop: '1px solid var(--color-border)',
         borderBottom: '1px solid var(--color-border)'
       }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-12)' }}>
             <span style={{ color: 'var(--color-blue)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Gain d'efficacité
+              Gain d'efficacité & Sérénité
             </span>
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, color: 'var(--color-navy)', marginTop: 8 }}>
               Moins de tâches répétitives, plus de temps pour votre mission
             </h2>
             <p style={{ fontSize: '16px', color: 'var(--color-navy-muted)', maxWidth: 660, margin: '8px auto 0' }}>
-              L'automatisation et l'assistance intelligente libèrent vos équipes salariées et vos administrateurs bénévoles pour se concentrer sur l'essentiel.
+              L'automatisation et l'assistance intelligente libèrent vos équipes salariées et vos administrateurs bénévoles pour se consacrer aux bénéficiaires.
             </p>
           </div>
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-            gap: 'var(--space-6)'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+            gap: 'var(--space-8)',
+            alignItems: 'center'
           }}>
-            {/* Card 1 */}
-            <div className="card card-hover" style={{ padding: '32px', backgroundColor: '#ffffff', borderRadius: '18px' }}>
+            {/* Real Team Photo with Warm Caption */}
+            <div style={{
+              borderRadius: '20px',
+              overflow: 'hidden',
+              boxShadow: 'var(--shadow-hover)',
+              border: '1.5px solid var(--color-border)',
+              position: 'relative'
+            }}>
+              <img
+                src="/images/equipe-association.jpg"
+                alt="Équipe associative souriante et soudée collaborant autour d'un ordinateur"
+                style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
+              />
               <div style={{
-                width: 48,
-                height: 48,
-                borderRadius: '12px',
-                backgroundColor: 'var(--color-blue-light)',
-                color: 'var(--color-blue)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '20px'
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: 'linear-gradient(to top, rgba(10,37,64,0.92) 0%, rgba(10,37,64,0.3) 70%, transparent 100%)',
+                padding: '24px 20px 16px',
+                color: '#ffffff'
               }}>
-                <Clock size={24} />
+                <div style={{ fontSize: '14px', fontWeight: 700 }}>
+                  Des équipes sereines et valorisées
+                </div>
+                <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: 4 }}>
+                  Retrouvez le temps de concevoir des projets éducatifs et sociaux à fort impact.
+                </div>
               </div>
-              <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '10px' }}>
-                Moins de saisie manuelle
-              </h3>
-              <p style={{ fontSize: '14px', color: 'var(--color-navy-muted)', lineHeight: 1.6 }}>
-                L'intelligence artificielle et les règles conventionnelles intégrées prennent en charge les calculs d'ancienneté, les délais de préavis et les vérifications fastidieuses du quotidien.
-              </p>
             </div>
 
-            {/* Card 2 */}
-            <div className="card card-hover" style={{ padding: '32px', backgroundColor: '#ffffff', borderRadius: '18px' }}>
-              <div style={{
-                width: 48,
-                height: 48,
-                borderRadius: '12px',
-                backgroundColor: 'rgba(193, 255, 114, 0.35)',
-                color: 'var(--color-lime-dark)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '20px'
-              }}>
-                <Sparkles size={24} />
+            {/* 3 Benefit Cards Stack */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Card 1 */}
+              <div className="card card-hover" style={{ padding: '24px', backgroundColor: '#f8fafc', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    backgroundColor: 'var(--color-blue-light)',
+                    color: 'var(--color-blue)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Clock size={22} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '4px' }}>
+                      Moins de saisie manuelle
+                    </h3>
+                    <p style={{ fontSize: '13px', color: 'var(--color-navy-muted)', lineHeight: 1.55 }}>
+                      L'intelligence artificielle prend en charge les calculs d'ancienneté, de congés trimestriels et de préavis conventionnels complexes.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '10px' }}>
-                Aide à la recherche pointue
-              </h3>
-              <p style={{ fontSize: '14px', color: 'var(--color-navy-muted)', lineHeight: 1.6 }}>
-                Une assistance instruite de vos conventions (CCN 66, CCN 51, Éclat, Alisfa) pour repérer immédiatement l'article exact, la jurisprudence et les seuils applicables à votre situation.
-              </p>
-            </div>
 
-            {/* Card 3 */}
-            <div className="card card-hover" style={{ padding: '32px', backgroundColor: '#ffffff', borderRadius: '18px' }}>
-              <div style={{
-                width: 48,
-                height: 48,
-                borderRadius: '12px',
-                backgroundColor: 'var(--color-orange-light)',
-                color: 'var(--color-orange-dark)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '20px'
-              }}>
-                <Award size={24} />
+              {/* Card 2 */}
+              <div className="card card-hover" style={{ padding: '24px', backgroundColor: '#f8fafc', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(193, 255, 114, 0.35)',
+                    color: 'var(--color-lime-dark)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Sparkles size={22} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '4px' }}>
+                      Aide à la recherche pointue
+                    </h3>
+                    <p style={{ fontSize: '13px', color: 'var(--color-navy-muted)', lineHeight: 1.55 }}>
+                      Retrouvez l’article exact de votre convention (CCN 66, CCN 51, Éclat, Alisfa) et les clauses applicables en quelques secondes.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '10px' }}>
-                Préparation rapide des instances
-              </h3>
-              <p style={{ fontSize: '14px', color: 'var(--color-navy-muted)', lineHeight: 1.6 }}>
-                Moins de temps passé à rassembler l'information financière et juridique, plus de temps pour échanger sereinement lors de vos Assemblées Générales et Conseils d'Administration.
-              </p>
+
+              {/* Card 3 */}
+              <div className="card card-hover" style={{ padding: '24px', backgroundColor: '#f8fafc', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    backgroundColor: 'var(--color-orange-light)',
+                    color: 'var(--color-orange-dark)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Award size={22} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '4px' }}>
+                      Préparation rapide des instances
+                    </h3>
+                    <p style={{ fontSize: '13px', color: 'var(--color-navy-muted)', lineHeight: 1.55 }}>
+                      Rassemblez instantanément les chiffres pour votre Bureau, CA ou AG annuelle sans passer des nuits à consolider des classeurs.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1607,7 +2095,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       </section>
 
       {/* =========================================================================
-          L'EXPERTE / CABINET MAÉ SECTION
+          L'EXPERTE / CABINET MAÉ SECTION WITH REAL PROFESSIONAL PORTRAIT
           ========================================================================= */}
       <section id="experte" style={{ maxWidth: 1100, margin: 'var(--space-16) auto', padding: '0 var(--space-6)' }}>
         <div className="card" style={{
@@ -1640,10 +2128,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               Une juriste reconnue du secteur associatif à vos côtés
             </h2>
             <p style={{ color: '#cbd5e1', lineHeight: 1.6, marginBottom: 'var(--space-4)', fontSize: 'var(--text-base)' }}>
-              Derrière l'intelligence artificielle, vous bénéficiez de l'accompagnement direct de <strong>Laetitia Badji</strong> (Cabinet Maé / AKILIGUE SAS), juriste spécialisée depuis plus de 15 ans dans le médico-social, l'animation et l'insertion.
+              Derrière l'intelligence artificielle, vous bénéficiez de l'accompagnement direct de <strong>Laetitia Badji</strong> (Cabinet Maé / AKILIGUE SAS), juriste spécialisée depuis plus de 15 ans dans le secteur médico-social, l'animation et l'insertion.
             </p>
             <p style={{ color: '#cbd5e1', lineHeight: 1.6, marginBottom: 'var(--space-6)', fontSize: 'var(--text-base)' }}>
-              Chaque question escaladée fait l'objet d'un examen approfondi de vos pièces et de vos conventions pour vous délivrer une réponse formelle sous 48h ouvrées.
+              <em>« L’intelligence artificielle apporte la vitesse et la synthèse ; notre cabinet apporte la rigueur, l’analyse des cas délicats et la signature juridique qui rassure votre Conseil d’Administration. »</em>
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1657,29 +2145,31 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             </div>
           </div>
 
+          {/* Real Portrait Photo of Laetitia Badji */}
           <div style={{ textAlign: 'center' }}>
             <div style={{
-              width: 140,
-              height: 140,
+              width: 170,
+              height: 170,
               borderRadius: '50%',
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              border: '3px solid var(--color-lime)',
+              overflow: 'hidden',
+              border: '4px solid var(--color-lime)',
               margin: '0 auto var(--space-4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               boxShadow: 'var(--shadow-lime)'
             }}>
-              <Compass size={68} style={{ color: 'var(--color-lime)' }} />
+              <img
+                src="/images/laetitia-badji.jpg"
+                alt="Portrait professionnel de Laetitia Badji, juriste experte en droit associatif"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '22px' }}>
               Laetitia Badji
             </div>
-            <div style={{ color: 'var(--color-lime)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+            <div style={{ color: 'var(--color-lime)', fontSize: 'var(--text-sm)', fontWeight: 700 }}>
               Cabinet Maé &bull; AKILIGUE SAS
             </div>
             <div style={{ color: '#94a3b8', fontSize: 'var(--text-xs)', marginTop: 4 }}>
-              contact@cabinet-mae.fr
+              contact@cabinet-mae.fr &bull; Paris, France
             </div>
           </div>
         </div>
@@ -1879,7 +2369,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                 <li><a href="#financements" style={{ color: 'var(--color-navy-muted)' }}>Trouvez et suivez vos financements</a></li>
                 <li><a href="#rh" style={{ color: 'var(--color-navy-muted)' }}>RH & Conventions collectives</a></li>
                 <li><a href="#gouvernance" style={{ color: 'var(--color-navy-muted)' }}>Gouvernance Loi 1901</a></li>
-                <li><a href="#centralisation" style={{ color: 'var(--color-navy-muted)' }}>Conformité & DUERP</a></li>
+                <li><a href="#simulateur" style={{ color: 'var(--color-blue)', fontWeight: 600 }}>Simulateur d'économies & ROI</a></li>
               </ul>
             </div>
 
