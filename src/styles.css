@@ -383,6 +383,107 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   display: flex !important;
 }
 
+/* Responsive Announcement Bar */
+.pilot-announcement-bar {
+  background-color: #07192b;
+  color: #ffffff;
+  padding: 9px 24px;
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+@media (max-width: 768px) {
+  .pilot-announcement-bar {
+    padding: 8px 12px;
+    font-size: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    text-align: center;
+  }
+}
+
+/* Scrollable tabs bar on mobile */
+.pilot-tabs-scroll-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #f8fafc;
+  padding: 6px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  max-width: 960px;
+  margin: var(--space-8) auto 0;
+}
+
+@media (max-width: 900px) {
+  .pilot-tabs-scroll-container {
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-radius: 12px;
+    scrollbar-width: none;
+  }
+  .pilot-tabs-scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Hero Floating Badges */
+.hero-floating-badge-top {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(0, 74, 173, 0.2);
+  box-shadow: 0 8px 24px rgba(10, 37, 64, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-navy);
+}
+
+.hero-floating-badge-bottom {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  background-color: rgba(10, 37, 64, 0.92);
+  backdrop-filter: blur(10px);
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(193, 255, 114, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+@media (max-width: 680px) {
+  .hero-floating-badge-top, .hero-floating-badge-bottom {
+    position: static !important;
+    margin: 10px auto !important;
+    justify-content: center !important;
+    width: fit-content !important;
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+  }
+}
+
 .badge-lime {
   background-color: var(--color-lime);
   color: var(--color-navy);

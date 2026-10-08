@@ -361,25 +361,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
     <div className="animate-fade-in" style={{ backgroundColor: '#ffffff', minHeight: '100vh', color: 'var(--color-navy)' }}>
       
       {/* PilotAsso-Inspired Top Announcement Bar */}
-      <div style={{
-        backgroundColor: '#07192b',
-        color: '#ffffff',
-        padding: '9px 24px',
-        fontSize: '13px',
-        textAlign: 'center',
-        fontWeight: 500,
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '14px',
-        flexWrap: 'nowrap',
-        whiteSpace: 'nowrap'
-      }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+      <div className="pilot-announcement-bar">
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
           <span className="pilot-live-indicator" />
           <span style={{ color: '#cbd5e1' }}>
-            <strong>18 associations & fédérations</strong> participent actuellement à la co-construction d’AssoExpert IA.
+            <strong>18 associations & fédérations</strong> participent activement à la co-construction d’AssoExpert IA.
           </span>
         </div>
         <button
@@ -388,7 +374,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             background: 'rgba(255, 255, 255, 0.12)',
             border: '1px solid rgba(255, 255, 255, 0.25)',
             color: '#ffffff',
-            padding: '2px 10px',
+            padding: '3px 12px',
             borderRadius: 'var(--radius-pill)',
             fontSize: '12px',
             fontWeight: 700,
@@ -400,11 +386,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         </button>
       </div>
 
-      {/* Main Sticky Navbar (Always on 1 line on desktop) */}
+      {/* Main Sticky Navbar (Always on 1 line on desktop, clean hamburger on mobile) */}
       <nav style={{
         backgroundColor: '#ffffff',
         borderBottom: '1px solid var(--color-border)',
-        padding: '12px 28px',
+        padding: '12px 20px',
         position: 'sticky',
         top: 0,
         zIndex: 50,
@@ -417,10 +403,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '24px'
+          gap: '16px'
         }}>
           {/* Logo Brand */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
             <div style={{
               width: 38,
               height: 38,
@@ -439,17 +425,17 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                 <span style={{
                   fontFamily: 'var(--font-display)',
                   fontWeight: 800,
-                  fontSize: '20px',
+                  fontSize: '19px',
                   color: 'var(--color-navy)',
                   letterSpacing: '-0.02em'
                 }}>
                   AssoExpert<span style={{ color: 'var(--color-blue)' }}>.IA</span>
                 </span>
-                <span className="badge badge-lime" style={{ fontSize: '9px', padding: '1px 7px', fontWeight: 800 }}>
+                <span className="badge badge-lime" style={{ fontSize: '9px', padding: '1px 6px', fontWeight: 800 }}>
                   Cabinet Maé
                 </span>
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
+              <div className="hide-on-mobile" style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
                 La plateforme de pilotage des associations
               </div>
             </div>
@@ -474,11 +460,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           </div>
 
           {/* Action Buttons & Mobile Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             <button
               onClick={onOpenLogin}
               className="btn btn-sm btn-secondary"
-              style={{ fontWeight: 600, fontSize: '13px', height: '38px', padding: '0 14px', whiteSpace: 'nowrap' }}
+              style={{ fontWeight: 600, fontSize: '13px', height: '38px', padding: '0 12px', whiteSpace: 'nowrap' }}
             >
               <LogIn size={14} style={{ color: 'var(--color-blue)' }} />
               <span>Connexion</span>
@@ -486,18 +472,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
 
             <button
               onClick={() => setIsDemoModalOpen(true)}
-              className="btn btn-sm btn-primary"
+              className="hide-on-mobile btn btn-sm btn-primary"
               style={{ fontWeight: 700, fontSize: '13px', height: '38px', padding: '0 18px', borderRadius: 'var(--radius-pill)', whiteSpace: 'nowrap' }}
             >
               <span>Demander une démo</span>
               <ArrowRight size={14} />
             </button>
 
-            {/* Mobile Hamburger (Only visible on tablet & mobile) */}
+            {/* Mobile Hamburger (Only visible on tablet & mobile, fits comfortably) */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="show-on-mobile btn btn-sm btn-secondary"
-              style={{ padding: '0 10px', height: '38px', alignItems: 'center', justifyContent: 'center' }}
+              style={{ padding: 0, height: '38px', width: '38px', minWidth: '38px', alignItems: 'center', justifyContent: 'center' }}
               aria-label="Menu"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -667,45 +653,13 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               />
 
               {/* Floating Dynamic Badge 1 (Top Left) */}
-              <div style={{
-                position: 'absolute',
-                top: 20,
-                left: 20,
-                backgroundColor: 'rgba(255, 255, 255, 0.94)',
-                backdropFilter: 'blur(10px)',
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-pill)',
-                border: '1px solid rgba(0, 74, 173, 0.2)',
-                boxShadow: '0 8px 24px rgba(10, 37, 64, 0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '13px',
-                fontWeight: 700,
-                color: 'var(--color-navy)'
-              }}>
+              <div className="hero-floating-badge-top">
                 <span className="live-dot" />
                 <span>CCN 66 &bull; Congés trimestriels synchronisés</span>
               </div>
 
               {/* Floating Dynamic Badge 2 (Bottom Right) */}
-              <div style={{
-                position: 'absolute',
-                bottom: 20,
-                right: 20,
-                backgroundColor: 'rgba(10, 37, 64, 0.92)',
-                backdropFilter: 'blur(10px)',
-                padding: '10px 18px',
-                borderRadius: 'var(--radius-pill)',
-                border: '1px solid rgba(193, 255, 114, 0.4)',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                fontSize: '13px',
-                fontWeight: 700,
-                color: '#ffffff'
-              }}>
+              <div className="hero-floating-badge-bottom">
                 <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-lime)', boxShadow: '0 0 8px var(--color-lime)' }} />
                 <span>Validation juridique signée sous 48h (Cabinet Maé)</span>
               </div>
@@ -717,7 +671,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               borderTop: '1px solid var(--color-border)',
               padding: '20px 24px',
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
               gap: '16px',
               textAlign: 'left'
             }}>
@@ -795,7 +749,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           {/* Centralizing Message + Photo & Comparative Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
             gap: 'var(--space-8)',
             alignItems: 'center',
             marginBottom: 'var(--space-12)'
@@ -868,7 +822,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           {/* The Famous 2-Card Comparison: Avant vs Avec (Signature PilotAsso) */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
             gap: 'var(--space-8)',
             alignItems: 'stretch'
           }}>
@@ -940,7 +894,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                   justifyContent: 'center',
                   fontWeight: 800
                 }}>
-                  &check;
+                  <Check size={18} strokeWidth={3} />
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-navy)' }}>
                   Avec AssoExpert IA
@@ -991,7 +945,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           </div>
 
           <div className="card" style={{
-            padding: '36px',
+            padding: 'clamp(20px, 4vw, 36px)',
             borderRadius: '24px',
             backgroundColor: '#f8fafc',
             border: '2px solid rgba(0, 74, 173, 0.15)',
@@ -999,7 +953,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           }}>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
               gap: 'var(--space-8)',
               alignItems: 'center'
             }}>
@@ -1223,7 +1177,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                 <strong style={{ color: 'var(--color-navy)' }}>1. Synthèse directe :</strong> {currentQuery.response.synthese}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '12px' }}>
                 <div style={{ padding: '12px 14px', borderRadius: '10px', backgroundColor: '#ffffff', border: '1px solid var(--color-border)' }}>
                   <strong style={{ color: 'var(--color-navy)' }}>2. Références textuelles :</strong><br />
                   <span style={{ color: 'var(--color-navy-muted)', fontSize: '13px' }}>{currentQuery.response.references}</span>
@@ -1308,21 +1262,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             Finances, financements, règles RH, conventions collectives et gouvernance : AssoExpert IA rassemble ce qu'il faut connaître pour piloter votre association, sans naviguer entre dix outils différents.
           </p>
 
-          {/* Interactive Solution Tabs Bar */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            flexWrap: 'wrap',
-            marginTop: 'var(--space-8)',
-            backgroundColor: '#f8fafc',
-            padding: '6px',
-            borderRadius: 'var(--radius-pill)',
-            border: '1px solid var(--color-border)',
-            maxWidth: 960,
-            margin: 'var(--space-8) auto 0'
-          }}>
+          {/* Interactive Solution Tabs Bar (Horizontal swipeable on mobile) */}
+          <div className="pilot-tabs-scroll-container">
             {solutions.map((sol) => (
               <button
                 key={sol.id}
@@ -1344,7 +1285,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         }}>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
             gap: 'var(--space-8)',
             alignItems: 'center'
           }}>
@@ -1460,7 +1401,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
             gap: 'var(--space-8)',
             alignItems: 'center'
           }}>
@@ -1603,7 +1544,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         {/* 4 Stats Grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
           gap: 'var(--space-6)',
           marginBottom: 'var(--space-8)'
         }}>
@@ -1677,7 +1618,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
             gap: 'var(--space-6)'
           }}>
             {testimonials.map((t, idx) => (
@@ -1918,7 +1859,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           {/* 3 Pricing Cards */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
             gap: 'var(--space-6)',
             alignItems: 'stretch'
           }}>
@@ -2102,9 +2043,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           background: 'linear-gradient(135deg, #07192b 0%, var(--color-navy) 60%, #153759 100%)',
           color: '#ffffff',
           borderRadius: '24px',
-          padding: 'var(--space-12)',
+          padding: 'clamp(20px, 4vw, var(--space-12))',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: 'var(--space-8)',
           alignItems: 'center',
           boxShadow: 'var(--shadow-float)'
@@ -2327,7 +2268,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
             gap: 'var(--space-8)',
             marginBottom: 'var(--space-12)'
           }}>
@@ -2483,6 +2424,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           <div className="card animate-fade-in" style={{
             maxWidth: 520,
             width: '100%',
+            maxHeight: '92vh',
+            overflowY: 'auto',
             backgroundColor: '#ffffff',
             borderRadius: '24px',
             padding: '32px',
