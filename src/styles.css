@@ -249,6 +249,143 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .badge-lime {
   background-color: var(--color-lime);
   color: var(--color-navy);
+}
+
+.badge-blue {
+  background-color: var(--color-blue-light);
+  color: var(--color-blue);
+  border: 1px solid rgba(0, 74, 173, 0.2);
+}
+
+.badge-orange {
+  background-color: var(--color-orange-light);
+  color: var(--color-orange-dark);
+  border: 1px solid rgba(251, 171, 2, 0.3);
+}
+
+/* PilotAsso Specific Components */
+.pilot-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 74, 173, 0.16);
+  color: var(--color-navy);
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(10, 37, 64, 0.04);
+  transition: all var(--transition-fast);
+}
+
+.pilot-pill-badge:hover {
+  border-color: var(--color-blue);
+  box-shadow: 0 4px 12px rgba(0, 74, 173, 0.1);
+}
+
+.pilot-live-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  display: inline-block;
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+}
+
+.pilot-tab-button {
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-navy-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pilot-tab-button:hover {
+  color: var(--color-navy);
+  background-color: rgba(10, 37, 64, 0.04);
+}
+
+.pilot-tab-button.active {
+  background-color: #ffffff;
+  color: var(--color-blue);
+  border-color: var(--color-border);
+  box-shadow: 0 2px 8px rgba(10, 37, 64, 0.06);
+}
+
+.pilot-compare-card {
+  padding: 28px;
+  border-radius: 18px;
+  transition: all var(--transition-normal);
+}
+
+.pilot-compare-before {
+  background-color: #ffffff;
+  border: 1.5px solid #fee2e2;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.04);
+}
+
+.pilot-compare-after {
+  background-color: #ffffff;
+  border: 2px solid var(--color-blue);
+  box-shadow: 0 12px 30px rgba(0, 74, 173, 0.1);
+  position: relative;
+}
+
+.pilot-stat-number {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 4.5vw, 52px);
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--color-navy);
+  letter-spacing: -0.03em;
+}
+
+.pilot-nav-link {
+  color: var(--color-navy);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pilot-nav-link:hover {
+  color: var(--color-blue);
+  background-color: var(--color-blue-light);
+}
+
+/* Visibility Utilities (Desktop Default) */
+.show-on-mobile {
+  display: none !important;
+}
+
+.show-flex-on-mobile {
+  display: none !important;
+}
+
+.hide-on-mobile {
+  display: flex !important;
+}
+
+.badge-lime {
+  background-color: var(--color-lime);
+  color: var(--color-navy);
   box-shadow: 0 1px 4px rgba(193, 255, 114, 0.4);
 }
 
@@ -611,6 +748,20 @@ img, svg, video, canvas, audio, iframe, embed, object {
   padding-bottom: 78px;
 }
 
+@media (max-width: 1024px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .show-on-mobile {
+    display: flex !important;
+  }
+
+  .show-flex-on-mobile {
+    display: flex !important;
+  }
+}
+
 @media (max-width: 768px) {
   :root {
     --text-5xl: 32px;
@@ -655,19 +806,6 @@ img, svg, video, canvas, audio, iframe, embed, object {
   /* Masquer le menu d'onglets du header sur mobile au profit de la bottom bar */
   .header-desktop-nav {
     display: none !important;
-  }
-
-  /* Responsive Utilities */
-  .hide-on-mobile {
-    display: none !important;
-  }
-
-  .show-on-mobile {
-    display: block !important;
-  }
-
-  .show-flex-on-mobile {
-    display: flex !important;
   }
 
   .mobile-stack {
