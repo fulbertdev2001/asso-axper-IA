@@ -597,96 +597,47 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         {/* =========================================================================
             DYNAMIC ANIMATED HERO BACKDROP (Waves, Grid, Spotlight & Floating Badges)
             ========================================================================= */}
+        {/* =========================================================================
+            DYNAMIC AMBIENT HERO BACKDROP (Clean, Non-Intrusive Wave & Light)
+            ========================================================================= */}
         <div className="hero-backdrop-container">
-          {/* Central Radiant Spotlight Core */}
+          {/* Central Soft Ambient Spotlight Glow */}
           <div className="hero-spotlight-core" />
 
-          {/* Perspective Cyber Grid */}
-          <div className="hero-cyber-grid" />
+          {/* Perspective Grid with Radial Fade */}
+          <div className="hero-cyber-grid" style={{ opacity: 0.22 }} />
 
-          {/* Flowing SVG Neural / Legal Wave Curves */}
-          <svg className="hero-waves-svg" viewBox="0 0 1400 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Flowing Subtle Ambient Wave */}
+          <svg className="hero-waves-svg" viewBox="0 0 1400 520" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.3 }}>
             <defs>
               <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#004AAD" stopOpacity="0.1" />
-                <stop offset="35%" stopColor="#0066FF" stopOpacity="0.75" />
-                <stop offset="70%" stopColor="#bef264" stopOpacity="0.65" />
+                <stop offset="40%" stopColor="#0066FF" stopOpacity="0.6" />
+                <stop offset="70%" stopColor="#bef264" stopOpacity="0.45" />
                 <stop offset="100%" stopColor="#004AAD" stopOpacity="0.1" />
               </linearGradient>
-              <linearGradient id="waveGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#00d2ff" stopOpacity="0.05" />
-                <stop offset="50%" stopColor="#0052cc" stopOpacity="0.6" />
-                <stop offset="85%" stopColor="#a3e635" stopOpacity="0.5" />
-                <stop offset="100%" stopColor="#00d2ff" stopOpacity="0.05" />
-              </linearGradient>
-              <filter id="waveGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="6" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
             </defs>
 
-            {/* Glowing flowing sine curves behind the text */}
             <path
-              d="M-50 220 C 250 80, 500 360, 800 200 C 1100 40, 1250 300, 1450 180"
+              d="M-50 240 C 250 100, 520 360, 820 210 C 1120 70, 1260 300, 1450 190"
               stroke="url(#waveGrad1)"
-              strokeWidth="2.5"
-              fill="none"
-              filter="url(#waveGlow)"
-            />
-            <path
-              d="M-50 280 C 220 380, 550 140, 850 320 C 1120 440, 1300 200, 1450 310"
-              stroke="url(#waveGrad2)"
               strokeWidth="2"
               fill="none"
-              strokeDasharray="6 8"
             />
             <path
-              d="M-50 160 C 320 290, 620 90, 920 240 C 1180 360, 1320 150, 1450 220"
-              stroke="rgba(190, 242, 100, 0.35)"
-              strokeWidth="1.5"
+              d="M-50 180 C 320 300, 620 110, 920 250 C 1180 370, 1320 160, 1450 230"
+              stroke="rgba(190, 242, 100, 0.22)"
+              strokeWidth="1.2"
               fill="none"
+              strokeDasharray="4 6"
             />
           </svg>
-
-          {/* Glowing Constellation / Data Sparkles */}
-          <div style={{ position: 'absolute', top: '18%', left: '22%', width: 6, height: 6, borderRadius: '50%', backgroundColor: '#bef264', boxShadow: '0 0 12px #bef264', animation: 'heroParticleTwinkle 4s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', top: '38%', left: '16%', width: 5, height: 5, borderRadius: '50%', backgroundColor: '#38bdf8', boxShadow: '0 0 10px #38bdf8', animation: 'heroParticleTwinkle 5s ease-in-out infinite 1.2s' }} />
-          <div style={{ position: 'absolute', top: '22%', right: '20%', width: 6, height: 6, borderRadius: '50%', backgroundColor: '#bef264', boxShadow: '0 0 12px #bef264', animation: 'heroParticleTwinkle 4.5s ease-in-out infinite 0.7s' }} />
-          <div style={{ position: 'absolute', top: '42%', right: '14%', width: 5, height: 5, borderRadius: '50%', backgroundColor: '#60a5fa', boxShadow: '0 0 10px #60a5fa', animation: 'heroParticleTwinkle 5.5s ease-in-out infinite 2s' }} />
-
-          {/* Floating Glass Badges Framing the Headlines */}
-          <div className="hero-float-badge pos-top-left">
-            <Scale size={15} style={{ color: '#bef264' }} />
-            <span>Loi 1901 & Statuts</span>
-            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: 'rgba(190, 242, 100, 0.2)', color: '#bef264' }}>100% Conforme</span>
-          </div>
-
-          <div className="hero-float-badge pos-top-right">
-            <ShieldCheck size={15} style={{ color: '#38bdf8' }} />
-            <span>CCN 66 • 51 • ÉCLAT</span>
-            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8' }}>Sécurisé</span>
-          </div>
-
-          <div className="hero-float-badge pos-mid-left">
-            <Zap size={15} style={{ color: '#bef264' }} />
-            <span>Arbitrage IA immédiat</span>
-            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: 'rgba(190, 242, 100, 0.2)', color: '#bef264' }}>&lt; 0.8s</span>
-          </div>
-
-          <div className="hero-float-badge pos-mid-right">
-            <FileCheck2 size={15} style={{ color: '#a78bfa' }} />
-            <span>Avis Cabinet Maé</span>
-            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: 'rgba(167, 139, 250, 0.2)', color: '#c4b5fd' }}>Opposable 48h</span>
-          </div>
         </div>
 
         <div style={{ maxWidth: 1280, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 10 }}>
           
           {/* Top Pill: Authority Tag */}
-          <div style={{ marginBottom: 26 }}>
+          <div style={{ marginBottom: 28 }}>
             <div
               onClick={() => setIsDemoModalOpen(true)}
               style={{
@@ -694,35 +645,32 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                 alignItems: 'center',
                 gap: 10,
                 borderRadius: 9999,
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                padding: '6px 18px 6px 10px',
-                backdropFilter: 'blur(14px)',
+                border: '1px solid rgba(255, 255, 255, 0.16)',
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                padding: '6px 18px 6px 12px',
+                backdropFilter: 'blur(12px)',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease'
               }}
               className="group"
             >
               <span className="radar-beacon" />
-              <span style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.95)', fontWeight: 600 }}>
-                18 fédérations & associations construisent la plateforme d'appui juridique
+              <span style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.92)', fontWeight: 500 }}>
+                18 fédérations & associations partenaires
               </span>
               <ArrowRight size={13} style={{ color: '#bef264' }} />
             </div>
           </div>
 
-          {/* Ambient Radial Energy Beam behind Title */}
-          <div className="energy-beam-bg" />
-
-          {/* Slogan AssoExpert IA: Protéger le dirigeant associatif employeur avec Mot Rotatif Animé */}
+          {/* Slogan AssoExpert IA: Titre Aéré & Impactant */}
           <h1 style={{
-            fontSize: 'clamp(34px, 5.5vw, 62px)',
+            fontSize: 'clamp(36px, 5.5vw, 64px)',
             fontWeight: 800,
-            lineHeight: 1.1,
+            lineHeight: 1.12,
             letterSpacing: '-0.035em',
             color: '#ffffff',
             maxWidth: 1060,
-            margin: '0 auto 24px',
+            margin: '0 auto 22px',
             position: 'relative',
             zIndex: 2
           }}>
@@ -735,11 +683,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                 style={{
                   color: rotatingWords[rotatingWordIndex].color,
                   textShadow: `0 0 35px ${rotatingWords[rotatingWordIndex].color}77`,
-                  padding: '2px 12px',
+                  padding: '2px 14px',
                   borderRadius: 12,
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  border: `1.5px solid ${rotatingWords[rotatingWordIndex].color}44`,
-                  backdropFilter: 'blur(10px)'
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: `1px solid ${rotatingWords[rotatingWordIndex].color}44`,
+                  backdropFilter: 'blur(8px)'
                 }}
               >
                 {rotatingWords[rotatingWordIndex].text}
@@ -748,75 +696,46 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             </span>
           </h1>
 
-          {/* Subtitle explaining the dual strength (IA + Cabinet Maé) */}
+          {/* Subtitle clair, aéré et non condensé */}
           <p style={{
             fontSize: 'clamp(16px, 1.8vw, 19px)',
-            lineHeight: 1.65,
-            color: 'rgba(255, 255, 255, 0.82)',
-            maxWidth: 840,
+            lineHeight: 1.6,
+            color: 'rgba(255, 255, 255, 0.78)',
+            maxWidth: 780,
             margin: '0 auto 28px',
-            letterSpacing: '-0.011em',
+            letterSpacing: '-0.01em',
             position: 'relative',
             zIndex: 2
           }}>
-            L’alliance inédite d'une <strong>intelligence artificielle spécialisée</strong> dans vos conventions collectives (CCN 66, 51, ÉCLAT, ALISFA) et de la <strong>garantie juridique signée du Cabinet Maé</strong> (Laetitia Badji), avec avis opposable délivré sous 48h ouvrées.
+            L’alliance d'une intelligence artificielle spécialisée dans vos conventions collectives (CCN 66, 51, ÉCLAT, ALISFA) et de l'appui juridique opposable signé du Cabinet Maé sous 48h.
           </p>
 
-          {/* Innovative Live Legal Activity Ticker Capsule */}
-          <div style={{ marginBottom: 36, position: 'relative', zIndex: 2 }}>
-            <div className="live-ticker-capsule" key={liveEventIndex}>
-              <span className="radar-beacon" />
-              <span style={{
-                backgroundColor: 'rgba(190, 242, 100, 0.2)',
-                color: '#bef264',
-                padding: '3px 10px',
-                borderRadius: 9999,
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: '0.02em',
-                boxShadow: '0 0 12px rgba(190, 242, 100, 0.2)'
-              }}>
-                {liveEvents[liveEventIndex].tag}
-              </span>
-              <span style={{ color: 'rgba(255, 255, 255, 0.95)', fontWeight: 500, fontSize: 13 }}>
-                {liveEvents[liveEventIndex].text}
-              </span>
-              <span style={{
-                color: '#bef264',
-                fontWeight: 800,
-                fontSize: 12,
-                borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
-                paddingLeft: 12
-              }}>
-                {liveEvents[liveEventIndex].stat}
-              </span>
-            </div>
-          </div>
-
-          {/* Three Interactive Reassurance Badges */}
+          {/* Ligne de réassurance épurée & minimaliste */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 12,
+            gap: 'clamp(14px, 3vw, 28px)',
             flexWrap: 'wrap',
-            marginBottom: 44,
+            marginBottom: 36,
             fontSize: 13,
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontWeight: 500,
             position: 'relative',
             zIndex: 2
           }}>
-            <div className="reassurance-chip">
-              <BadgeCheck size={16} style={{ color: '#bef264' }} />
-              <span>100% Dédié au secteur associatif employeur</span>
-            </div>
-            <div className="reassurance-chip">
-              <Clock size={16} style={{ color: '#bef264' }} />
-              <span>Avis juridique écrit sous 48h ouvrées</span>
-            </div>
-            <div className="reassurance-chip">
-              <ShieldCheck size={16} style={{ color: '#bef264' }} />
-              <span>Hébergement souverain France & 100% RGPD</span>
-            </div>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              <Check size={14} style={{ color: '#bef264' }} />
+              100% Dédié au secteur associatif
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              <Check size={14} style={{ color: '#bef264' }} />
+              Avis juridique écrit sous 48h
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              <Check size={14} style={{ color: '#bef264' }} />
+              Hébergement France & RGPD
+            </span>
           </div>
 
           {/* Action CTAs with Luminous Shimmer Sweep */}
