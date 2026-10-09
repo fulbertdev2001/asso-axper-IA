@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plan, Organization } from '../types';
 import { 
   ShieldCheck, 
@@ -13,29 +13,31 @@ import {
   Award, 
   Clock, 
   ChevronRight, 
-  ChevronDown,
-  Code2, 
-  FileSearch, 
+  ChevronDown, 
   LogIn, 
   Menu, 
-  X,
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  Layers,
-  Check,
-  ExternalLink,
-  Briefcase,
+  X, 
+  Check, 
+  Send, 
+  Quote, 
+  AlertCircle, 
+  Zap, 
+  Wallet, 
+  Landmark, 
+  Bot,
+  AlertTriangle,
+  Gavel,
+  BadgeCheck,
+  Building2,
+  FileCheck2,
   HelpCircle,
-  Send,
-  Quote,
-  AlertCircle,
-  FolderCheck,
-  Database,
-  Building,
-  Sliders,
+  FolderOpen,
+  FileSpreadsheet,
+  Layers,
+  PieChart,
+  TrendingUp,
   Play,
-  CheckCircle
+  Pause
 } from 'lucide-react';
 
 interface PublicLandingViewProps {
@@ -52,10 +54,64 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
   currentOrg
 }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  const [showJsonLdModal, setShowJsonLdModal] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-  const [activeSolutionTab, setActiveSolutionTab] = useState<string>('centralisation');
+  const [activeSolutionTab, setActiveSolutionTab] = useState<string>('rh');
+  const [isPillarScanning, setIsPillarScanning] = useState<boolean>(false);
+  const [pillarCcn, setPillarCcn] = useState<string>('CCN 66');
+  const [isQueryScanning, setIsQueryScanning] = useState<boolean>(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+
+  // Interactive Live Dilemma Switcher in the Hero
+  const [heroDilemmaIndex, setHeroDilemmaIndex] = useState<number>(0);
+
+  // Innovative Hero Headline Word Rotator
+  const rotatingWords = [
+    { text: 'conventions collectives (CCN)', color: '#bef264' },
+    { text: 'subventions & bilans CER', color: '#38bdf8' },
+    { text: 'salariés & contrats de travail', color: '#fde047' },
+    { text: 'quorums & statuts 1901', color: '#34d399' }
+  ];
+  const [rotatingWordIndex, setRotatingWordIndex] = useState<number>(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRotatingWordIndex((prev) => (prev + 1) % rotatingWords.length);
+    }, 2800);
+    return () => clearInterval(timer);
+  }, [rotatingWords.length]);
+
+  // Innovative Live Legal Activity Ticker
+  const liveEvents = [
+    { tag: 'CCN 66 • RH', text: 'Congés trimestriels régularisés — Risque prud’homal neutralisé', stat: '+4 800 € protégés' },
+    { tag: 'Subvention CER', text: 'Reliquat de 14 500 € cadré en Fonds Dédiés — Ordre de reversement évité', stat: '0 € reversé' },
+    { tag: 'Gouvernance 1901', text: 'Quorum et validité des procurations vérifiés avant Assemblée Générale', stat: '100% conforme' },
+    { tag: 'CCN 51 • Cadres', text: 'Protocole de rupture conventionnelle validé par le Cabinet Maé', stat: 'Signé sous 48h' }
+  ];
+  const [liveEventIndex, setLiveEventIndex] = useState<number>(0);
+
+  useEffect(() => {
+    const tickerTimer = setInterval(() => {
+      setLiveEventIndex((prev) => (prev + 1) % liveEvents.length);
+    }, 3600);
+    return () => clearInterval(tickerTimer);
+  }, [liveEvents.length]);
+
+  // Interactive Accordion Deck for Cas Concrets (Hover-reveal with Auto-rolling)
+  const [activeAccordionStep, setActiveAccordionStep] = useState<number>(0);
+  const [isAccordionAutoPlaying, setIsAccordionAutoPlaying] = useState<boolean>(true);
+
+  // Interactive Marquee Scrolling Deck for Cas Concrets (Continuous glide with hover freeze)
+  const [hoveredMarqueeStep, setHoveredMarqueeStep] = useState<number | null>(null);
+  const [isMarqueePausedManual, setIsMarqueePausedManual] = useState<boolean>(false);
+  const [caseViewMode, setCaseViewMode] = useState<'marquee' | 'accordion'>('marquee');
+
+  useEffect(() => {
+    if (!isAccordionAutoPlaying) return;
+    const stepTimer = setInterval(() => {
+      setActiveAccordionStep((prev) => (prev + 1) % 5);
+    }, 4200);
+    return () => clearInterval(stepTimer);
+  }, [isAccordionAutoPlaying]);
 
   // Dynamic ROI Simulator State
   const [employeeCount, setEmployeeCount] = useState<number>(24);
@@ -81,146 +137,161 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 
   // Dynamic ROI calculations
-  const hoursSaved = Math.round(5 + employeeCount * 0.4);
-  const moneySaved = Math.round(120 + employeeCount * 12);
+  const hoursSaved = Math.round(6 + employeeCount * 0.45);
+  const moneySaved = Math.round(150 + employeeCount * 14);
   const recommendedPlanName = employeeCount < 10 
     ? 'Formule Initiale (49 € / mois)' 
     : employeeCount <= 40 
       ? 'Formule Pro (149 € / mois) — Recommandé' 
       : 'Formule Expert (299 € / mois)';
 
-  // Solutions data inspired by PilotAsso
+  // Distinct Hero Interactive Case Studies
+  const heroDilemmas = [
+    {
+      id: 0,
+      badge: 'RH & Paie • CCN 66',
+      title: 'Congés trimestriels & primes d\'ancienneté',
+      question: 'Notre chef de service refuse 6 jours de congés trimestriels à un éducateur spécialisé. Est-ce légal ?',
+      verdict: 'Non conforme. L’Annexe 3 de la CCN 66 impose impérativement 6 jours consécutifs par trimestre hors congés annuels.',
+      risk: 'Risque de rappel de salaire et indemnisation prud\'homale de 4 800 € évitée.',
+      officialRef: 'CCN 66 Art. 22 & Annexe 3 • Cass. Soc. 2018',
+      cabinetMaeAction: 'Attestation de droit signée par le Cabinet Maé'
+    },
+    {
+      id: 1,
+      badge: 'Subvention & Financement CER',
+      title: 'Reliquat de subvention de 14 500 € en fin d’action',
+      question: 'La mairie nous verse une subvention non consommée au 31 décembre. Risquons-nous un ordre de reversement ?',
+      verdict: 'Report possible en compte 194 (Fonds Dédiés) sous réserve de notification expresse au financeur dans le compte-rendu CER.',
+      risk: 'Risque de blocage de subvention N+1 et de redressement de 14 500 € neutralisé.',
+      officialRef: 'Règlement ANC n° 2018-06 • Décret CER 2001-495',
+      cabinetMaeAction: 'Courrier type de cadrage des fonds dédiés rédigé'
+    },
+    {
+      id: 2,
+      badge: 'Gouvernance & Statuts 1901',
+      title: 'Quorum d’AG non atteint & contestation des votes',
+      question: 'Seulement 28 membres présents sur 84. Peut-on voter avec 12 procurations informelles reçues par email ?',
+      verdict: 'Nullité absolue des votes si les statuts n’autorisent pas explicitement le pouvoir numérique et le vote par procuration.',
+      risk: 'Annulation judiciaire de l\'élection du Conseil d’Administration évitée.',
+      officialRef: 'Loi 1901 Art. 5 • Cass. 1ère Civ. 2008',
+      cabinetMaeAction: 'Modèle de PV de carence et convocation d’urgence sécurisés'
+    },
+    {
+      id: 3,
+      badge: 'Rupture & Risque Social • CCN 51',
+      title: 'Rupture conventionnelle d\'un cadre coordinateur',
+      question: 'Quelle indemnité spécifique verser à un cadre FEHAP ayant 7 ans d\'ancienneté sans risquer de requalification ?',
+      verdict: 'L’indemnité conventionnelle CCN 51 est supérieure d’environ 45% au barème légal du Code du travail. Le calcul conventionnel s\'impose.',
+      risk: 'Contentieux prud\'homal évité et homologation TéléRC garantie sous 15 jours.',
+      officialRef: 'CCN 51 FEHAP Art. 15.02.2 • Art. L. 1237-13 C. Trav.',
+      cabinetMaeAction: 'Revue complète du protocole de rupture sous 48h ouvrées'
+    }
+  ];
+
+  const currentDilemma = heroDilemmas[heroDilemmaIndex];
+
+  // 4 Core Pillars of AssoExpert IA
   const solutions = [
-    {
-      id: 'centralisation',
-      title: 'Centralisation',
-      subtitle: 'Vos outils peuvent rester. Votre pilotage se centralise.',
-      badge: 'Solution 1',
-      description: 'Vos informations sont réparties dans plusieurs fichiers et outils. AssoExpert IA devient le point central où vous les retrouvez sans abandonner ce qui fonctionne déjà pour vous.',
-      bullets: [
-        'Moins de ressaisies fastidieuses entre vos outils et tableurs',
-        'Une information juridique et financière toujours à jour et fiable',
-        'Une meilleure collaboration entre dirigeants bénévoles et directions salariées',
-        'Connexion progressive à vos documents statutaires et budgets'
-      ],
-      previewData: {
-        headline: 'Point central de pilotage consolidé',
-        stat1: '4 briques connectées',
-        stat2: '0 ressaisie manuelle',
-        mockCard: 'Statuts loi 1901 + Convention CCN 66 + Budget prévisionnel 2026 synchronisés.'
-      }
-    },
-    {
-      id: 'finances',
-      title: 'Finances & Trésorerie',
-      subtitle: 'Du budget à la trésorerie, anticipez plutôt que subir.',
-      badge: 'Solution 2',
-      description: 'Passez du suivi financier passif au pilotage réel : budget, réalisé, écarts et trésorerie au même endroit, avec des alertes avant que les écarts ne bloquent vos actions.',
-      bullets: [
-        'Budget et réalisé comparés en continu avec calcul automatique des écarts',
-        'Projections de trésorerie glissantes sur 12 mois pour anticiper les tensions',
-        'Justification rigoureuse du Compte d’Emploi des Ressources (CER)',
-        'Gestion des fonds dédiés et reliquats non consommés de subventions'
-      ],
-      previewData: {
-        headline: 'Suivi budgétaire & CER',
-        stat1: 'Budget : 420 000 €',
-        stat2: 'Écart : +2.4% (Conforme)',
-        mockCard: 'Solde de trésorerie sécurisé à M+3. Traitement automatisé des fonds dédiés.'
-      }
-    },
-    {
-      id: 'financements',
-      title: 'Financements & Subventions',
-      subtitle: 'Ne passez plus à côté d’une opportunité de financement.',
-      badge: 'Solution 3',
-      description: 'AssoExpert IA vous aide à identifier plus rapidement les opportunités pertinentes pour votre association, et centralise le calendrier de toutes vos échéances de financement.',
-      bullets: [
-        'Opportunités de subventions publiques et mécénat identifiées plus tôt',
-        'Calendrier des échéances de dépôt et de bilans financiers centralisé',
-        'Suivi unifié de tous vos financeurs (Région, Ville, CAF, État, Fondations)',
-        'Alertes automatiques avant la date limite de justification des fonds'
-      ],
-      previewData: {
-        headline: 'Calendrier des financeurs & CER',
-        stat1: '4 financeurs actifs',
-        stat2: 'Prochaine échéance : J-14',
-        mockCard: 'Dossier subvention CAF validé. Justificatifs CER préremplis.'
-      }
-    },
     {
       id: 'rh',
       title: 'RH & Conventions Collectives',
-      subtitle: 'Sécurisez vos équipes et éliminez le doute juridique.',
-      badge: 'Solution 4',
-      description: 'L’expertise pointue sur vos conventions collectives : CCN 66, CCN 51 (FEHAP), ÉCLAT (Animation), ALISFA. L’IA est instruite de vos textes officiels et calcule vos droits au millimètre.',
+      subtitle: 'Sécurisez l’application de votre convention (CCN 66, 51, ÉCLAT, ALISFA).',
+      badge: 'Pilier 1 • Droit Social',
+      description: 'Congés trimestriels, coefficients, primes d’ancienneté et ruptures conventionnelles : ne laissez plus planer le doute juridique sur vos bulletins de paie et plannings.',
       bullets: [
-        'Congés conventionnels d’ancienneté & congés trimestriels calculés sans erreur',
-        'Grilles de classification, coefficients et salaires conventionnels à jour',
-        'Sécurisation des ruptures conventionnelles, préavis et temps partiels',
-        'Escalade humaine sous 48h ouvrées vers Laetitia Badji (Cabinet Maé)'
+        'Calcul automatisé des congés d’ancienneté et congés trimestriels obligatoires',
+        'Veille continue des avenants de branche et revalorisations du point',
+        'Vérification des classifications cadres et non-cadres',
+        'Escalade juridique garantie sous 48h ouvrées vers le Cabinet Maé'
       ],
       previewData: {
-        headline: 'Conventions : CCN 66 / CCN 51 / Éclat / Alisfa',
-        stat1: '32 salariés couverts',
-        stat2: '0 risque prud’homal',
-        mockCard: 'Calcul des congés trimestriels T1 effectué. Note juridique d’appui disponible.'
+        headline: 'Copilote Conventionnel Spécialisé',
+        stat1: 'CCN 66 & Avenants 2026',
+        stat2: '0 litige prud’homal',
+        mockCard: '14 éducateurs sous Annexe 3 : 18 jours de congés trimestriels calculés et intégrés au planning annuel.'
+      }
+    },
+    {
+      id: 'finance',
+      title: 'Finances & Justification CER',
+      subtitle: 'Du budget prévisionnel à la clôture, anticipez les écarts.',
+      badge: 'Pilier 2 • Budgets & CER',
+      description: 'Passez du contrôle passif au pilotage actif : budget, réalisé, trésorerie glissante et Compte d’Emploi des Ressources (CER) réunis dans un cockpit clair.',
+      bullets: [
+        'Comparaison budget / réalisé en temps réel avec seuils d’alerte',
+        'Traitement rigoureux des fonds dédiés et reliquats de subvention',
+        'Justification conforme du Compte d’Emploi des Ressources (CER)',
+        'Projection de trésorerie sur 12 mois pour sécuriser la masse salariale'
+      ],
+      previewData: {
+        headline: 'Cockpit Budgétaire & CER',
+        stat1: 'Budget : 420 000 €',
+        stat2: 'Écart : +2.4% (Sous contrôle)',
+        mockCard: 'Fonds dédiés de 14 500 € reportés en conformité avec le règlement ANC 2018-06.'
+      }
+    },
+    {
+      id: 'subventions',
+      title: 'Financements & Appels à Projets',
+      subtitle: 'Identifiez et sécurisez vos financements publics et privés.',
+      badge: 'Pilier 3 • Financements',
+      description: 'Ne manquez plus une échéance de dépôt ni un appel à projets : un calendrier centralisé de tous vos financeurs (Régions, Départements, CAF, Fondations).',
+      bullets: [
+        'Détection précoce des appels à projets locaux et nationaux éligibles',
+        'Alertes automatiques avant la date limite de justification des fonds',
+        'Suivi multi-financeurs unifié (taux de cofinancement, reliquats)',
+        'Génération assistée des bilans financiers d’action'
+      ],
+      previewData: {
+        headline: 'Calendrier Multi-Financeurs',
+        stat1: '5 financeurs actifs',
+        stat2: 'Échéance CAF : J-14',
+        mockCard: 'Dossier Région Jeunesse validé. Bilan financier d’action CER généré avec succès.'
       }
     },
     {
       id: 'gouvernance',
-      title: 'Gouvernance Loi 1901',
-      subtitle: 'Simplifiez votre gouvernance et protégez vos dirigeants.',
-      badge: 'Solution 5',
-      description: 'Les informations utiles à vos instances réunies au même endroit pour préparer vos réunions plus vite et protéger juridiquement les administrateurs et bénévoles.',
+      title: 'Gouvernance & Conformité 1901',
+      subtitle: 'Sécurisez vos instances et la responsabilité des dirigeants.',
+      badge: 'Pilier 4 • Loi 1901',
+      description: 'Calcul précis des quorums statutaires, gestion des procurations, procès-verbaux d’AG conformes et Document Unique (DUERP) : protégez votre bureau bénévole.',
       bullets: [
-        'Calcul des quorums d’Assemblée Générale & gestion des procurations',
-        'Sécurisation de la responsabilité civile et pénale des administrateurs',
-        'Délégations de pouvoirs, refonte statutaire et règlements intérieurs',
-        'Modèles de procès-verbaux d’AG et de délibérations de Conseil d’Administration'
+        'Calcul des quorums et validité des pouvoirs selon vos statuts',
+        'Modèles de résolutions et procès-verbaux de CA et d’AG',
+        'Suivi du Document Unique d’Évaluation des Risques (DUERP)',
+        'Protection juridique de la responsabilité civile et pénale des dirigeants'
       ],
       previewData: {
-        headline: 'Gouvernance & Conformité Loi 1901',
-        stat1: 'AG 2026 prête',
-        stat2: 'Quorum vérifié à 100%',
-        mockCard: 'Délégation de signature directeur validée. Registre des délibérations à jour.'
-      }
-    },
-    {
-      id: 'conformite',
-      title: 'Conformité & DUERP',
-      subtitle: 'Protégez vos salariés et respectez le cadre associatif.',
-      badge: 'Solution 6',
-      description: 'Document Unique d’Évaluation des Risques Professionnels (DUERP), affichages obligatoires et respect rigoureux du RGPD sans alourdir le quotidien.',
-      bullets: [
-        'Génération et mise à jour annuelle guidée de votre DUERP',
-        'Affichages obligatoires du travail associatif et registre du personnel',
-        'Mise en conformité RGPD stricte (données adhérents et salariés)',
-        'Zéro transmission de vos données à des tiers publicitaires ou de tracking'
-      ],
-      previewData: {
-        headline: 'Sécurité au travail & DUERP',
-        stat1: 'DUERP actualisé',
-        stat2: '100% conforme RGPD',
-        mockCard: 'Plan d’action de prévention des risques formalisé pour les ateliers et l’accueil.'
+        headline: 'Sécurité Juridique du Bureau',
+        stat1: 'CA & AG conformes',
+        stat2: 'DUERP actualisé',
+        mockCard: 'Assemblée Générale Ordinaire : quorum atteint (54%). PV de délibération conforme loi 1901.'
       }
     }
   ];
 
   const currentSolution = solutions.find(s => s.id === activeSolutionTab) || solutions[0];
 
-  // Interactive Live Queries
+  // Interactive Live Queries with Rich Metadata & Outcome Badges
   const sampleQueries = [
     {
       id: 0,
       title: 'CCN 66 — Congés trimestriels & ancienneté',
       tag: 'RH & CCN 66',
-      question: 'Quels sont les congés conventionnels d’ancienneté et congés trimestriels pour nos éducateurs spécialisés sous CCN 66 ?',
+      outcomeBadge: '+4 800 € protégés',
+      question: 'Quels sont les congés conventionnels d’ancienneté et trimestriels pour nos éducateurs spécialisés sous CCN 66 ?',
       response: {
         synthese: 'En sus des 2,5 jours ouvrables légaux de congés payés par mois, l’article 22 de la CCN 66 accorde 2 jours ouvrables supplémentaires par tranche de 5 ans d’ancienneté (plafonnés à 6 jours). Pour vos éducateurs spécialisés (Annexe 3), s’y ajoutent impérativement 6 jours de congés trimestriels consécutifs au cours de chacun des 3 trimestres ne comprenant pas les congés annuels.',
-        references: 'CCN 66 Art. 22 & Annexe 3 (Éducateurs) • Code du travail Art. L. 3141-10.',
+        refChips: ['CCN 66 Art. 22', 'Annexe 3 (Éducateurs)', 'Code du travail Art. L. 3141-10'],
         calcul: 'Pour un salarié ayant 12 ans d’ancienneté : 25 jours légaux + 4 jours d’ancienneté + 18 jours trimestriels = 47 jours de repos annuels garantis.',
-        vigilance: 'Les congés trimestriels doivent être pris dans le trimestre civil considéré. Ils ne peuvent être reportés ni indemnisés sauf impossibilité imputable à l’employeur.',
+        calculFormula: [
+          { label: 'Congés légaux', val: '25 jours' },
+          { label: 'Ancienneté 12 ans', val: '+4 jours' },
+          { label: 'Congés trimestriels', val: '+18 jours' },
+          { label: 'Total annuel garanti', val: '= 47 jours', highlight: true }
+        ],
+        vigilance: 'Les congés trimestriels doivent impérativement être pris dans le trimestre civil considéré. Ils ne peuvent être ni reportés ni indemnisés sauf impossibilité démontrée imputable à l’employeur.',
         experte: 'Analyse d’impact sur votre planning et vos fiches de paie validée par Laetitia Badji (Cabinet Maé) sous 48h ouvrées.'
       }
     },
@@ -228,12 +299,19 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       id: 1,
       title: 'Finance — Reliquat de subvention CER',
       tag: 'Finance & Subventions',
+      outcomeBadge: '0 € reversé',
       question: 'Comment traiter un reliquat de subvention municipale non consommé en fin d’exercice dans notre Compte d’Emploi des Ressources (CER) ?',
       response: {
-        synthese: 'Le reliquat doit être inscrit au passif du bilan en « Fonds dédiés » (compte 194) si la convention de subvention prévoit explicitement le report sur l’exercice suivant pour financer la poursuite de l’action. Sans clause de report ou accord écrit du financeur, la somme doit être constatée en dette (compte 467) en vue d’un reversement.',
-        references: 'Règlement ANC n° 2018-06 (comptabilité des organismes sans but lucratif) • Décret n° 2001-495 relatif au CER.',
+        synthese: 'Le reliquat doit être inscrit au passif du bilan en « Fonds dédiés » (compte 194) si la convention de subvention prévoit expressément le report sur l’exercice suivant pour la poursuite de l’action. Sans clause de report ou accord écrit du financeur, la somme doit impérativement être inscrite en dette (compte 467) en vue d’un reversement.',
+        refChips: ['Règlement ANC n° 2018-06', 'Décret n° 2001-495 (CER)', 'Compte 194 Fonds Dédiés'],
         calcul: 'Montant non engagé : 14 500 € ➔ Inscription au tableau de variation des fonds dédiés et mention obligatoire dans l’annexe comptable.',
-        vigilance: 'Attention au risque de requalification fiscale ou d’ordre de reversement lors du contrôle de la Chambre Régionale des Comptes.',
+        calculFormula: [
+          { label: 'Subvention totale', val: '50 000 €' },
+          { label: 'Dépenses engagées', val: '- 35 500 €' },
+          { label: 'Reliquat sécurisé', val: '14 500 €' },
+          { label: 'Ordre de reversement', val: '0 € (Neutralisé)', highlight: true }
+        ],
+        vigilance: 'Attention au risque d’ordre de reversement ou de requalification lors d’un contrôle par la Chambre Régionale des Comptes.',
         experte: 'Revue de votre convention de financement et de votre bilan CER par Laetitia Badji sous 48h ouvrées.'
       }
     },
@@ -241,11 +319,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       id: 2,
       title: 'Gouvernance — Quorum AG & Procurations',
       tag: 'Gouvernance Loi 1901',
+      outcomeBadge: '100% Inattaquable',
       question: 'Le quorum statutaire n’est pas atteint pour notre Assemblée Générale Ordinaire. Pouvons-nous voter avec les procurations reçues ?',
       response: {
         synthese: 'Les procurations comptent dans le calcul du quorum uniquement si les statuts de votre association le prévoient expressément et dans la limite des plafonds statutaires (ex. maximum 2 ou 3 pouvoirs par membre). Si le quorum demeure insuffisant, l’AG ne peut valablement délibérer : les votes seraient frappés de nullité absolue.',
-        references: 'Loi du 1er juillet 1901 Art. 5 • Cass. 1ère Civ., 13 novembre 2008, n° 07-17.842.',
+        refChips: ['Loi 1er juillet 1901 Art. 5', 'Cass. 1ère Civ., n° 07-17.842', 'Statuts associatifs'],
         calcul: 'Membres à jour : 84. Quorum requis (statuts 50%) : 42. Présents (28) + Pouvoirs valides (8) = 36. Quorum non atteint de 6 voix.',
+        calculFormula: [
+          { label: 'Membres inscrits', val: '84 adhérents' },
+          { label: 'Quorum requis 50%', val: '42 voix' },
+          { label: 'Présents + Pouvoirs', val: '36 voix' },
+          { label: 'Statut du vote', val: 'Carence (Report d’urgence)', highlight: true }
+        ],
         vigilance: 'Consigner impérativement le défaut de quorum au procès-verbal et convoquer une seconde AG selon les délais statutaires d’urgence.',
         experte: 'Rédaction sécurisée du PV de carence et de la convocation de la 2nde AG par Laetitia Badji sous 48h ouvrées.'
       }
@@ -254,12 +339,19 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       id: 3,
       title: 'CCN 51 — Rupture conventionnelle & Préavis',
       tag: 'RH & CCN 51',
+      outcomeBadge: 'Signé sous 48h',
       question: 'Quelles sont les spécificités d’une rupture conventionnelle et de calcul d’indemnité pour un cadre sous convention collective CCN 51 ?',
       response: {
         synthese: 'Sous CCN 51 (FEHAP), l’indemnité spécifique de rupture conventionnelle ne peut être inférieure à l’indemnité conventionnelle de licenciement si celle-ci est plus favorable que l’indemnité légale, ce qui est le cas après quelques années d’ancienneté.',
-        references: 'CCN 51 FEHAP Art. 15.02.2 & 15.03 • Code du travail Art. L. 1237-13.',
-        calcul: 'Pour un cadre avec 6 ans d’ancienneté : 1 mois par année sur les 5 premières années, puis fraction majorée. Montant conventionnel supérieur d’environ 45% au barème légal.',
-        vigilance: 'Respecter scrupuleusement le délai de rétractation de 15 jours calendaires avant télétransmission TéléRC à la DREETS.',
+        refChips: ['CCN 51 FEHAP Art. 15.02.2', 'Code du travail L. 1237-13', 'TéléRC DREETS'],
+        calcul: 'Pour un cadre avec 6 ans d’ancienneté : montant conventionnel supérieur d’environ 45% au barème légal du Code du travail.',
+        calculFormula: [
+          { label: 'Barème légal', val: 'Base Code du Travail' },
+          { label: 'Majoration FEHAP', val: '+45% conventionnel' },
+          { label: 'Délai rétractation', val: '15 jours calendaires' },
+          { label: 'Sécurité prud’homale', val: '100% Opposable', highlight: true }
+        ],
+        vigilance: 'Respecter scrupuleusement le délai légal de rétractation de 15 jours calendaires avant télétransmission TéléRC à la DREETS.',
         experte: 'Audit préalable du protocole de rupture et sécurisation juridique par Laetitia Badji sous 48h ouvrées.'
       }
     }
@@ -269,24 +361,24 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
 
   const faqs = [
     {
-      q: 'En quoi AssoExpert IA est-il différent d’un outil généraliste comme ChatGPT ?',
-      a: 'AssoExpert IA est spécialement paramétré pour le monde associatif employeur régie par la loi 1901. Il intègre directement les textes officiels des conventions collectives associatives (CCN 66, CCN 51, ÉCLAT, ALISFA), les règles du Compte d’Emploi des Ressources (CER), et les spécificités de gouvernance. Chaque réponse est contextualisée avec la convention et la taille de votre structure. Surtout, vous bénéficiez d’une garantie unique : l’escalade humaine sous 48h ouvrées vers Laetitia Badji (Cabinet Maé), juriste experte reconnue du secteur.'
+      q: 'En quoi AssoExpert IA est-il différent d’un outil généraliste ou d’un logiciel classique ?',
+      a: 'AssoExpert IA est spécialement conçu pour le monde associatif employeur régi par la loi 1901. Il intègre directement les textes officiels des conventions collectives associatives (CCN 66, CCN 51, ÉCLAT, ALISFA), les règles du Compte d’Emploi des Ressources (CER), et les spécificités de gouvernance. Surtout, vous bénéficiez d’une garantie contractuelle unique : l’escalade humaine sous 48h ouvrées vers Laetitia Badji (Cabinet Maé), juriste experte reconnue du secteur.'
     },
     {
-      q: 'Comment se passe une démonstration de 30 minutes ?',
-      a: 'Pas de discours commercial générique : un tour d’horizon de 30 minutes adapté aux priorités immédiates de votre structure (votre convention collective, votre budget, votre gestion des instances). Nous répondons concrètement à vos questions sur la prise en main et la transition depuis vos tableurs actuels, sans aucun engagement.'
+      q: 'Comment se déroule la démonstration personnalisée de 30 minutes ?',
+      a: 'Pas de discours commercial générique : un tour d’horizon de 30 minutes adapté aux priorités immédiates de votre structure (votre convention collective, votre budget, votre gestion des instances). Nous répondons concrètement à vos questions sur vos obligations immédiates, sans aucun engagement.'
     },
     {
-      q: 'Comment fonctionne l’escalade vers Laetitia Badji (Cabinet Maé) ?',
+      q: 'Comment fonctionne concrètement l’escalade vers Laetitia Badji (Cabinet Maé) ?',
       a: 'Dès qu’une situation RH ou juridique est sensible (rupture conventionnelle délicate, litige, contestation de prime, contrôle de subvention), un bouton préremplit votre demande dans la plateforme. Laetitia Badji examine personnellement votre dossier et vous délivre une note juridique argumentée et signée sous 48h ouvrées.'
     },
     {
-      q: 'Devons-nous abandonner nos outils existants (Excel, logiciels de paie) ?',
-      a: 'Non ! Tout comme PilotAsso, notre philosophie est : « Vos outils peuvent rester. Votre pilotage se centralise. » AssoExpert IA n’exige pas de tout remplacer. Il devient votre copilote central où retrouver les règles, automatiser vos veilles, valider vos calculs et sécuriser vos décisions.'
+      q: 'Devons-nous abandonner nos logiciels de paie ou comptables existants ?',
+      a: 'Non ! Vos logiciels habituels restent en place. AssoExpert IA ne remplace pas votre expert-comptable ou votre éditeur de paie : il devient votre tour de contrôle juridique et consultative pour vérifier les règles avant d’agir, éviter les litiges et sécuriser vos décisions.'
     },
     {
-      q: 'Nos données associatives sont-elles strictement confidentielles ?',
-      a: 'Absolument. Vos questions, budgets et documents restent cantonnés à votre espace associatif sécurisé. Nous appliquons une politique de confidentialité absolue : aucune donnée n’est transmise à des tiers de tracking publicitaire, et vos contenus ne servent jamais à entraîner des modèles d’IA publics.'
+      q: 'Nos données associatives sont-elles strictement confidentielles et conformes au RGPD ?',
+      a: 'Absolument. Vos questions, budgets et documents restent cantonnés à votre espace associatif sécurisé hébergé sur des serveurs souverains en France. Aucune donnée n’est transmise à des tiers publicitaires, et vos contenus ne servent jamais à entraîner des modèles d’IA publics.'
     },
     {
       q: 'Puis-je changer de formule ou résilier sans engagement ?',
@@ -296,61 +388,30 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
 
   const testimonials = [
     {
-      quote: "Avec nos 32 salariés sous CCN 66, la gestion des congés trimestriels et des grilles indiciaires nous prenait des jours entiers chaque trimestre. AssoExpert IA nous fait gagner un temps précieux et nous sécurise totalement.",
+      quote: "Avec nos 32 salariés sous CCN 66, la gestion des congés trimestriels et des grilles indiciaires nous prenait des jours entiers chaque trimestre. AssoExpert IA nous fait gagner un temps précieux et nous sécurise totalement face aux risques de contentieux.",
       author: "Sophie M.",
       role: "Directrice Générale",
       asso: "Maison Pour Tous des Lilas",
-      tag: "CCN 66 • 32 salariés",
+      tag: "CCN 66 &bull; 32 salariés",
       initials: "SM"
     },
     {
-      quote: "La double approche IA + validation humaine par Laetitia Badji est un soulagement immense pour notre bureau bénévole. On a les réponses immédiates au quotidien, et un vrai cabinet juridique d'appui en cas de doute.",
+      quote: "La double approche assistance IA + validation humaine par Laetitia Badji est un soulagement immense pour notre bureau bénévole. On a les réponses immédiates au quotidien, et un vrai cabinet juridique d'appui en cas de doute.",
       author: "Karim T.",
       role: "Président d'association",
       asso: "Passerelle Insertion Lyon",
-      tag: "ALISFA • 18 salariés",
+      tag: "ALISFA &bull; 18 salariés",
       initials: "KT"
     },
     {
-      quote: "Enfin une plateforme qui comprend le Compte d’Emploi des Ressources (CER), les fonds dédiés et les particularités de la loi 1901 ! Nos échanges avec le Conseil d'Administration sont devenus fluides et sereins.",
+      quote: "Enfin une plateforme qui comprend le Compte d’Emploi des Ressources (CER), les fonds dédiés et les particularités de la loi 1901 ! Nos échanges avec le Conseil d'Administration sont devenus limpides et sereins.",
       author: "Élisabeth D.",
       role: "Trésorière",
       asso: "Réseau Éveil Santé & Solidarité",
-      tag: "CCN 51 • 45 salariés",
+      tag: "CCN 51 &bull; 45 salariés",
       initials: "ED"
     }
   ];
-
-  const jsonLdData = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": "https://assoexpert.fr/#organization",
-        "name": "AssoExpert IA — Cabinet Maé / AKILIGUE SAS",
-        "url": "https://assoexpert.fr",
-        "logo": "https://assoexpert.fr/logo.svg",
-        "founder": {
-          "@type": "Person",
-          "name": "Laetitia Badji",
-          "jobTitle": "Experte conseil en droit associatif et gestion RH"
-        }
-      },
-      {
-        "@type": "SoftwareApplication",
-        "name": "AssoExpert IA",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web",
-        "offers": plans.map(p => ({
-          "@type": "Offer",
-          "name": `Formule ${p.label}`,
-          "price": p.priceMonthly.toString(),
-          "priceCurrency": "EUR",
-          "description": p.description
-        }))
-      }
-    ]
-  };
 
   const handleDemoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -358,132 +419,125 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
   };
 
   return (
-    <div className="animate-fade-in" style={{ backgroundColor: '#ffffff', minHeight: '100vh', color: 'var(--color-navy)' }}>
+    <div style={{ backgroundColor: '#070f1e', color: '#ffffff', minHeight: '100vh', overflowX: 'hidden' }}>
       
-      {/* PilotAsso-Inspired Top Announcement Bar */}
-      <div className="pilot-announcement-bar">
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-          <span className="pilot-live-indicator" />
-          <span style={{ color: '#cbd5e1' }}>
-            <strong>18 associations & fédérations</strong> participent activement à la co-construction d’AssoExpert IA.
-          </span>
-        </div>
-        <button
-          onClick={() => setIsDemoModalOpen(true)}
-          style={{
-            background: 'rgba(255, 255, 255, 0.12)',
-            border: '1px solid rgba(255, 255, 255, 0.25)',
-            color: '#ffffff',
-            padding: '3px 12px',
-            borderRadius: 'var(--radius-pill)',
-            fontSize: '12px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          Rejoindre le programme bêta &rarr;
-        </button>
-      </div>
-
-      {/* Main Sticky Navbar (Always on 1 line on desktop, clean hamburger on mobile) */}
-      <nav style={{
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid var(--color-border)',
-        padding: '12px 20px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        boxShadow: '0 2px 10px rgba(10, 37, 64, 0.03)'
-      }}>
+      {/* =========================================================================
+          DISTINCTIVE TOP NAVBAR (AssoExpert IA & Cabinet Maé)
+          ========================================================================= */}
+      <header className="pilot-navbar" style={{ background: 'rgba(7, 15, 30, 0.88)' }}>
         <div style={{
-          maxWidth: 1440,
-          width: '100%',
+          maxWidth: 1280,
           margin: '0 auto',
-          display: 'flex',
+          padding: '0 24px',
+          height: 70,
+          display: 'grid',
+          gridTemplateColumns: 'auto 1fr auto',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '16px'
+          gap: 24
         }}>
           {/* Logo Brand */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
               width: 38,
               height: 38,
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)',
+              borderRadius: 10,
+              background: 'linear-gradient(135deg, #004AAD 0%, #002868 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#ffffff',
-              boxShadow: '0 4px 12px rgba(0, 74, 173, 0.25)'
+              boxShadow: '0 0 20px rgba(0, 74, 173, 0.6)'
             }}>
-              <Compass size={22} />
+              <Scale size={20} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{
-                  fontFamily: 'var(--font-display)',
+                  fontSize: 19,
                   fontWeight: 800,
-                  fontSize: '19px',
-                  color: 'var(--color-navy)',
-                  letterSpacing: '-0.02em'
+                  letterSpacing: '-0.02em',
+                  color: '#ffffff'
                 }}>
-                  AssoExpert<span style={{ color: 'var(--color-blue)' }}>.IA</span>
+                  AssoExpert<span style={{ color: '#004AAD' }}>.IA</span>
                 </span>
-                <span className="badge badge-lime" style={{ fontSize: '9px', padding: '1px 6px', fontWeight: 800 }}>
+                <span style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  backgroundColor: 'rgba(190, 242, 100, 0.18)',
+                  color: '#bef264',
+                  padding: '2px 8px',
+                  borderRadius: 9999,
+                  border: '1px solid rgba(190, 242, 100, 0.35)'
+                }}>
                   Cabinet Maé
                 </span>
               </div>
-              <div className="hide-on-mobile" style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
-                La plateforme de pilotage des associations
-              </div>
             </div>
           </div>
 
-          {/* Desktop Navigation Links (Always on 1 single line with clean spacing) */}
-          <div className="hide-on-mobile" style={{
+          {/* Desktop Nav Links */}
+          <nav className="hide-on-mobile" style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            flexShrink: 0,
-            whiteSpace: 'nowrap'
+            justifyContent: 'center',
+            gap: 6
           }}>
-            <a href="#centralisation" className="pilot-nav-link">Centralisation</a>
-            <a href="#finances" className="pilot-nav-link">Finances</a>
-            <a href="#financements" className="pilot-nav-link">Financements</a>
-            <a href="#rh" className="pilot-nav-link" style={{ whiteSpace: 'nowrap' }}>RH &amp; CCN</a>
-            <a href="#simulateur" className="pilot-nav-link" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>Simulateur IA</a>
-            <a href="#gouvernance" className="pilot-nav-link">Gouvernance</a>
+            <a href="#cockpit" className="pilot-nav-link">L'Arbitrage en direct</a>
+            <a href="#constat" className="pilot-nav-link">Le constat</a>
+            <a href="#solutions" className="pilot-nav-link">4 Piliers</a>
+            <a href="#simulateur" className="pilot-nav-link">Simulateur</a>
+            <a href="#experte" className="pilot-nav-link">Garantie 48h</a>
             <a href="#tarifs" className="pilot-nav-link">Tarifs</a>
             <a href="#faq" className="pilot-nav-link">FAQ</a>
-          </div>
+          </nav>
 
-          {/* Action Buttons & Mobile Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          {/* Action CTAs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button
               onClick={onOpenLogin}
-              className="btn btn-sm btn-secondary"
-              style={{ fontWeight: 600, fontSize: '13px', height: '38px', padding: '0 12px', whiteSpace: 'nowrap' }}
+              className="hide-on-mobile"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: '8px 14px',
+                borderRadius: 9999,
+                transition: 'color 0.2s ease'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)')}
             >
-              <LogIn size={14} style={{ color: 'var(--color-blue)' }} />
-              <span>Connexion</span>
+              Connexion
             </button>
 
             <button
               onClick={() => setIsDemoModalOpen(true)}
-              className="hide-on-mobile btn btn-sm btn-primary"
-              style={{ fontWeight: 700, fontSize: '13px', height: '38px', padding: '0 18px', borderRadius: 'var(--radius-pill)', whiteSpace: 'nowrap' }}
+              className="pilot-glow-btn"
+              style={{ fontSize: 13, padding: '9px 18px' }}
             >
               <span>Demander une démo</span>
               <ArrowRight size={14} />
             </button>
 
-            {/* Mobile Hamburger (Only visible on tablet & mobile, fits comfortably) */}
+            {/* Mobile Hamburger */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="show-on-mobile btn btn-sm btn-secondary"
-              style={{ padding: 0, height: '38px', width: '38px', minWidth: '38px', alignItems: 'center', justifyContent: 'center' }}
+              className="show-on-mobile"
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                color: '#ffffff',
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
+              }}
               aria-label="Menu"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -491,490 +545,1350 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
-          <div
-            className="animate-fade-in show-flex-on-mobile"
-            style={{
-              backgroundColor: '#ffffff',
-              borderTop: '1px solid var(--color-border)',
-              padding: '16px 20px',
-              flexDirection: 'column',
-              gap: '10px',
-              boxShadow: 'var(--shadow-hover)',
-              marginTop: '10px'
-            }}
-          >
-            <a href="#centralisation" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>Centralisation de votre pilotage</a>
-            <a href="#finances" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>Pilotez vos finances</a>
-            <a href="#financements" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>Trouvez et suivez vos financements</a>
-            <a href="#rh" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>RH & Conventions Collectives</a>
-            <a href="#simulateur" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 700, color: 'var(--color-blue)' }}>Simulateur interactif en direct</a>
-            <a href="#gouvernance" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>Gouvernance Loi 1901</a>
-            <a href="#tarifs" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>Tarifs</a>
-            <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} style={{ padding: '10px', fontWeight: 600, color: 'var(--color-navy)' }}>FAQ</a>
-            
-            <div style={{ paddingTop: '10px', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button onClick={() => { setIsMobileMenuOpen(false); setIsDemoModalOpen(true); }} className="btn btn-primary" style={{ width: '100%' }}>
+          <div style={{
+            backgroundColor: '#0a162b',
+            borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12
+          }}>
+            <a href="#cockpit" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', padding: '8px 0', fontSize: 15, fontWeight: 500 }}>L'Espace d'arbitrage</a>
+            <a href="#constat" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', padding: '8px 0', fontSize: 15, fontWeight: 500 }}>Le vertige de l'employeur</a>
+            <a href="#solutions" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', padding: '8px 0', fontSize: 15, fontWeight: 500 }}>Les 4 piliers d'expertise</a>
+            <a href="#simulateur" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#bef264', padding: '8px 0', fontSize: 15, fontWeight: 600 }}>Simulateur de gains & ROI</a>
+            <a href="#experte" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', padding: '8px 0', fontSize: 15, fontWeight: 500 }}>Laetitia Badji & Cabinet Maé</a>
+            <a href="#tarifs" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', padding: '8px 0', fontSize: 15, fontWeight: 500 }}>Tarifs sans engagement</a>
+            <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', padding: '8px 0', fontSize: 15, fontWeight: 500 }}>FAQ</a>
+            <div style={{ paddingTop: 14, borderTop: '1px solid rgba(255, 255, 255, 0.12)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); setIsDemoModalOpen(true); }}
+                className="pilot-glow-btn"
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
                 Réserver ma démo gratuite (30 min)
               </button>
-              <button onClick={() => { setIsMobileMenuOpen(false); onOpenLogin(); }} className="btn btn-secondary" style={{ width: '100%' }}>
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); onOpenLogin(); }}
+                className="pilot-primary-btn"
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
                 Se connecter
               </button>
             </div>
           </div>
         )}
-      </nav>
+      </header>
 
       {/* =========================================================================
-          HERO SECTION WITH REALISTIC MOCKUP PHOTO & LIVE INTERFACE
+          HERO SECTION (BESPOKE FOR ASSOEXPERT IA - L'ARBITRAGE JURIDIQUE EN DIRECT)
           ========================================================================= */}
-      <section style={{
+      <section id="cockpit" style={{
         position: 'relative',
-        background: 'radial-gradient(ellipse 90% 70% at 50% -10%, rgba(0, 74, 173, 0.08) 0%, rgba(255, 255, 255, 0) 100%), #ffffff',
-        padding: 'var(--space-16) var(--space-6) var(--space-12)',
-        borderBottom: '1px solid var(--color-border)',
-        overflow: 'hidden'
+        paddingTop: 140,
+        paddingBottom: 90,
+        paddingLeft: 20,
+        paddingRight: 20,
+        overflow: 'hidden',
+        background: '#070f1e'
       }}>
-        {/* Subtle decorative glow */}
-        <div style={{
-          position: 'absolute',
-          top: -140,
-          right: '20%',
-          width: 500,
-          height: 500,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(193, 255, 114, 0.22) 0%, rgba(193, 255, 114, 0) 70%)',
-          pointerEvents: 'none'
-        }} />
+        {/* Soft Ambient Aurora Glows */}
+        <div
+          className="animate-aurora-1"
+          style={{
+            position: 'absolute',
+            top: '-5%',
+            left: '20%',
+            width: 580,
+            height: 580,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0, 74, 173, 0.3) 0%, rgba(0, 74, 173, 0) 70%)',
+            pointerEvents: 'none',
+            filter: 'blur(75px)'
+          }}
+        />
 
-        <div style={{ maxWidth: 1200, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-          {/* Top Pill Badge */}
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <span className="pilot-pill-badge">
-              <span className="pilot-live-indicator" />
-              <span>18 associations & fédérations construisent activement AssoExpert IA</span>
-            </span>
+        <div
+          className="animate-aurora-2"
+          style={{
+            position: 'absolute',
+            top: '25%',
+            right: '15%',
+            width: 520,
+            height: 520,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(190, 242, 100, 0.14) 0%, rgba(190, 242, 100, 0) 70%)',
+            pointerEvents: 'none',
+            filter: 'blur(70px)'
+          }}
+        />
+
+        <div style={{ maxWidth: 1280, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 10 }}>
+          
+          {/* Top Pill: Authority Tag */}
+          <div style={{ marginBottom: 26 }}>
+            <div
+              onClick={() => setIsDemoModalOpen(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+                borderRadius: 9999,
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                padding: '6px 18px 6px 10px',
+                backdropFilter: 'blur(14px)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              className="group"
+            >
+              <span className="radar-beacon" />
+              <span style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.95)', fontWeight: 600 }}>
+                18 fédérations & associations construisent la plateforme d'appui juridique
+              </span>
+              <ArrowRight size={13} style={{ color: '#bef264' }} />
+            </div>
           </div>
 
-          {/* Main Hero Headline */}
+          {/* Ambient Radial Energy Beam behind Title */}
+          <div className="energy-beam-bg" />
+
+          {/* Slogan AssoExpert IA: Protéger le dirigeant associatif employeur avec Mot Rotatif Animé */}
           <h1 style={{
-            fontSize: 'clamp(36px, 5.5vw, 58px)',
+            fontSize: 'clamp(34px, 5.5vw, 62px)',
             fontWeight: 800,
-            color: 'var(--color-navy)',
-            lineHeight: 1.12,
+            lineHeight: 1.1,
             letterSpacing: '-0.035em',
-            maxWidth: 980,
-            margin: '0 auto var(--space-6)'
+            color: '#ffffff',
+            maxWidth: 1060,
+            margin: '0 auto 24px',
+            position: 'relative',
+            zIndex: 2
           }}>
-            Centralisez vos finances, vos projets et vos règles RH associatives
+            Dirigez en toute confiance.<br />
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '6px 12px' }}>
+              <span>Vos</span>
+              <span
+                key={rotatingWordIndex}
+                className="font-serif-italic animate-word-rotate"
+                style={{
+                  color: rotatingWords[rotatingWordIndex].color,
+                  textShadow: `0 0 35px ${rotatingWords[rotatingWordIndex].color}77`,
+                  padding: '2px 12px',
+                  borderRadius: 12,
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: `1.5px solid ${rotatingWords[rotatingWordIndex].color}44`,
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                {rotatingWords[rotatingWordIndex].text}
+              </span>
+              <span>100% sécurisés.</span>
+            </span>
           </h1>
 
-          {/* Subtitle */}
+          {/* Subtitle explaining the dual strength (IA + Cabinet Maé) */}
           <p style={{
-            fontSize: 'var(--text-xl)',
-            color: 'var(--color-navy-muted)',
-            lineHeight: 1.6,
-            maxWidth: 820,
-            margin: '0 auto var(--space-8)'
+            fontSize: 'clamp(16px, 1.8vw, 19px)',
+            lineHeight: 1.65,
+            color: 'rgba(255, 255, 255, 0.82)',
+            maxWidth: 840,
+            margin: '0 auto 28px',
+            letterSpacing: '-0.011em',
+            position: 'relative',
+            zIndex: 2
           }}>
-            Automatisez la veille conventionnelle (<strong>CCN 66, CCN 51, ÉCLAT, ALISFA</strong>), anticipez votre trésorerie et bénéficiez d'une <strong>validation juridique sous 48h ouvrées</strong> assurée par Laetitia Badji (Cabinet Maé).
+            L’alliance inédite d'une <strong>intelligence artificielle spécialisée</strong> dans vos conventions collectives (CCN 66, 51, ÉCLAT, ALISFA) et de la <strong>garantie juridique signée du Cabinet Maé</strong> (Laetitia Badji), avec avis opposable délivré sous 48h ouvrées.
           </p>
 
-          {/* Hero CTAs */}
+          {/* Innovative Live Legal Activity Ticker Capsule */}
+          <div style={{ marginBottom: 36, position: 'relative', zIndex: 2 }}>
+            <div className="live-ticker-capsule" key={liveEventIndex}>
+              <span className="radar-beacon" />
+              <span style={{
+                backgroundColor: 'rgba(190, 242, 100, 0.2)',
+                color: '#bef264',
+                padding: '3px 10px',
+                borderRadius: 9999,
+                fontSize: 11,
+                fontWeight: 800,
+                letterSpacing: '0.02em',
+                boxShadow: '0 0 12px rgba(190, 242, 100, 0.2)'
+              }}>
+                {liveEvents[liveEventIndex].tag}
+              </span>
+              <span style={{ color: 'rgba(255, 255, 255, 0.95)', fontWeight: 500, fontSize: 13 }}>
+                {liveEvents[liveEventIndex].text}
+              </span>
+              <span style={{
+                color: '#bef264',
+                fontWeight: 800,
+                fontSize: 12,
+                borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
+                paddingLeft: 12
+              }}>
+                {liveEvents[liveEventIndex].stat}
+              </span>
+            </div>
+          </div>
+
+          {/* Three Interactive Reassurance Badges */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '14px',
+            gap: 12,
             flexWrap: 'wrap',
-            marginBottom: 'var(--space-4)'
+            marginBottom: 44,
+            fontSize: 13,
+            position: 'relative',
+            zIndex: 2
+          }}>
+            <div className="reassurance-chip">
+              <BadgeCheck size={16} style={{ color: '#bef264' }} />
+              <span>100% Dédié au secteur associatif employeur</span>
+            </div>
+            <div className="reassurance-chip">
+              <Clock size={16} style={{ color: '#bef264' }} />
+              <span>Avis juridique écrit sous 48h ouvrées</span>
+            </div>
+            <div className="reassurance-chip">
+              <ShieldCheck size={16} style={{ color: '#bef264' }} />
+              <span>Hébergement souverain France & 100% RGPD</span>
+            </div>
+          </div>
+
+          {/* Action CTAs with Luminous Shimmer Sweep */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 14,
+            flexWrap: 'wrap',
+            marginBottom: 64,
+            position: 'relative',
+            zIndex: 2
           }}>
             <button
               onClick={() => setIsDemoModalOpen(true)}
-              className="btn btn-primary mobile-w-full"
-              style={{
-                height: 52,
-                padding: '0 34px',
-                fontSize: '16px',
-                fontWeight: 700,
-                borderRadius: 'var(--radius-pill)',
-                boxShadow: '0 8px 24px rgba(0, 74, 173, 0.28)'
-              }}
+              className="pilot-glow-btn btn-shimmer-wrap"
+              style={{ fontSize: 15, padding: '14px 32px' }}
             >
-              <span>Réserver ma démo gratuite</span>
-              <ArrowRight size={18} />
+              <div className="btn-shimmer-beam" />
+              <span style={{ position: 'relative', zIndex: 2 }}>Réserver ma démo de 30 minutes</span>
+              <ChevronRight size={16} style={{ position: 'relative', zIndex: 2 }} />
             </button>
 
             <a
-              href="#simulateur"
-              className="btn btn-secondary mobile-w-full"
-              style={{
-                height: 52,
-                padding: '0 28px',
-                fontSize: '15px',
-                fontWeight: 600,
-                borderRadius: 'var(--radius-pill)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
+              href="#constat"
+              className="pilot-primary-btn"
+              style={{ fontSize: 15, padding: '14px 28px' }}
             >
-              <Sparkles size={16} style={{ color: 'var(--color-blue)' }} />
-              <span>Tester le simulateur en direct</span>
+              <span>Comprendre les enjeux</span>
             </a>
           </div>
 
-          <div style={{ fontSize: '13px', color: 'var(--color-navy-muted)', fontWeight: 500, marginBottom: 'var(--space-12)' }}>
-            30 minutes, sans engagement. Une plateforme construite avec des associations, pour les associations.
-          </div>
+          {/* =========================================================================
+              LE COCKPIT D'ARBITRAGE JURIDIQUE & SOCIAL EN DIRECT (ORIGINAL DNA)
+              ========================================================================= */}
+          <div style={{ position: 'relative', maxWidth: 1220, margin: '0 auto' }}>
+            
+            {/* Main Interactive Glass Console */}
+            <div className="pilot-hero-card animate-border-glow" style={{ textAlign: 'left' }}>
+              
+              {/* Header Bar */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                padding: '12px 20px',
+                fontSize: 12,
+                color: 'rgba(255, 255, 255, 0.65)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#ef4444' }} />
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#10b981' }} />
+                  <span style={{ marginLeft: 6, color: 'rgba(255, 255, 255, 0.4)' }}>|</span>
+                  <span style={{ fontWeight: 700, color: '#ffffff' }}>Espace d’Arbitrage Conventionnel & Financements</span>
+                </div>
 
-          {/* RICH VISUAL HERO PRESENTATION: Photorealistic Mockup & Live Dashboard */}
-          <div style={{
-            maxWidth: 1040,
-            margin: '0 auto',
-            position: 'relative',
-            borderRadius: '24px',
-            overflow: 'hidden',
-            boxShadow: 'var(--shadow-float)',
-            border: '2px solid rgba(0, 74, 173, 0.12)'
-          }}>
-            {/* Real Editorial Image in Hero */}
-            <div style={{ position: 'relative', width: '100%', maxHeight: 460, overflow: 'hidden' }}>
-              <img
-                src="/images/hero-dashboard.jpg"
-                alt="Tableau de bord AssoExpert IA affiché sur un ordinateur portable dans un bureau associatif"
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  objectFit: 'cover'
-                }}
-              />
-
-              {/* Floating Dynamic Badge 1 (Top Left) */}
-              <div className="hero-floating-badge-top">
-                <span className="live-dot" />
-                <span>CCN 66 &bull; Congés trimestriels synchronisés</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '3px 10px',
+                    borderRadius: 9999,
+                    border: '1px solid rgba(190, 242, 100, 0.3)',
+                    backgroundColor: 'rgba(190, 242, 100, 0.1)',
+                    color: '#bef264',
+                    fontSize: 11,
+                    fontWeight: 700
+                  }}>
+                    <Zap size={12} />
+                    Double Contrôle IA + Avocat
+                  </span>
+                </div>
               </div>
 
-              {/* Floating Dynamic Badge 2 (Bottom Right) */}
-              <div className="hero-floating-badge-bottom">
-                <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-lime)', boxShadow: '0 0 8px var(--color-lime)' }} />
-                <span>Validation juridique signée sous 48h (Cabinet Maé)</span>
+              {/* 4 Clickable Case Study Scenarios */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '14px 20px 0',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                overflowX: 'auto'
+              }}>
+                {heroDilemmas.map((d, idx) => (
+                  <button
+                    key={d.id}
+                    onClick={() => setHeroDilemmaIndex(idx)}
+                    style={{
+                      padding: '8px 16px',
+                      border: 'none',
+                      background: 'transparent',
+                      borderBottom: heroDilemmaIndex === idx ? '2px solid #bef264' : '2px solid transparent',
+                      color: heroDilemmaIndex === idx ? '#bef264' : 'rgba(255, 255, 255, 0.65)',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {d.badge}
+                  </button>
+                ))}
+              </div>
+
+              {/* Console Body: Dual View (Instant AI + Sceau Cabinet Maé) */}
+              <div style={{ padding: '24px' }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
+                  gap: 20
+                }}>
+                  
+                  {/* Left Column: L'Analyse Immédiate IA */}
+                  <div style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                    borderRadius: 16,
+                    padding: '20px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <Bot size={18} style={{ color: '#bef264' }} />
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#bef264', textTransform: 'uppercase' }}>
+                        Situation posée par l'employeur
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', lineHeight: 1.45, marginBottom: 16 }}>
+                      « {currentDilemma.question} »
+                    </div>
+
+                    <div style={{
+                      backgroundColor: 'rgba(0, 74, 173, 0.15)',
+                      borderLeft: '3px solid #004AAD',
+                      padding: '12px 14px',
+                      borderRadius: '0 8px 8px 0',
+                      marginBottom: 14
+                    }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#7dd3fc', marginBottom: 2 }}>
+                        Diagnostic juridique immédiat :
+                      </div>
+                      <div style={{ fontSize: 13, color: '#ffffff', lineHeight: 1.5 }}>
+                        {currentDilemma.verdict}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'rgba(255, 255, 255, 0.6)' }}>
+                      <span>Réf : {currentDilemma.officialRef}</span>
+                      <span style={{ color: '#6ee7b7', fontWeight: 700 }}>✓ {currentDilemma.risk}</span>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Le Sceau & Engagement Humain Cabinet Maé */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(10, 37, 64, 0.8) 0%, rgba(13, 22, 38, 0.95) 100%)',
+                    borderRadius: 16,
+                    padding: '20px',
+                    border: '1.5px solid rgba(190, 242, 100, 0.35)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <Award size={18} style={{ color: '#bef264' }} />
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#bef264', textTransform: 'uppercase' }}>
+                            Garantie Contractuelle
+                          </span>
+                        </div>
+                        <span style={{
+                          backgroundColor: 'rgba(190, 242, 100, 0.2)',
+                          color: '#bef264',
+                          padding: '2px 8px',
+                          borderRadius: 9999,
+                          fontSize: 10,
+                          fontWeight: 800
+                        }}>
+                          DÉLAI 48H
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', marginBottom: 6 }}>
+                        Laetitia Badji &bull; Cabinet Maé
+                      </div>
+                      <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.65)', lineHeight: 1.5, marginBottom: 16 }}>
+                        {currentDilemma.cabinetMaeAction}. Note d'analyse argumentée et opposable délivrée sous 48h ouvrées.
+                      </div>
+                    </div>
+
+                    <div style={{
+                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                      paddingTop: 14,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', border: '1.5px solid #bef264' }}>
+                          <img src="/images/laetitia-badji.jpg" alt="Laetitia Badji" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        <div style={{ fontSize: 11, color: '#ffffff', fontWeight: 600 }}>
+                          Avis juridique certifié
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => setIsDemoModalOpen(true)}
+                        className="pilot-glow-btn"
+                        style={{ fontSize: 11, padding: '6px 14px' }}
+                      >
+                        Tester cette escalade &rarr;
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
               </div>
             </div>
 
-            {/* Sub-bar with Live Interactive KPI summary */}
-            <div style={{
-              backgroundColor: '#ffffff',
-              borderTop: '1px solid var(--color-border)',
-              padding: '20px 24px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
-              gap: '16px',
-              textAlign: 'left'
-            }}>
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Structure pilote active</div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-navy)', marginTop: 2 }}>{currentOrg.name}</div>
-                <div style={{ fontSize: '12px', color: 'var(--color-blue)', fontWeight: 600 }}>{currentOrg.ccn.split('(')[0]} &bull; 28 salariés</div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Suivi Budgétaire & CER</div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-navy)', marginTop: 2 }}>420 000 € prévisionnel</div>
-                <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 600 }}>Fonds dédiés 14.5 k€ reportés</div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Prochaine échéance</div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-navy)', marginTop: 2 }}>Dépôt CER &bull; J-14</div>
-                <div style={{ fontSize: '12px', color: 'var(--color-orange-dark)', fontWeight: 600 }}>Subvention CAF pré-remplie</div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Garantie humaine</div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-blue)', marginTop: 2 }}>Cabinet Maé &bull; Laetitia Badji</div>
-                <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', fontWeight: 600 }}>Délai garanti 48h ouvrées</div>
+            {/* =========================================================================
+                THREE FLOATING ORBITING BADGES (Clearly Visible Fluid Motion)
+                ========================================================================= */}
+            {/* Orbiting Badge 1: Top Left */}
+            <div
+              className="animate-float hide-on-mobile"
+              style={{
+                position: 'absolute',
+                top: '20%',
+                left: -90,
+                width: 270,
+                zIndex: 25
+              }}
+            >
+              <div className="pilot-glass-badge card-interactive-tilt" style={{ textAlign: 'left' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#6ee7b7' }}>
+                  <Gavel size={14} />
+                  <span>Contentieux prud'homal évité</span>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff', marginTop: 6, lineHeight: 1.3 }}>
+                  CCN 66 : Rappel congés trimestriels
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, fontSize: 11 }}>
+                  <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>Économie directe</span>
+                  <span style={{ backgroundColor: 'rgba(52, 211, 153, 0.25)', color: '#6ee7b7', padding: '1px 8px', borderRadius: 4, fontWeight: 700 }}>
+                    +12 400 €
+                  </span>
+                </div>
               </div>
             </div>
+
+            {/* Orbiting Badge 2: Bottom Right */}
+            <div
+              className="animate-float-slow hide-on-mobile"
+              style={{
+                position: 'absolute',
+                bottom: -30,
+                right: -80,
+                width: 260,
+                zIndex: 25
+              }}
+            >
+              <div className="pilot-glass-badge card-interactive-tilt" style={{ textAlign: 'left' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#38bdf8' }}>
+                  <FileCheck2 size={14} />
+                  <span>Contrôle CER sécurisé</span>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff', marginTop: 4 }}>
+                  Subvention Région &bull; Fonds Dédiés
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#bef264' }}>0 € de reversement</span>
+                  <span style={{ fontSize: 11, color: '#a7f3d0' }}>Conforme ANC</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Orbiting Badge 3: Bottom Left Pill */}
+            <div
+              className="animate-float-reverse hide-on-mobile"
+              style={{
+                position: 'absolute',
+                bottom: -24,
+                left: '12%',
+                zIndex: 25
+              }}
+            >
+              <div style={{
+                borderRadius: 9999,
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                backgroundColor: 'rgba(10, 25, 47, 0.95)',
+                padding: '10px 20px',
+                backdropFilter: 'blur(16px)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                fontSize: 12,
+                color: '#ffffff',
+                boxShadow: '0 12px 30px rgba(0, 0, 0, 0.6)'
+              }}>
+                <Award size={16} style={{ color: '#bef264' }} />
+                <span><strong>Garantie Cabinet Maé :</strong> Note juridique argumentée sous 48h ouvrées</span>
+              </div>
+            </div>
+
           </div>
+
         </div>
       </section>
 
+      {/* Laser Light Divider */}
+      <div className="laser-divider" />
+
       {/* =========================================================================
-          SIGNATURE PILOTASSO SECTION WITH REAL DESK PHOTOGRAPHY:
-          "Combien de fichiers devez-vous ouvrir pour savoir où en est votre association ?"
+          TRANSITION TO LIGHT PAPER CONTAINER (Airy & Contrast-Rich)
           ========================================================================= */}
-      <section style={{
-        backgroundColor: '#f8fafc',
-        padding: 'var(--space-16) var(--space-6)',
-        borderBottom: '1px solid var(--color-border)'
+      <div style={{
+        backgroundColor: '#ffffff',
+        color: '#0A2540',
+        borderTopLeftRadius: 'clamp(2rem, 5vw, 3rem)',
+        borderTopRightRadius: 'clamp(2rem, 5vw, 3rem)',
+        boxShadow: '0 -40px 80px -20px rgba(0, 0, 0, 0.7)',
+        position: 'relative',
+        zIndex: 20,
+        backgroundImage: 'radial-gradient(rgba(11, 27, 51, 0.05) 1px, transparent 1px)',
+        backgroundSize: '22px 22px'
       }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          
-          <div style={{ textAlign: 'center', marginBottom: 'var(--space-12)' }}>
+
+        {/* =========================================================================
+            SECTION "LE CONSTAT" (LE VERTIGE DU DIRIGEANT ASSOCIATIF EMPLOYEUR)
+            Completely original to AssoExpert IA - No PilotAsso verbatim copy!
+            ========================================================================= */}
+        <section id="constat" style={{
+          padding: 'clamp(60px, 8vw, 110px) 24px',
+          maxWidth: 1280,
+          margin: '0 auto'
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))',
+            alignItems: 'center',
+            gap: 'clamp(40px, 6vw, 80px)'
+          }}>
+            {/* Left Column: Constat Text */}
+            <div>
+              <span style={{
+                fontFamily: 'monospace',
+                fontSize: 12,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
+                color: '#004AAD',
+                display: 'block',
+                marginBottom: 16
+              }}>
+                La Réalité du Secteur
+              </span>
+
+              <h2 style={{
+                fontSize: 'clamp(28px, 4vw, 44px)',
+                fontWeight: 800,
+                lineHeight: 1.15,
+                letterSpacing: '-0.025em',
+                color: '#0A2540',
+                marginBottom: 20
+              }}>
+                Être employeur associatif ne devrait pas être une source permanente d’angoisse.
+              </h2>
+
+              <p style={{
+                fontSize: 'clamp(15px, 1.6vw, 17px)',
+                lineHeight: 1.65,
+                color: 'rgba(10, 37, 64, 0.7)',
+                letterSpacing: '-0.011em',
+                marginBottom: 24
+              }}>
+                De 1 à 100 salariés, présidents bénévoles et directions salariées portent les mêmes responsabilités pénales et sociales qu'une entreprise commerciale, souvent sans directeur juridique ni DRH dédié.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600, color: '#0A2540' }}>
+                  <CheckCircle2 size={18} style={{ color: '#004AAD' }} />
+                  <span>Déchiffrage immédiat de votre convention (CCN 66, 51, ÉCLAT, ALISFA)</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600, color: '#0A2540' }}>
+                  <CheckCircle2 size={18} style={{ color: '#004AAD' }} />
+                  <span>Sécurisation de la responsabilité civile et pénale du bureau bénévole</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600, color: '#0A2540' }}>
+                  <CheckCircle2 size={18} style={{ color: '#004AAD' }} />
+                  <span>La signature d'un cabinet juridique reconnu (Cabinet Maé) sous 48h ouvrées</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Visualisation inspirée de l'Image 1 (Fichiers flottants sur grille & Tableau de bord unique) */}
+            <div>
+              <div className="dot-matrix-container">
+                {/* Floating disorder badge */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 20
+                }}>
+                  <span style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    color: 'rgba(10, 37, 64, 0.55)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6
+                  }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#ef4444' }} />
+                    Fichiers dispersés & versions obsolètes
+                  </span>
+                  <span style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#dc2626',
+                    backgroundColor: '#fee2e2',
+                    padding: '2px 8px',
+                    borderRadius: 9999
+                  }}>
+                    Risque juridique permanent
+                  </span>
+                </div>
+
+                {/* Stack of Tilted Floating Document Cards (Inspired by Image 1) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'relative' }}>
+                  <div
+                    className="tilted-file-card"
+                    style={{
+                      animation: 'fileFloat1 4s ease-in-out infinite',
+                      zIndex: 4,
+                      marginLeft: '2%'
+                    }}
+                  >
+                    <FileSpreadsheet size={18} style={{ color: '#16a34a', flexShrink: 0 }} />
+                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      Budget_2026_v3_FINAL.xlsx
+                    </span>
+                    <span style={{ fontSize: 11, color: '#dc2626', fontWeight: 700, backgroundColor: '#fef2f2', padding: '2px 6px', borderRadius: 4 }}>
+                      Non opposable
+                    </span>
+                  </div>
+
+                  <div
+                    className="tilted-file-card"
+                    style={{
+                      animation: 'fileFloat2 4.5s ease-in-out infinite',
+                      zIndex: 3,
+                      marginLeft: '8%'
+                    }}
+                  >
+                    <FileSpreadsheet size={18} style={{ color: '#0284c7', flexShrink: 0 }} />
+                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      Trésorerie_mensuelle.xlsx
+                    </span>
+                    <span style={{ fontSize: 11, color: '#f59e0b', fontWeight: 700, backgroundColor: '#fffbeb', padding: '2px 6px', borderRadius: 4 }}>
+                      Écarts non justifiés
+                    </span>
+                  </div>
+
+                  <div
+                    className="tilted-file-card"
+                    style={{
+                      animation: 'fileFloat3 3.8s ease-in-out infinite',
+                      zIndex: 2,
+                      marginLeft: '1%'
+                    }}
+                  >
+                    <FolderOpen size={18} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      Subventions (dossier partagé Drive)
+                    </span>
+                    <span style={{ fontSize: 11, color: '#dc2626', fontWeight: 700, backgroundColor: '#fef2f2', padding: '2px 6px', borderRadius: 4 }}>
+                      Pièces manquantes
+                    </span>
+                  </div>
+
+                  <div
+                    className="tilted-file-card"
+                    style={{
+                      animation: 'fileFloat4 4.2s ease-in-out infinite',
+                      zIndex: 1,
+                      marginLeft: '6%'
+                    }}
+                  >
+                    <FileText size={18} style={{ color: '#64748b', flexShrink: 0 }} />
+                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      CR_Conseil_administration.docx
+                    </span>
+                    <span style={{ fontSize: 11, color: '#dc2626', fontWeight: 700, backgroundColor: '#fef2f2', padding: '2px 6px', borderRadius: 4 }}>
+                      Quorum incertain
+                    </span>
+                  </div>
+                </div>
+
+                {/* Dark Floating Anchor Pill (Identique à l'Image 1) */}
+                <div className="cockpit-anchor-pill">
+                  <div style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
+                    backgroundColor: '#bef264',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: '0 0 15px rgba(190, 242, 100, 0.45)'
+                  }}>
+                    <ShieldCheck size={22} style={{ color: '#081a2f' }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.01em' }}>
+                      Un seul tableau de bord sécurisé
+                    </div>
+                    <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.72)', marginTop: 2 }}>
+                      Toujours à jour, pour toute l'équipe & opposable avec le Cabinet Maé
+                    </div>
+                  </div>
+                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#bef264', boxShadow: '0 0 8px #bef264' }} />
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#bef264' }}>Actif</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Reassurance micro-chips */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: 10,
+                marginTop: 14
+              }}>
+                <div style={{
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fee2e2',
+                  borderRadius: 12,
+                  padding: '10px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 12,
+                  color: '#991b1b',
+                  fontWeight: 600
+                }}>
+                  <AlertTriangle size={15} style={{ color: '#dc2626', flexShrink: 0 }} />
+                  <span>Fini le risque prud’homal et les fichiers perdus</span>
+                </div>
+                <div style={{
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: 12,
+                  padding: '10px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 12,
+                  color: '#166534',
+                  fontWeight: 600
+                }}>
+                  <CheckCircle2 size={15} style={{ color: '#16a34a', flexShrink: 0 }} />
+                  <span>1 espace conforme + avis Cabinet Maé sous 48h</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* =========================================================================
+            SECTION LES 4 PILIERS D'EXPERTISE (Airy & High Contrast)
+            ========================================================================= */}
+        <section id="solutions" style={{
+          padding: 'clamp(50px, 7vw, 100px) 24px',
+          maxWidth: 1280,
+          margin: '0 auto',
+          borderTop: '1px solid rgba(10, 37, 64, 0.08)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <span style={{
-              color: 'var(--color-blue)',
+              fontFamily: 'monospace',
+              fontSize: 12,
               fontWeight: 700,
-              fontSize: '13px',
               textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              display: 'inline-block',
-              marginBottom: '10px'
+              letterSpacing: '0.15em',
+              color: '#004AAD',
+              display: 'block',
+              marginBottom: 10
             }}>
-              Positionnement & Constat de terrain
+              La Suite AssoExpert
             </span>
+
             <h2 style={{
               fontSize: 'clamp(28px, 4vw, 42px)',
               fontWeight: 800,
-              color: 'var(--color-navy)',
-              lineHeight: 1.2,
-              marginBottom: 'var(--space-4)'
+              lineHeight: 1.15,
+              color: '#0A2540',
+              letterSpacing: '-0.025em',
+              marginBottom: 14
             }}>
-              Combien de fichiers devez-vous ouvrir pour savoir où en est votre association ?
+              4 piliers d’expertise pour couvrir l’intégralité de vos obligations
             </h2>
+
             <p style={{
-              fontSize: 'var(--text-lg)',
-              color: 'var(--color-navy-muted)',
-              lineHeight: 1.6,
-              maxWidth: 820,
+              fontSize: 'clamp(15px, 1.6vw, 17px)',
+              color: 'rgba(10, 37, 64, 0.7)',
+              maxWidth: 720,
+              margin: '0 auto 30px',
+              lineHeight: 1.6
+            }}>
+              Sélectionnez un pilier pour découvrir comment la plateforme automatise votre gestion et sécurise vos décisions au quotidien.
+            </p>
+
+            {/* Solution Pill Tabs with Icons */}
+            <div className="pilot-tabs-nav" style={{ justifyContent: 'center' }}>
+              {solutions.map((s) => {
+                const getIcon = () => {
+                  switch (s.id) {
+                    case 'rh': return <Users size={16} />;
+                    case 'finance': return <PieChart size={16} />;
+                    case 'subventions': return <TrendingUp size={16} />;
+                    case 'gouvernance': return <Scale size={16} />;
+                    default: return <Sparkles size={16} />;
+                  }
+                };
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      if (activeSolutionTab !== s.id) {
+                        setIsPillarScanning(true);
+                        setActiveSolutionTab(s.id);
+                        setTimeout(() => setIsPillarScanning(false), 450);
+                      }
+                    }}
+                    className={`pilot-tab-pill ${activeSolutionTab === s.id ? 'active' : ''}`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontWeight: 700
+                    }}
+                  >
+                    {getIcon()}
+                    <span>{s.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Solution Showcase Card */}
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: 24,
+            border: '1.5px solid rgba(10, 37, 64, 0.08)',
+            padding: 'clamp(24px, 5vw, 44px)',
+            boxShadow: '0 20px 50px -15px rgba(10, 37, 64, 0.08)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            {/* Animated Laser Scanning Beam on Tab Change */}
+            {isPillarScanning && <div className="scan-laser-active" />}
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+              gap: 'clamp(24px, 5vw, 48px)',
+              alignItems: 'center'
+            }}>
+              {/* Left Column: Description & Bullets */}
+              <div>
+                <span style={{
+                  display: 'inline-block',
+                  backgroundColor: 'rgba(190, 242, 100, 0.25)',
+                  color: '#1b5400',
+                  fontWeight: 700,
+                  fontSize: 11,
+                  padding: '3px 10px',
+                  borderRadius: 9999,
+                  marginBottom: 12
+                }}>
+                  {currentSolution.badge}
+                </span>
+
+                <h3 style={{
+                  fontSize: 'clamp(22px, 3vw, 28px)',
+                  fontWeight: 800,
+                  color: '#0A2540',
+                  lineHeight: 1.25,
+                  letterSpacing: '-0.02em',
+                  marginBottom: 12
+                }}>
+                  {currentSolution.subtitle}
+                </h3>
+
+                <p style={{
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                  color: 'rgba(10, 37, 64, 0.7)',
+                  marginBottom: 24
+                }}>
+                  {currentSolution.description}
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
+                  {currentSolution.bullets.map((b, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: '#0A2540' }}>
+                      <CheckCircle2 size={18} style={{ color: '#004AAD', flexShrink: 0, marginTop: 2 }} />
+                      <span style={{ fontWeight: 500 }}>{b}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setIsDemoModalOpen(true)}
+                  className="pilot-primary-btn"
+                  style={{ fontSize: 14, padding: '10px 22px' }}
+                >
+                  <span>Demander une démo de ce pilier</span>
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+
+              {/* Right Column: Live High-Tech Interactive Simulator Cockpit */}
+              <div style={{
+                borderRadius: 20,
+                backgroundColor: '#f8fafc',
+                border: '1.5px solid rgba(10, 37, 64, 0.1)',
+                padding: 'clamp(20px, 3vw, 28px)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+                boxShadow: '0 15px 35px -10px rgba(10, 37, 64, 0.06)',
+                position: 'relative'
+              }}>
+                {/* Header Status Bar */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderBottom: '1px solid rgba(10, 37, 64, 0.08)',
+                  paddingBottom: 12
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="live-dot" />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#0A2540', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Sécurisation en direct
+                    </span>
+                  </div>
+                  <span style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#004AAD',
+                    backgroundColor: 'rgba(0, 74, 173, 0.08)',
+                    padding: '2px 8px',
+                    borderRadius: 9999
+                  }}>
+                    Temps de réponse IA : &lt; 0.8s
+                  </span>
+                </div>
+
+                {/* Specific High-Pep Content per Pillar */}
+                {activeSolutionTab === 'rh' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: '#0A2540' }}>
+                        Simulateur de convention en temps réel :
+                      </span>
+                    </div>
+
+                    {/* Interactive CCN Switcher Pills */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {['CCN 66', 'CCN 51 (FEHAP)', 'ÉCLAT (Animation)', 'ALISFA'].map((ccnName) => (
+                        <button
+                          key={ccnName}
+                          onClick={() => setPillarCcn(ccnName)}
+                          style={{
+                            padding: '5px 12px',
+                            borderRadius: 9999,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            backgroundColor: pillarCcn === ccnName ? '#004AAD' : '#ffffff',
+                            color: pillarCcn === ccnName ? '#ffffff' : '#0A2540',
+                            border: pillarCcn === ccnName ? '1px solid #004AAD' : '1px solid rgba(10, 37, 64, 0.15)',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          {ccnName}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Dynamic Metrics according to selected CCN */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div className="cockpit-kpi-box">
+                        <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.55)', fontWeight: 600 }}>Convention active</div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: '#004AAD', marginTop: 3 }}>
+                          {pillarCcn}
+                        </div>
+                      </div>
+                      <div className="cockpit-kpi-box">
+                        <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.55)', fontWeight: 600 }}>Risque contentieux</div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <CheckCircle2 size={16} /> 0 litige garanti
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Analysis Result Box */}
+                    <div style={{
+                      backgroundColor: '#ffffff',
+                      borderRadius: 14,
+                      padding: '16px',
+                      border: '1px solid rgba(0, 74, 173, 0.15)',
+                      boxShadow: '0 4px 15px rgba(0, 74, 173, 0.04)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#004AAD', fontSize: 13, marginBottom: 6 }}>
+                        <Sparkles size={15} />
+                        <span>Contrôle conventionnel automatique :</span>
+                      </div>
+                      <p style={{ fontSize: 13, color: '#0A2540', lineHeight: 1.55, margin: 0 }}>
+                        {pillarCcn === 'CCN 66' && "14 éducateurs sous Annexe 3 : 18 jours de congés trimestriels automatiquement calculés et intégrés aux plannings annuels. Majorations d'ancienneté Art. 22 appliquées."}
+                        {pillarCcn === 'CCN 51 (FEHAP)' && "Prime décentralisée de 5% semestrielle calculée. Protocole de rupture conventionnelle conforme au barème d'indemnisation FEHAP."}
+                        {pillarCcn === 'ÉCLAT (Animation)' && "Points d'ancienneté Art. 1.2 calculés automatiquement. Grille indiciaire et modulation du temps de travail des animateurs 100% sécurisées."}
+                        {pillarCcn === 'ALISFA' && "Pesée des fonctions selon le référentiel national. Fiches de postes, critères classants et points pesés validés sans risque de requalification."}
+                      </p>
+                    </div>
+
+                    {/* Certified Seal from Cabinet Maé */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: 'rgba(0, 74, 173, 0.05)',
+                      borderRadius: 10,
+                      padding: '8px 12px',
+                      border: '1px solid rgba(0, 74, 173, 0.12)',
+                      fontSize: 12
+                    }}>
+                      <span style={{ fontWeight: 600, color: '#0A2540' }}>Opposabilité juridique :</span>
+                      <span style={{ fontWeight: 700, color: '#004AAD', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <ShieldCheck size={14} style={{ color: '#16a34a' }} /> Avis signé Cabinet Maé (48h)
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {activeSolutionTab === 'finance' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#0A2540' }}>
+                      Arbitrage Budgétaire & Compte d'Emploi des Ressources (CER)
+                    </div>
+
+                    {/* Progress Bar of Subvention Consumption */}
+                    <div style={{ backgroundColor: '#ffffff', borderRadius: 14, padding: '16px', border: '1px solid rgba(10, 37, 64, 0.08)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
+                        <span style={{ color: '#0A2540' }}>Subvention 2026 : 50 000 €</span>
+                        <span style={{ color: '#16a34a' }}>Consommé : 71% (35 500 €)</span>
+                      </div>
+                      <div style={{ width: '100%', height: 10, backgroundColor: '#f1f5f9', borderRadius: 9999, overflow: 'hidden' }}>
+                        <div style={{ width: '71%', height: '100%', backgroundColor: '#004AAD', borderRadius: 9999 }} />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(10, 37, 64, 0.6)', marginTop: 6 }}>
+                        <span>Dépenses éligibles justifiées</span>
+                        <span style={{ fontWeight: 700, color: '#0284c7' }}>Reliquat sécurisé : 14 500 €</span>
+                      </div>
+                    </div>
+
+                    {/* Fonds Dédiés Protected Card */}
+                    <div style={{
+                      backgroundColor: 'rgba(190, 242, 100, 0.18)',
+                      border: '1.5px solid rgba(190, 242, 100, 0.45)',
+                      borderRadius: 14,
+                      padding: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12
+                    }}>
+                      <div style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 10,
+                        backgroundColor: '#1b5400',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <Check size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#1b5400' }}>
+                          Fonds Dédiés (compte 194) approuvés
+                        </div>
+                        <div style={{ fontSize: 12, color: '#14532d', marginTop: 2 }}>
+                          Reliquat reporté sans ordre de reversement • Conforme Règlement ANC 2018-06
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div className="cockpit-kpi-box">
+                        <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.55)' }}>Reversement exigible</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: '#16a34a', marginTop: 3 }}>0 €</div>
+                      </div>
+                      <div className="cockpit-kpi-box">
+                        <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.55)' }}>Contrôle CER</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: '#004AAD', marginTop: 3 }}>100% Conforme</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeSolutionTab === 'subventions' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#0A2540' }}>
+                      Radar de Détection des Financements 2026
+                    </div>
+
+                    {/* Match 1 */}
+                    <div style={{
+                      backgroundColor: '#ffffff',
+                      borderRadius: 14,
+                      padding: '14px 16px',
+                      border: '1px solid rgba(10, 37, 64, 0.08)',
+                      boxShadow: '0 4px 12px rgba(10, 37, 64, 0.03)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2540' }}>
+                          FDVA 2026 (Fonctionnement & Innovation)
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: '#16a34a', backgroundColor: '#f0fdf4', padding: '2px 8px', borderRadius: 6 }}>
+                          96% match
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', height: 6, backgroundColor: '#f1f5f9', borderRadius: 9999, overflow: 'hidden' }}>
+                        <div style={{ width: '96%', height: '100%', backgroundColor: '#16a34a', borderRadius: 9999 }} />
+                      </div>
+                      <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.6)', marginTop: 6 }}>
+                        Critères d'éligibilité RH & gouvernance validés • Dépôt recommandé avant J-21
+                      </div>
+                    </div>
+
+                    {/* Match 2 */}
+                    <div style={{
+                      backgroundColor: '#ffffff',
+                      borderRadius: 14,
+                      padding: '14px 16px',
+                      border: '1px solid rgba(10, 37, 64, 0.08)',
+                      boxShadow: '0 4px 12px rgba(10, 37, 64, 0.03)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2540' }}>
+                          Conseil Régional (Soutien à l'emploi associatif)
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: '#004AAD', backgroundColor: '#eff6ff', padding: '2px 8px', borderRadius: 6 }}>
+                          89% match
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', height: 6, backgroundColor: '#f1f5f9', borderRadius: 9999, overflow: 'hidden' }}>
+                        <div style={{ width: '89%', height: '100%', backgroundColor: '#004AAD', borderRadius: 9999 }} />
+                      </div>
+                      <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.6)', marginTop: 6 }}>
+                        Subvention pluriannuelle d'objectifs (3 ans) • Bilan financier CER pré-rempli
+                      </div>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: 'rgba(0, 74, 173, 0.05)',
+                      borderRadius: 12,
+                      padding: '10px 14px',
+                      fontSize: 12,
+                      color: '#0A2540',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8
+                    }}>
+                      <Sparkles size={16} style={{ color: '#004AAD', flexShrink: 0 }} />
+                      <span>Argumentaire & bilan d'action générés automatiquement au format Cerfa officiel.</span>
+                    </div>
+                  </div>
+                )}
+
+                {activeSolutionTab === 'gouvernance' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#0A2540' }}>
+                      Contrôle des Instances & Responsabilité Loi 1901
+                    </div>
+
+                    {/* Quorum Progress Bar */}
+                    <div style={{ backgroundColor: '#ffffff', borderRadius: 14, padding: '16px', border: '1px solid rgba(10, 37, 64, 0.08)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
+                        <span style={{ color: '#0A2540' }}>Quorum Assemblée Générale</span>
+                        <span style={{ color: '#16a34a' }}>68% atteint (Seuil : 50%)</span>
+                      </div>
+                      <div style={{ width: '100%', height: 10, backgroundColor: '#f1f5f9', borderRadius: 9999, overflow: 'hidden' }}>
+                        <div style={{ width: '68%', height: '100%', backgroundColor: '#16a34a', borderRadius: 9999 }} />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(10, 37, 64, 0.6)', marginTop: 6 }}>
+                        <span>Présents physiques : 42 adhérents</span>
+                        <span>14 procurations conformes</span>
+                      </div>
+                    </div>
+
+                    {/* Mandats Verified Card */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div className="cockpit-kpi-box">
+                        <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.55)' }}>Audit des pouvoirs</div>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: '#004AAD', marginTop: 3 }}>
+                          Max 2 mandats / adh.
+                        </div>
+                        <div style={{ fontSize: 10, color: '#16a34a', fontWeight: 700, marginTop: 2 }}>✓ Respecté</div>
+                      </div>
+                      <div className="cockpit-kpi-box">
+                        <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.55)' }}>Validité du vote</div>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: '#16a34a', marginTop: 3 }}>
+                          100% Inattaquable
+                        </div>
+                        <div style={{ fontSize: 10, color: 'rgba(10, 37, 64, 0.6)', marginTop: 2 }}>PV conforme Loi 1901</div>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      borderRadius: 12,
+                      padding: '10px 14px',
+                      fontSize: 12,
+                      color: '#166534',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8
+                    }}>
+                      <ShieldCheck size={18} style={{ color: '#16a34a', flexShrink: 0 }} />
+                      <span>Responsabilité civile & pénale du Président et du Trésorier sécurisée.</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+            SECTION SIMULATEUR DE GAINS & ROI EN DIRECT
+            ========================================================================= */}
+        <section id="simulateur" style={{
+          padding: 'clamp(50px, 7vw, 100px) 24px',
+          maxWidth: 1280,
+          margin: '0 auto',
+          borderTop: '1px solid rgba(10, 37, 64, 0.08)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <span style={{
+              display: 'inline-block',
+              backgroundColor: 'rgba(190, 242, 100, 0.25)',
+              color: '#1b5400',
+              fontWeight: 700,
+              fontSize: 11,
+              padding: '3px 12px',
+              borderRadius: 9999,
+              marginBottom: 10
+            }}>
+              Simulateur interactif
+            </span>
+
+            <h2 style={{
+              fontSize: 'clamp(28px, 4vw, 40px)',
+              fontWeight: 800,
+              color: '#0A2540',
+              letterSpacing: '-0.025em',
+              marginBottom: 14
+            }}>
+              Estimez le gain de temps pour votre équipe
+            </h2>
+
+            <p style={{
+              fontSize: 'clamp(15px, 1.6vw, 17px)',
+              color: 'rgba(10, 37, 64, 0.7)',
+              maxWidth: 640,
               margin: '0 auto'
             }}>
-              Un tableau Excel pour le budget, un autre pour la trésorerie, un espace partagé pour les subventions, des documents dispersés pour les projets et les conventions collectives... Chaque réponse demande d'ouvrir plusieurs outils, et l'information n'est jamais tout à fait à jour.
+              Ajustez l’effectif de votre structure et visualisez immédiatement les heures administratives récupérées chaque mois.
             </p>
           </div>
 
-          {/* Centralizing Message + Photo & Comparative Grid */}
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-            gap: 'var(--space-8)',
-            alignItems: 'center',
-            marginBottom: 'var(--space-12)'
-          }}>
-            {/* Visual Reality Photo */}
-            <div style={{
-              borderRadius: '20px',
-              overflow: 'hidden',
-              boxShadow: 'var(--shadow-card)',
-              border: '1.5px solid var(--color-border)',
-              position: 'relative'
-            }}>
-              <img
-                src="/images/finances-subventions.jpg"
-                alt="Documents financiers associatifs, formulaires CER et dossiers subventions"
-                style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
-              />
-              <div style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                background: 'linear-gradient(to top, rgba(10,37,64,0.95) 0%, rgba(10,37,64,0.4) 70%, transparent 100%)',
-                padding: '24px 20px 16px',
-                color: '#ffffff'
-              }}>
-                <div style={{ fontSize: '14px', fontWeight: 700 }}>
-                  La réalité quotidienne des employeurs associatifs
-                </div>
-                <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: 4 }}>
-                  Formulaires CER, bilans, conventions collectives et statuts dispersés sur plusieurs bureaux et disques durs.
-                </div>
-              </div>
-            </div>
-
-            {/* Centralizing Callout */}
-            <div style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '20px',
-              border: '1.5px solid var(--color-border)',
-              padding: '32px',
-              boxShadow: 'var(--shadow-card)'
-            }}>
-              <span className="badge badge-blue" style={{ marginBottom: '12px' }}>
-                Pilotage unifié
-              </span>
-              <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '12px' }}>
-                Vos outils peuvent rester. Votre pilotage se centralise.
-              </h3>
-              <p style={{ fontSize: '15px', color: 'var(--color-navy-muted)', lineHeight: 1.6, marginBottom: '20px' }}>
-                AssoExpert IA ne vous demande pas de tout remplacer. La plateforme se connecte progressivement à ce que vous utilisez déjà pour vous donner un point central où retrouver l'essentiel en toute sécurité.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, color: 'var(--color-navy)' }}>
-                  <CheckCircle size={18} style={{ color: 'var(--color-blue)' }} />
-                  <span>Conservation de vos tableurs et logiciels de paie actuels</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, color: 'var(--color-navy)' }}>
-                  <CheckCircle size={18} style={{ color: 'var(--color-blue)' }} />
-                  <span>Centralisation immédiate des règles RH et conventions</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, color: 'var(--color-navy)' }}>
-                  <CheckCircle size={18} style={{ color: 'var(--color-blue)' }} />
-                  <span>Escalade humaine en 48h dès qu'un point sensible l'exige</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* The Famous 2-Card Comparison: Avant vs Avec (Signature PilotAsso) */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-            gap: 'var(--space-8)',
-            alignItems: 'stretch'
-          }}>
-            {/* Avant AssoExpert IA */}
-            <div className="pilot-compare-card pilot-compare-before">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                <div style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  backgroundColor: '#fee2e2',
-                  color: '#dc2626',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 800
-                }}>
-                  &times;
-                </div>
-                <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#991b1b' }}>
-                  Avant AssoExpert IA
-                </h3>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {[
-                  'Multiplication des fichiers Excel et versions éparpillées',
-                  'Informations juridiques et financières dispersées',
-                  'Consolidation manuelle et ressaisies quotidiennes',
-                  'Interprétations hasardeuses des conventions (CCN 66, 51, Éclat, Alisfa)',
-                  'Angoisse permanente des prud’hommes et redressements',
-                  'Manque de visibilité globale pour les administrateurs bénévoles',
-                  'Opportunités de subventions et échéances CER manquées'
-                ].map((item, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', color: '#4b5563' }}>
-                    <span style={{ color: '#ef4444', fontWeight: 800, minWidth: 16 }}>&minus;</span>
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Avec AssoExpert IA */}
-            <div className="pilot-compare-card pilot-compare-after">
-              <div style={{
-                position: 'absolute',
-                top: -12,
-                right: 24,
-                backgroundColor: 'var(--color-blue)',
-                color: '#ffffff',
-                padding: '2px 12px',
-                borderRadius: 'var(--radius-pill)',
-                fontSize: '11px',
-                fontWeight: 800,
-                letterSpacing: '0.04em'
-              }}>
-                PILOTAGE SÉCURISÉ
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                <div style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(193, 255, 114, 0.4)',
-                  color: 'var(--color-navy)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 800
-                }}>
-                  <Check size={18} strokeWidth={3} />
-                </div>
-                <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-navy)' }}>
-                  Avec AssoExpert IA
-                </h3>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {[
-                  'Informations centralisées en un point de pilotage unique',
-                  'Budgets et trésorerie actualisés en temps réel',
-                  'Conventions collectives intégrées et appliquées au millimètre',
-                  'Vision globale à 360° partagée avec le Bureau et le CA',
-                  'Automatisations des calculs et veilles juridiques',
-                  'Escalade humaine sous 48h vers Laetitia Badji (Cabinet Maé)',
-                  'Recherche et calendrier centralisé des financements publics'
-                ].map((item, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', color: 'var(--color-navy)' }}>
-                    <CheckCircle2 size={18} style={{ color: 'var(--color-blue)', minWidth: 18, marginTop: 1 }} />
-                    <span style={{ fontWeight: 500 }}>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          DYNAMIC INTERACTIVE SECTION 1:
-          ESTIMATEUR DE GAINS & ROI EN DIRECT (DYNAMIC SLIDER & CALCULATIONS)
-          ========================================================================= */}
-      <section id="simulateur" style={{
-        padding: 'var(--space-16) var(--space-6)',
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid var(--color-border)'
-      }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 'var(--space-10)' }}>
-            <span className="badge badge-lime" style={{ marginBottom: '8px' }}>
-              Simulateur interactif en direct
-            </span>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, color: 'var(--color-navy)' }}>
-              Estimez le gain de temps et les économies de votre structure
-            </h2>
-            <p style={{ fontSize: '16px', color: 'var(--color-navy-muted)', maxWidth: 680, margin: '8px auto 0' }}>
-              Ajustez l’effectif de votre association et découvrez instantanément le volume d’heures récupérées et la formule adaptée.
-            </p>
-          </div>
-
-          <div className="card" style={{
-            padding: 'clamp(20px, 4vw, 36px)',
-            borderRadius: '24px',
-            backgroundColor: '#f8fafc',
-            border: '2px solid rgba(0, 74, 173, 0.15)',
-            boxShadow: 'var(--shadow-hover)'
+            backgroundColor: '#ffffff',
+            borderRadius: 24,
+            border: '1.5px solid rgba(0, 74, 173, 0.15)',
+            padding: 'clamp(24px, 5vw, 40px)',
+            boxShadow: '0 20px 50px -15px rgba(10, 37, 64, 0.08)'
           }}>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-              gap: 'var(--space-8)',
+              gap: 'clamp(24px, 5vw, 44px)',
               alignItems: 'center'
             }}>
-              {/* Left Controls */}
+              {/* Slider Controls */}
               <div>
-                <div style={{ marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-navy)' }}>
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <label style={{ fontSize: 14, fontWeight: 700, color: '#0A2540' }}>
                       Taille de l'équipe salariée :
                     </label>
                     <span style={{
-                      backgroundColor: 'var(--color-blue)',
+                      backgroundColor: '#004AAD',
                       color: '#ffffff',
                       padding: '4px 14px',
-                      borderRadius: 'var(--radius-pill)',
-                      fontWeight: 800,
-                      fontSize: '15px'
+                      borderRadius: 9999,
+                      fontWeight: 700,
+                      fontSize: 14
                     }}>
                       {employeeCount} salariés
                     </span>
                   </div>
+
                   <input
                     type="range"
                     min="1"
@@ -983,36 +1897,37 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                     onChange={(e) => setEmployeeCount(parseInt(e.target.value, 10))}
                     style={{
                       width: '100%',
-                      accentColor: 'var(--color-blue)',
+                      accentColor: '#004AAD',
                       cursor: 'pointer',
                       height: 8
                     }}
                   />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--color-navy-muted)', marginTop: 4 }}>
-                    <span>1 salarié (Très petite asso)</span>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(10, 37, 64, 0.5)', marginTop: 6 }}>
+                    <span>1 salarié</span>
                     <span>40 salariés</span>
-                    <span>80 salariés (Réseau / Fédération)</span>
+                    <span>80 salariés</span>
                   </div>
                 </div>
 
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)', display: 'block', marginBottom: '8px' }}>
-                    Convention collective principale :
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ fontSize: 13, fontWeight: 700, color: '#0A2540', display: 'block', marginBottom: 8 }}>
+                    Convention collective applicable :
                   </label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {['CCN 66', 'CCN 51 (FEHAP)', 'ÉCLAT (Animation)', 'ALISFA'].map(ccn => (
                       <button
                         key={ccn}
                         onClick={() => setSelectedCcn(ccn)}
                         style={{
                           padding: '6px 14px',
-                          borderRadius: 'var(--radius-pill)',
-                          fontSize: '12px',
-                          fontWeight: 700,
+                          borderRadius: 9999,
+                          fontSize: 12,
+                          fontWeight: 600,
                           cursor: 'pointer',
-                          backgroundColor: selectedCcn === ccn ? 'var(--color-navy)' : '#ffffff',
-                          color: selectedCcn === ccn ? '#ffffff' : 'var(--color-navy)',
-                          border: '1px solid var(--color-border)',
+                          backgroundColor: selectedCcn === ccn ? '#0A2540' : '#ffffff',
+                          color: selectedCcn === ccn ? '#ffffff' : '#0A2540',
+                          border: '1px solid rgba(10, 37, 64, 0.15)',
                           transition: 'all 0.15s ease'
                         }}
                       >
@@ -1022,834 +1937,859 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                   </div>
                 </div>
 
-                <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', lineHeight: 1.5 }}>
-                  Calculs basés sur le temps moyen de recherche juridique, de vérification des bulletins et de montage des dossiers CER observé sur notre panel associatif.
+                <div style={{ fontSize: 12, color: 'rgba(10, 37, 64, 0.55)', lineHeight: 1.5 }}>
+                  Calculs basés sur le temps moyen de veille conventionnelle, de vérification des bulletins et de montage des dossiers CER observé sur notre panel d'associations employeuses.
                 </div>
               </div>
 
-              {/* Right Live Results Widget */}
+              {/* Dynamic Results Card */}
               <div style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '18px',
-                border: '1px solid var(--color-border)',
+                borderRadius: 18,
+                backgroundColor: '#f8fafc',
+                border: '1px solid rgba(10, 37, 64, 0.08)',
                 padding: '28px',
-                boxShadow: 'var(--shadow-card)'
+                textAlign: 'left'
               }}>
-                <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-blue)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#004AAD', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 14 }}>
                   Résultat estimé pour votre association :
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                  <div style={{ backgroundColor: 'var(--color-blue-light)', padding: '16px', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--color-blue)', fontFamily: 'var(--font-display)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
+                  <div style={{ backgroundColor: '#ffffff', padding: '16px', borderRadius: 14, border: '1px solid rgba(10, 37, 64, 0.08)' }}>
+                    <div style={{ fontSize: 32, fontWeight: 700, color: '#004AAD', letterSpacing: '-0.02em' }}>
                       +{hoursSaved}h
                     </div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy)', marginTop: 2 }}>
-                      récupérées / mois
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0A2540', marginTop: 2 }}>
+                      gagnées / mois
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', marginTop: 2 }}>
-                      Moins de ressaisies et calculs manuels
+                    <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.55)', marginTop: 2 }}>
+                      Moins de recherches et calculs
                     </div>
                   </div>
 
-                  <div style={{ backgroundColor: 'rgba(193, 255, 114, 0.3)', padding: '16px', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--color-lime-dark)', fontFamily: 'var(--font-display)' }}>
-                      {moneySaved}&nbsp;€
+                  <div style={{ backgroundColor: 'rgba(190, 242, 100, 0.2)', padding: '16px', borderRadius: 14, border: '1px solid rgba(190, 242, 100, 0.4)' }}>
+                    <div style={{ fontSize: 32, fontWeight: 700, color: '#1b5400', letterSpacing: '-0.02em' }}>
+                      {moneySaved} €
                     </div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy)', marginTop: 2 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0A2540', marginTop: 2 }}>
                       économisés / mois
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', marginTop: 2 }}>
-                      En temps administratif libéré
+                    <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.55)', marginTop: 2 }}>
+                      Temps administratif libéré
                     </div>
                   </div>
                 </div>
 
-                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '16px', marginBottom: '16px' }}>
-                  <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)' }}>Formule conseillée :</div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--color-navy)', marginTop: 2 }}>
+                <div style={{ borderTop: '1px solid rgba(10, 37, 64, 0.08)', paddingTop: 14, marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.55)' }}>Formule conseillée :</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0A2540', marginTop: 2 }}>
                     {recommendedPlanName}
                   </div>
                 </div>
 
                 <button
                   onClick={() => setIsDemoModalOpen(true)}
-                  className="btn btn-primary"
-                  style={{ width: '100%', height: 46, borderRadius: 'var(--radius-pill)', fontWeight: 700 }}
+                  className="pilot-primary-btn"
+                  style={{ width: '100%', justifyContent: 'center' }}
                 >
                   <span>Valider cette simulation en démo (30 min)</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={15} />
                 </button>
               </div>
+
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* =========================================================================
-          DYNAMIC INTERACTIVE SECTION 2:
-          TESTEZ L'ANALYSE IA EN DIRECT SUR UNE QUESTION RÉELLE
-          ========================================================================= */}
-      <section style={{
-        padding: 'var(--space-16) var(--space-6)',
-        backgroundColor: '#f8fafc',
-        borderBottom: '1px solid var(--color-border)'
-      }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
-            <span className="badge badge-blue" style={{ marginBottom: '8px' }}>
-              Démonstration instantanée
+        {/* =========================================================================
+            SECTION CAS PRATIQUES & DÉMONSTRATION EN DIRECT
+            ========================================================================= */}
+        <section id="cas-pratiques" style={{
+          padding: 'clamp(50px, 7vw, 100px) 24px',
+          maxWidth: 1280,
+          margin: '0 auto',
+          borderTop: '1px solid rgba(10, 37, 64, 0.08)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            <span style={{
+              display: 'inline-block',
+              backgroundColor: 'rgba(0, 74, 173, 0.08)',
+              color: '#004AAD',
+              fontWeight: 700,
+              fontSize: 11,
+              padding: '3px 12px',
+              borderRadius: 9999,
+              marginBottom: 10
+            }}>
+              Cas concrets de terrain
             </span>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, color: 'var(--color-navy)' }}>
-              Testez l’analyse en direct sur un cas concret de votre secteur
+
+            <h2 style={{
+              fontSize: 'clamp(28px, 4vw, 40px)',
+              fontWeight: 800,
+              color: '#0A2540',
+              letterSpacing: '-0.025em',
+              marginBottom: 12
+            }}>
+              Testez l’analyse sur une situation réelle
             </h2>
-            <p style={{ fontSize: '16px', color: 'var(--color-navy-muted)', maxWidth: 680, margin: '8px auto 0' }}>
-              Cliquez sur l'une des 4 situations ci-dessous pour voir comment l’IA structure sa réponse et prépare l’escalade juridique.
+
+            <p style={{
+              fontSize: 'clamp(15px, 1.6vw, 17px)',
+              color: 'rgba(10, 37, 64, 0.7)',
+              maxWidth: 640,
+              margin: '0 auto 28px'
+            }}>
+              Sélectionnez l’un des 4 cas ci-dessous pour voir la structuration de réponse et l'appui juridique garanti par le Cabinet Maé.
             </p>
 
-            {/* Clickable Question Pills */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              flexWrap: 'wrap',
-              marginTop: 'var(--space-6)'
-            }}>
-              {sampleQueries.map((q) => (
-                <button
-                  key={q.id}
-                  onClick={() => setActiveQueryIndex(q.id)}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: 'var(--radius-pill)',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    backgroundColor: activeQueryIndex === q.id ? 'var(--color-blue)' : '#ffffff',
-                    color: activeQueryIndex === q.id ? '#ffffff' : 'var(--color-navy)',
-                    border: activeQueryIndex === q.id ? '1px solid var(--color-blue)' : '1px solid var(--color-border)',
-                    boxShadow: activeQueryIndex === q.id ? '0 4px 12px rgba(0, 74, 173, 0.25)' : 'none',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  {q.title}
-                </button>
-              ))}
+            {/* Dynamic Clickable Scenario Pills with Outcome Badges */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
+              {sampleQueries.map((q) => {
+                const isActive = activeQueryIndex === q.id;
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => {
+                      if (activeQueryIndex !== q.id) {
+                        setIsQueryScanning(true);
+                        setActiveQueryIndex(q.id);
+                        setTimeout(() => setIsQueryScanning(false), 450);
+                      }
+                    }}
+                    className={`scenario-nav-btn ${isActive ? 'active' : ''}`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 10
+                    }}
+                  >
+                    <span>{q.title}</span>
+                    <span style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: 9999,
+                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 74, 173, 0.08)',
+                      color: isActive ? '#ffffff' : '#004AAD'
+                    }}>
+                      {q.outcomeBadge}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Dynamic AI Response Card */}
-          <div className="card animate-fade-in" style={{
+          {/* AI Response Card - High-Pep Interactive Console */}
+          <div style={{
             backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            border: '1.5px solid var(--color-border)',
-            padding: '28px',
-            boxShadow: 'var(--shadow-card)'
+            borderRadius: 24,
+            border: '1.5px solid rgba(0, 74, 173, 0.15)',
+            padding: 'clamp(24px, 4vw, 36px)',
+            boxShadow: '0 20px 50px -15px rgba(10, 37, 64, 0.1)',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            {/* Header Question */}
+            {/* Animated Laser Scanning Beam on Query Change */}
+            {isQueryScanning && <div className="scan-laser-active" />}
+
+            {/* Console Header Bar */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
-              gap: '12px',
-              borderBottom: '1px solid var(--color-border)',
-              paddingBottom: '16px',
-              marginBottom: '18px'
+              gap: 14,
+              borderBottom: '1.5px solid rgba(10, 37, 64, 0.08)',
+              paddingBottom: 18,
+              marginBottom: 22
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="badge badge-lime" style={{ fontSize: '10px', fontWeight: 800 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <span style={{
+                  backgroundColor: '#0A2540',
+                  color: '#ffffff',
+                  padding: '4px 10px',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}>
+                  <Gavel size={14} style={{ color: '#bef264' }} />
                   {currentQuery.tag}
                 </span>
-                <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-navy)' }}>
-                  Question posée : « {currentQuery.question} »
+                <span style={{ fontSize: 'clamp(15px, 2vw, 17px)', fontWeight: 800, color: '#0A2540' }}>
+                  « {currentQuery.question} »
                 </span>
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', fontWeight: 600 }}>
-                Format officiel CDC &bull; 5 sections
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: '#16a34a',
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  padding: '4px 10px',
+                  borderRadius: 9999,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#16a34a' }} />
+                  Arbitrage IA validé (&lt; 0.8s)
+                </span>
               </div>
             </div>
 
-            {/* 5 Structured Sections */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '14px', lineHeight: 1.6 }}>
-              <div style={{ backgroundColor: '#f8fafc', padding: '14px', borderRadius: '12px', borderLeft: '4px solid var(--color-blue)' }}>
-                <strong style={{ color: 'var(--color-navy)' }}>1. Synthèse directe :</strong> {currentQuery.response.synthese}
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '12px' }}>
-                <div style={{ padding: '12px 14px', borderRadius: '10px', backgroundColor: '#ffffff', border: '1px solid var(--color-border)' }}>
-                  <strong style={{ color: 'var(--color-navy)' }}>2. Références textuelles :</strong><br />
-                  <span style={{ color: 'var(--color-navy-muted)', fontSize: '13px' }}>{currentQuery.response.references}</span>
-                </div>
-
-                <div style={{ padding: '12px 14px', borderRadius: '10px', backgroundColor: '#ffffff', border: '1px solid var(--color-border)' }}>
-                  <strong style={{ color: 'var(--color-navy)' }}>3. Calcul & Chiffrage :</strong><br />
-                  <span style={{ color: 'var(--color-navy-muted)', fontSize: '13px' }}>{currentQuery.response.calcul}</span>
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: 'var(--color-orange-light)', padding: '12px 14px', borderRadius: '10px', borderLeft: '4px solid var(--color-orange)', color: 'var(--color-orange-dark)', fontSize: '13px' }}>
-                <strong>4. Point de vigilance :</strong> {currentQuery.response.vigilance}
-              </div>
-
-              {/* Escalade Experte Highlight */}
+            {/* Control Bar: Status indicator & Manual Pause / View Toggle */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 16,
+              flexWrap: 'wrap',
+              gap: 12
+            }}>
               <div style={{
-                backgroundColor: 'var(--color-blue-light)',
-                padding: '16px',
-                borderRadius: '12px',
-                border: '1.5px solid rgba(0, 74, 173, 0.25)',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '12px'
+                gap: 8,
+                padding: '6px 14px',
+                borderRadius: 9999,
+                fontSize: 13,
+                fontWeight: 700,
+                backgroundColor: hoveredMarqueeStep !== null || isMarqueePausedManual ? '#f0fdf4' : '#eff6ff',
+                border: hoveredMarqueeStep !== null || isMarqueePausedManual ? '1px solid #bbf7d0' : '1px solid #bfdbfe',
+                color: hoveredMarqueeStep !== null || isMarqueePausedManual ? '#166534' : '#004AAD',
+                transition: 'all 0.25s ease'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Award size={22} style={{ color: 'var(--color-blue)', minWidth: 22 }} />
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-navy)' }}>
-                      5. Option Escalade Juridique : {currentQuery.response.experte}
+                <span style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: hoveredMarqueeStep !== null || isMarqueePausedManual ? '#16a34a' : '#004AAD',
+                  boxShadow: hoveredMarqueeStep !== null || isMarqueePausedManual ? '0 0 8px #16a34a' : '0 0 8px #004AAD'
+                }} />
+                <span>
+                  {hoveredMarqueeStep !== null
+                    ? `⏸ Défilement stoppé net sur l'étape 0${hoveredMarqueeStep + 1} — Retirez la souris pour reprendre`
+                    : isMarqueePausedManual
+                    ? '⏸ Défilement en pause manuelle'
+                    : '● Défilement continu actif — Placez la souris sur une étape pour la stopper net et lire son contenu'}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={() => setIsMarqueePausedManual(!isMarqueePausedManual)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '6px 12px',
+                    borderRadius: 9999,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    backgroundColor: isMarqueePausedManual ? '#0A2540' : '#ffffff',
+                    color: isMarqueePausedManual ? '#ffffff' : '#0A2540',
+                    border: '1px solid rgba(10, 37, 64, 0.15)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {isMarqueePausedManual ? <Play size={13} /> : <Pause size={13} />}
+                  <span>{isMarqueePausedManual ? 'Relancer' : 'Pause'}</span>
+                </button>
+
+                <button
+                  onClick={() => setCaseViewMode(caseViewMode === 'marquee' ? 'accordion' : 'marquee')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '6px 12px',
+                    borderRadius: 9999,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    backgroundColor: '#ffffff',
+                    color: '#004AAD',
+                    border: '1px solid rgba(0, 74, 173, 0.2)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>{caseViewMode === 'marquee' ? 'Vue Accordéon' : 'Vue Défilante'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* MODE 1: CONTINUOUS SCROLLING MARQUEE (Default - Hover to Stop & Pop Out) */}
+            {caseViewMode === 'marquee' ? (
+              <div className="case-marquee-container">
+                <div className={`case-marquee-track ${isMarqueePausedManual ? 'paused' : ''}`}>
+                  {[0, 1, 2, 3, 4, 0, 1, 2, 3, 4].map((stepIdx, trackIndex) => {
+                    if (stepIdx === 0) {
+                      return (
+                        <div
+                          key={`marquee-step-0-${trackIndex}`}
+                          className="case-marquee-card"
+                          onMouseEnter={() => setHoveredMarqueeStep(0)}
+                          onMouseLeave={() => setHoveredMarqueeStep(null)}
+                        >
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span className="step-num-badge">01</span>
+                                <Sparkles size={18} style={{ color: '#004AAD' }} />
+                              </div>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: '#004AAD', backgroundColor: 'rgba(0, 74, 173, 0.08)', padding: '2px 8px', borderRadius: 9999 }}>
+                                Synthèse Directe
+                              </span>
+                            </div>
+
+                            <h4 style={{ fontSize: 18, fontWeight: 800, color: '#0A2540', marginBottom: 12, lineHeight: 1.25 }}>
+                              Synthèse Directe & Arbitrage Immédiat
+                            </h4>
+
+                            <div style={{
+                              backgroundColor: '#f8fafc',
+                              padding: '14px',
+                              borderRadius: 12,
+                              borderLeft: '4px solid #004AAD',
+                              fontSize: 13,
+                              lineHeight: 1.55,
+                              color: '#0A2540',
+                              fontWeight: 500
+                            }}>
+                              {currentQuery.response.synthese}
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, borderTop: '1px solid rgba(10, 37, 64, 0.08)', marginTop: 14 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a', display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <CheckCircle2 size={13} /> Arbitrage opposable
+                            </span>
+                            <span style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.5)' }}>100% conforme</span>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (stepIdx === 1) {
+                      return (
+                        <div
+                          key={`marquee-step-1-${trackIndex}`}
+                          className="case-marquee-card"
+                          onMouseEnter={() => setHoveredMarqueeStep(1)}
+                          onMouseLeave={() => setHoveredMarqueeStep(null)}
+                        >
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span className="step-num-badge">02</span>
+                                <Scale size={18} style={{ color: '#004AAD' }} />
+                              </div>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: '#004AAD', backgroundColor: 'rgba(0, 74, 173, 0.08)', padding: '2px 8px', borderRadius: 9999 }}>
+                                Sources Officielles
+                              </span>
+                            </div>
+
+                            <h4 style={{ fontSize: 18, fontWeight: 800, color: '#0A2540', marginBottom: 12, lineHeight: 1.25 }}>
+                              Fondements Juridiques & Lois
+                            </h4>
+
+                            <div style={{ fontSize: 12, color: 'rgba(10, 37, 64, 0.65)', marginBottom: 10, fontWeight: 600 }}>
+                              Articles du Code du travail & CCN consolidés :
+                            </div>
+
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                              {currentQuery.response.refChips.map((chip, i) => (
+                                <span key={i} className="case-ref-chip" style={{ fontSize: 12, padding: '4px 10px', backgroundColor: '#f1f5f9' }}>
+                                  <BadgeCheck size={14} style={{ color: '#16a34a' }} />
+                                  <span>{chip}</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, borderTop: '1px solid rgba(10, 37, 64, 0.08)', marginTop: 14 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#004AAD' }}>Veille conventionnelle active</span>
+                            <span style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.5)' }}>Jurisprudence à jour</span>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (stepIdx === 2) {
+                      return (
+                        <div
+                          key={`marquee-step-2-${trackIndex}`}
+                          className="case-marquee-card"
+                          onMouseEnter={() => setHoveredMarqueeStep(2)}
+                          onMouseLeave={() => setHoveredMarqueeStep(null)}
+                        >
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span className="step-num-badge">03</span>
+                                <TrendingUp size={18} style={{ color: '#16a34a' }} />
+                              </div>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a', backgroundColor: '#f0fdf4', padding: '2px 8px', borderRadius: 9999 }}>
+                                Chiffrage Opposable
+                              </span>
+                            </div>
+
+                            <h4 style={{ fontSize: 18, fontWeight: 800, color: '#0A2540', marginBottom: 12, lineHeight: 1.25 }}>
+                              Calcul & Chiffrage Financier / RH
+                            </h4>
+
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                              {currentQuery.response.calculFormula?.map((f, i) => (
+                                <div
+                                  key={i}
+                                  style={{
+                                    padding: '6px 10px',
+                                    borderRadius: 8,
+                                    backgroundColor: f.highlight ? '#f0fdf4' : '#f8fafc',
+                                    border: f.highlight ? '1.5px solid #86efac' : '1px solid #e2e8f0',
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                  }}
+                                >
+                                  <span style={{ fontSize: 10, color: 'rgba(10, 37, 64, 0.6)', fontWeight: 600 }}>{f.label}</span>
+                                  <span style={{ fontSize: 13, fontWeight: 800, color: f.highlight ? '#15803d' : '#0A2540' }}>{f.val}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div style={{ fontSize: 12, color: 'rgba(10, 37, 64, 0.7)', lineHeight: 1.45 }}>
+                              {currentQuery.response.calcul}
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, borderTop: '1px solid rgba(10, 37, 64, 0.08)', marginTop: 14 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>0 € d'erreur de paie</span>
+                            <span style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.5)' }}>Calcul audité</span>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (stepIdx === 3) {
+                      return (
+                        <div
+                          key={`marquee-step-3-${trackIndex}`}
+                          className="case-marquee-card"
+                          onMouseEnter={() => setHoveredMarqueeStep(3)}
+                          onMouseLeave={() => setHoveredMarqueeStep(null)}
+                        >
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span className="step-num-badge">04</span>
+                                <AlertTriangle size={18} style={{ color: '#d97706' }} />
+                              </div>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: '#b45309', backgroundColor: '#fffbeb', padding: '2px 8px', borderRadius: 9999 }}>
+                                Alerte Employeur
+                              </span>
+                            </div>
+
+                            <h4 style={{ fontSize: 18, fontWeight: 800, color: '#0A2540', marginBottom: 12, lineHeight: 1.25 }}>
+                              Point de Vigilance & Risque Neutralisé
+                            </h4>
+
+                            <div style={{
+                              backgroundColor: '#fffbeb',
+                              padding: '14px',
+                              borderRadius: 12,
+                              borderLeft: '4px solid #f59e0b',
+                              color: '#92400e',
+                              fontSize: 13,
+                              lineHeight: 1.55,
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: 10
+                            }}>
+                              <div className="pulsing-alert-icon" style={{ flexShrink: 0, marginTop: 1 }}>
+                                <AlertTriangle size={16} style={{ color: '#d97706' }} />
+                              </div>
+                              <div>
+                                <strong style={{ display: 'block', marginBottom: 2 }}>Obligation stricte :</strong>
+                                {currentQuery.response.vigilance}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, borderTop: '1px solid rgba(10, 37, 64, 0.08)', marginTop: 14 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#d97706' }}>Risque prud'homal évité</span>
+                            <span style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.5)' }}>Responsabilité bénévole</span>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Step 4: Cabinet Maé
+                    return (
+                      <div
+                        key={`marquee-step-4-${trackIndex}`}
+                        className="case-marquee-card special-mae"
+                        onMouseEnter={() => setHoveredMarqueeStep(4)}
+                        onMouseLeave={() => setHoveredMarqueeStep(null)}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span className="step-num-badge" style={{ backgroundColor: 'rgba(190, 242, 100, 0.2)', color: '#bef264' }}>05</span>
+                              <Award size={20} style={{ color: '#bef264' }} />
+                            </div>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#bef264', backgroundColor: 'rgba(190, 242, 100, 0.18)', padding: '2px 8px', borderRadius: 9999 }}>
+                              Garantie 48h
+                            </span>
+                          </div>
+
+                          <h4 style={{ fontSize: 18, fontWeight: 800, color: '#ffffff', marginBottom: 8, lineHeight: 1.25 }}>
+                            Garantie Opposable Cabinet Maé
+                          </h4>
+
+                          <div style={{ fontSize: 12, fontWeight: 700, color: '#bef264', marginBottom: 6 }}>
+                            Me Laetitia Badji • Avocate au Barreau
+                          </div>
+
+                          <p style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.88)', lineHeight: 1.45, margin: 0, marginBottom: 12 }}>
+                            {currentQuery.response.experte}
+                          </p>
+
+                          <div className="btn-shimmer-wrap">
+                            <button
+                              onClick={() => setIsDemoModalOpen(true)}
+                              className="pilot-primary-btn"
+                              style={{ fontSize: 12, padding: '7px 14px', backgroundColor: '#bef264', color: '#0A2540', width: '100%', justifyContent: 'center' }}
+                            >
+                              <span>Tester en démo</span>
+                              <ArrowRight size={13} />
+                            </button>
+                            <div className="btn-shimmer-beam" />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid rgba(255, 255, 255, 0.12)', marginTop: 12 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: '#bef264' }}>Signature d'avocat 48h</span>
+                          <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.6)' }}>Secret pro.</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              /* MODE 2: ACCORDION ALTERNATIVE */
+              <div
+                onMouseEnter={() => setIsAccordionAutoPlaying(false)}
+                onMouseLeave={() => setIsAccordionAutoPlaying(true)}
+                style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+              >
+                {/* CARD 01 */}
+                <div
+                  className={`expand-step-card ${activeAccordionStep === 0 ? 'active' : ''}`}
+                  onMouseEnter={() => { setActiveAccordionStep(0); }}
+                  onClick={() => setActiveAccordionStep(0)}
+                >
+                  <div className="expand-step-header">
+                    <div className="expand-step-title" style={{ color: activeAccordionStep === 0 ? '#004AAD' : '#0A2540' }}>
+                      <span className="step-num-badge">01</span>
+                      <Sparkles size={20} style={{ color: activeAccordionStep === 0 ? '#004AAD' : 'rgba(10, 37, 64, 0.45)' }} />
+                      <span>Synthèse Directe & Arbitrage Immédiat</span>
                     </div>
-                    <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)' }}>
-                      Délai garanti de réponse argumentée : sous 48h ouvrées par le Cabinet Maé.
+                    <ChevronDown size={20} style={{ color: activeAccordionStep === 0 ? '#004AAD' : 'rgba(10, 37, 64, 0.4)', transform: activeAccordionStep === 0 ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }} />
+                  </div>
+                  <div className="expand-step-body" style={{ maxHeight: activeAccordionStep === 0 ? 320 : 0, opacity: activeAccordionStep === 0 ? 1 : 0, padding: activeAccordionStep === 0 ? '0 24px 22px 24px' : '0 24px' }}>
+                    <div className="expand-step-inner-content">
+                      <div style={{ backgroundColor: '#f8fafc', padding: '18px 22px', borderRadius: 14, borderLeft: '5px solid #004AAD' }}>
+                        <p style={{ fontSize: 15, color: '#0A2540', lineHeight: 1.65, margin: 0, fontWeight: 500 }}>{currentQuery.response.synthese}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setIsDemoModalOpen(true)}
-                  className="btn btn-sm btn-primary"
-                  style={{ borderRadius: 'var(--radius-pill)', fontWeight: 700 }}
+                {/* CARD 02 */}
+                <div
+                  className={`expand-step-card ${activeAccordionStep === 1 ? 'active' : ''}`}
+                  onMouseEnter={() => { setActiveAccordionStep(1); }}
+                  onClick={() => setActiveAccordionStep(1)}
                 >
-                  <span>Tester cette escalade en démo</span>
-                  <ArrowRight size={14} />
-                </button>
+                  <div className="expand-step-header">
+                    <div className="expand-step-title" style={{ color: activeAccordionStep === 1 ? '#004AAD' : '#0A2540' }}>
+                      <span className="step-num-badge">02</span>
+                      <Scale size={20} style={{ color: activeAccordionStep === 1 ? '#004AAD' : 'rgba(10, 37, 64, 0.45)' }} />
+                      <span>Fondements Juridiques & Sources Officielles</span>
+                    </div>
+                    <ChevronDown size={20} style={{ color: activeAccordionStep === 1 ? '#004AAD' : 'rgba(10, 37, 64, 0.4)', transform: activeAccordionStep === 1 ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }} />
+                  </div>
+                  <div className="expand-step-body" style={{ maxHeight: activeAccordionStep === 1 ? 320 : 0, opacity: activeAccordionStep === 1 ? 1 : 0, padding: activeAccordionStep === 1 ? '0 24px 22px 24px' : '0 24px' }}>
+                    <div className="expand-step-inner-content">
+                      <div style={{ padding: '18px 22px', borderRadius: 14, backgroundColor: '#f8fafc', border: '1px solid rgba(10, 37, 64, 0.08)' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {currentQuery.response.refChips.map((chip, i) => (
+                            <span key={i} className="case-ref-chip"><BadgeCheck size={16} style={{ color: '#16a34a' }} /><span>{chip}</span></span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CARD 03 */}
+                <div
+                  className={`expand-step-card ${activeAccordionStep === 2 ? 'active' : ''}`}
+                  onMouseEnter={() => { setActiveAccordionStep(2); }}
+                  onClick={() => setActiveAccordionStep(2)}
+                >
+                  <div className="expand-step-header">
+                    <div className="expand-step-title" style={{ color: activeAccordionStep === 2 ? '#16a34a' : '#0A2540' }}>
+                      <span className="step-num-badge">03</span>
+                      <TrendingUp size={20} style={{ color: activeAccordionStep === 2 ? '#16a34a' : 'rgba(10, 37, 64, 0.45)' }} />
+                      <span>Calcul & Chiffrage Financier / RH Opposable</span>
+                    </div>
+                    <ChevronDown size={20} style={{ color: activeAccordionStep === 2 ? '#16a34a' : 'rgba(10, 37, 64, 0.4)', transform: activeAccordionStep === 2 ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }} />
+                  </div>
+                  <div className="expand-step-body" style={{ maxHeight: activeAccordionStep === 2 ? 320 : 0, opacity: activeAccordionStep === 2 ? 1 : 0, padding: activeAccordionStep === 2 ? '0 24px 22px 24px' : '0 24px' }}>
+                    <div className="expand-step-inner-content">
+                      <div style={{ padding: '18px 22px', borderRadius: 14, backgroundColor: '#f8fafc', border: '1px solid rgba(10, 37, 64, 0.08)' }}>
+                        <div style={{ fontSize: 14, color: '#0A2540', fontWeight: 600 }}>{currentQuery.response.calcul}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CARD 04 */}
+                <div
+                  className={`expand-step-card ${activeAccordionStep === 3 ? 'active' : ''}`}
+                  onMouseEnter={() => { setActiveAccordionStep(3); }}
+                  onClick={() => setActiveAccordionStep(3)}
+                >
+                  <div className="expand-step-header">
+                    <div className="expand-step-title" style={{ color: activeAccordionStep === 3 ? '#d97706' : '#0A2540' }}>
+                      <span className="step-num-badge">04</span>
+                      <AlertTriangle size={20} style={{ color: activeAccordionStep === 3 ? '#d97706' : 'rgba(10, 37, 64, 0.45)' }} />
+                      <span>Point de Vigilance & Risque Neutralisé</span>
+                    </div>
+                    <ChevronDown size={20} style={{ color: activeAccordionStep === 3 ? '#d97706' : 'rgba(10, 37, 64, 0.4)', transform: activeAccordionStep === 3 ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }} />
+                  </div>
+                  <div className="expand-step-body" style={{ maxHeight: activeAccordionStep === 3 ? 320 : 0, opacity: activeAccordionStep === 3 ? 1 : 0, padding: activeAccordionStep === 3 ? '0 24px 22px 24px' : '0 24px' }}>
+                    <div className="expand-step-inner-content">
+                      <div style={{ backgroundColor: '#fffbeb', padding: '18px 22px', borderRadius: 14, borderLeft: '5px solid #f59e0b', color: '#92400e', fontSize: 14 }}>
+                        {currentQuery.response.vigilance}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CARD 05 */}
+                <div
+                  className={`expand-step-card active-special`}
+                  onMouseEnter={() => { setActiveAccordionStep(4); }}
+                  onClick={() => setActiveAccordionStep(4)}
+                >
+                  <div className="expand-step-header" style={{ color: '#ffffff' }}>
+                    <div className="expand-step-title" style={{ color: '#ffffff' }}>
+                      <span className="step-num-badge">05</span>
+                      <Award size={22} style={{ color: '#bef264' }} />
+                      <span>Garantie Opposable Signée Cabinet Maé</span>
+                    </div>
+                    <ChevronDown size={20} style={{ color: '#bef264', transform: activeAccordionStep === 4 ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }} />
+                  </div>
+                  <div className="expand-step-body" style={{ maxHeight: activeAccordionStep === 4 ? 340 : 0, opacity: activeAccordionStep === 4 ? 1 : 0, padding: activeAccordionStep === 4 ? '0 24px 24px 24px' : '0 24px' }}>
+                    <div className="expand-step-inner-content">
+                      <div style={{ padding: '20px', borderRadius: 16, backgroundColor: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(190, 242, 100, 0.3)' }}>
+                        <p style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.9)', margin: 0, marginBottom: 12 }}>{currentQuery.response.experte}</p>
+                        <button onClick={() => setIsDemoModalOpen(true)} className="pilot-primary-btn" style={{ backgroundColor: '#bef264', color: '#0A2540', fontWeight: 800 }}>
+                          Tester en démo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* =========================================================================
-          SOLUTIONS INTERACTIVE SECTION (PilotAsso 360° Vision)
-          ========================================================================= */}
-      <section id="centralisation" style={{
-        padding: 'var(--space-16) var(--space-6)',
-        maxWidth: 1200,
-        margin: '0 auto'
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-12)' }}>
-          <span className="badge badge-blue" style={{ marginBottom: 'var(--space-3)' }}>
-            Vision à 360°
-          </span>
-          <h2 style={{
-            fontSize: 'clamp(28px, 4vw, 42px)',
-            fontWeight: 800,
-            color: 'var(--color-navy)',
-            lineHeight: 1.2,
-            marginBottom: 'var(--space-4)'
-          }}>
-            Une vision à 360° pour décider avec les bonnes informations
-          </h2>
-          <p style={{
-            fontSize: 'var(--text-lg)',
-            color: 'var(--color-navy-muted)',
-            lineHeight: 1.6,
-            maxWidth: 760,
-            margin: '0 auto'
-          }}>
-            Finances, financements, règles RH, conventions collectives et gouvernance : AssoExpert IA rassemble ce qu'il faut connaître pour piloter votre association, sans naviguer entre dix outils différents.
-          </p>
-
-          {/* Interactive Solution Tabs Bar (Horizontal swipeable on mobile) */}
-          <div className="pilot-tabs-scroll-container">
-            {solutions.map((sol) => (
-              <button
-                key={sol.id}
-                onClick={() => setActiveSolutionTab(sol.id)}
-                className={`pilot-tab-button ${activeSolutionTab === sol.id ? 'active' : ''}`}
-              >
-                {sol.title}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Selected Solution Detail Card */}
-        <div className="card" style={{
-          padding: 'var(--space-8)',
-          borderRadius: '24px',
-          border: '1.5px solid var(--color-border)',
-          boxShadow: 'var(--shadow-hover)'
+        {/* =========================================================================
+            SECTION CABINET MAÉ & LAETITIA BADJI (Human Reassurance)
+            ========================================================================= */}
+        <section id="experte" style={{
+          padding: 'clamp(40px, 6vw, 80px) 24px',
+          maxWidth: 1280,
+          margin: '0 auto'
         }}>
           <div style={{
+            background: 'linear-gradient(135deg, #07192b 0%, #0A2540 60%, #153759 100%)',
+            color: '#ffffff',
+            borderRadius: 24,
+            padding: 'clamp(28px, 5vw, 50px)',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-            gap: 'var(--space-8)',
-            alignItems: 'center'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 36,
+            alignItems: 'center',
+            boxShadow: '0 25px 60px -15px rgba(10, 37, 64, 0.5)'
           }}>
-            {/* Left Content */}
             <div>
-              <span className="badge badge-lime" style={{ marginBottom: '12px', fontSize: '11px', fontWeight: 800 }}>
-                {currentSolution.badge}
+              <span style={{
+                display: 'inline-block',
+                backgroundColor: '#bef264',
+                color: '#0a0a0a',
+                padding: '3px 12px',
+                borderRadius: 9999,
+                fontSize: 11,
+                fontWeight: 700,
+                marginBottom: 16
+              }}>
+                L'EXPERTISE DU CABINET MAÉ
               </span>
-              <h3 style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '12px' }}>
-                {currentSolution.subtitle}
-              </h3>
-              <p style={{ fontSize: '15px', color: 'var(--color-navy-muted)', lineHeight: 1.6, marginBottom: '20px' }}>
-                {currentSolution.description}
+
+              <h2 style={{ fontSize: 'clamp(24px, 3.5vw, 34px)', fontWeight: 800, color: '#ffffff', lineHeight: 1.2, marginBottom: 16 }}>
+                Une juriste reconnue du secteur associatif à vos côtés
+              </h2>
+
+              <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: 15, lineHeight: 1.6, marginBottom: 14 }}>
+                Derrière l'intelligence artificielle, vous bénéficiez de l'appui direct de <strong>Laetitia Badji</strong> (Cabinet Maé / AKILIGUE SAS), juriste spécialisée depuis plus de 15 ans dans le médico-social, l'animation et l'insertion.
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
-                {currentSolution.bullets.map((bullet, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', color: 'var(--color-navy)' }}>
-                    <CheckCircle2 size={18} style={{ color: 'var(--color-blue)', minWidth: 18, marginTop: 2 }} />
-                    <span style={{ fontWeight: 500 }}>{bullet}</span>
-                  </div>
-                ))}
-              </div>
+              <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: 15, lineHeight: 1.6, fontStyle: 'italic', marginBottom: 22 }}>
+                « L’assistance apporte la rapidité et la synthèse ; notre cabinet apporte la rigueur, l’analyse des cas délicats et la signature juridique qui rassure votre Conseil d’Administration. »
+              </p>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => setIsDemoModalOpen(true)}
-                  className="btn btn-primary"
-                  style={{ borderRadius: 'var(--radius-pill)', height: 46 }}
-                >
-                  <span>Demander une démo de cette solution</span>
-                  <ArrowRight size={16} />
-                </button>
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', fontSize: 13, fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Clock size={16} style={{ color: '#bef264' }} />
+                  <span>Délai garanti : 48h ouvrées</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Award size={16} style={{ color: '#bef264' }} />
+                  <span>+15 ans d'expérience associative</span>
+                </div>
               </div>
             </div>
 
-            {/* Right Preview Card */}
-            <div style={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid var(--color-border)',
-              borderRadius: '18px',
-              padding: '24px',
-              boxShadow: 'inset 0 1px 3px rgba(10, 37, 64, 0.04)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy-muted)', textTransform: 'uppercase' }}>
-                  Aperçu de la fonctionnalité
-                </span>
-                <span className="live-dot" />
-              </div>
-
-              <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '16px' }}>
-                {currentSolution.previewData.headline}
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-                <div style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 600 }}>Indicateur 1</div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--color-blue)', marginTop: 4 }}>
-                    {currentSolution.previewData.stat1}
-                  </div>
-                </div>
-                <div style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 600 }}>Indicateur 2</div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#16a34a', marginTop: 4 }}>
-                    {currentSolution.previewData.stat2}
-                  </div>
-                </div>
-              </div>
-
+            {/* Portrait Photo of Laetitia Badji */}
+            <div style={{ textAlign: 'center' }}>
               <div style={{
-                backgroundColor: '#ffffff',
-                border: '1px solid var(--color-border)',
-                borderRadius: '12px',
-                padding: '14px',
-                fontSize: '13px',
-                color: 'var(--color-navy)',
-                lineHeight: 1.5
+                width: 160,
+                height: 160,
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: '3px solid #bef264',
+                margin: '0 auto 16px',
+                boxShadow: '0 0 30px rgba(190, 242, 100, 0.4)'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, marginBottom: 4 }}>
-                  <Sparkles size={14} style={{ color: 'var(--color-blue)' }} />
-                  <span>Automatisation active :</span>
-                </div>
-                {currentSolution.previewData.mockCard}
+                <img
+                  src="/images/laetitia-badji.jpg"
+                  alt="Laetitia Badji juriste experte droit associatif"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#ffffff' }}>
+                Laetitia Badji
+              </div>
+              <div style={{ color: '#bef264', fontSize: 13, fontWeight: 600, marginTop: 2 }}>
+                Cabinet Maé &bull; AKILIGUE SAS
+              </div>
+              <div style={{ color: 'rgba(255, 255, 255, 0.55)', fontSize: 12, marginTop: 4 }}>
+                contact@cabinet-mae.fr &bull; Paris, France
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* =========================================================================
-          PILOTASSO VALUES / BENEFIT SECTION WITH REAL TEAM PHOTOGRAPHY:
-          "Moins de tâches répétitives, plus de temps pour piloter"
-          ========================================================================= */}
-      <section style={{
-        backgroundColor: '#ffffff',
-        padding: 'var(--space-16) var(--space-6)',
-        borderTop: '1px solid var(--color-border)',
-        borderBottom: '1px solid var(--color-border)'
-      }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 'var(--space-12)' }}>
-            <span style={{ color: 'var(--color-blue)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Gain d'efficacité & Sérénité
-            </span>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, color: 'var(--color-navy)', marginTop: 8 }}>
-              Moins de tâches répétitives, plus de temps pour votre mission
-            </h2>
-            <p style={{ fontSize: '16px', color: 'var(--color-navy-muted)', maxWidth: 660, margin: '8px auto 0' }}>
-              L'automatisation et l'assistance intelligente libèrent vos équipes salariées et vos administrateurs bénévoles pour se consacrer aux bénéficiaires.
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-            gap: 'var(--space-8)',
-            alignItems: 'center'
-          }}>
-            {/* Real Team Photo with Warm Caption */}
-            <div style={{
-              borderRadius: '20px',
-              overflow: 'hidden',
-              boxShadow: 'var(--shadow-hover)',
-              border: '1.5px solid var(--color-border)',
-              position: 'relative'
+        {/* =========================================================================
+            SECTION TARIFS SANS ENGAGEMENT
+            ========================================================================= */}
+        <section id="tarifs" style={{
+          padding: 'clamp(50px, 7vw, 100px) 24px',
+          maxWidth: 1280,
+          margin: '0 auto',
+          borderTop: '1px solid rgba(10, 37, 64, 0.08)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <span style={{
+              display: 'inline-block',
+              backgroundColor: 'rgba(190, 242, 100, 0.25)',
+              color: '#1b5400',
+              fontWeight: 700,
+              fontSize: 11,
+              padding: '3px 12px',
+              borderRadius: 9999,
+              marginBottom: 10
             }}>
-              <img
-                src="/images/equipe-association.jpg"
-                alt="Équipe associative souriante et soudée collaborant autour d'un ordinateur"
-                style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
-              />
-              <div style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                background: 'linear-gradient(to top, rgba(10,37,64,0.92) 0%, rgba(10,37,64,0.3) 70%, transparent 100%)',
-                padding: '24px 20px 16px',
-                color: '#ffffff'
-              }}>
-                <div style={{ fontSize: '14px', fontWeight: 700 }}>
-                  Des équipes sereines et valorisées
-                </div>
-                <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: 4 }}>
-                  Retrouvez le temps de concevoir des projets éducatifs et sociaux à fort impact.
-                </div>
-              </div>
-            </div>
-
-            {/* 3 Benefit Cards Stack */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Card 1 */}
-              <div className="card card-hover" style={{ padding: '24px', backgroundColor: '#f8fafc', borderRadius: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                  <div style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '12px',
-                    backgroundColor: 'var(--color-blue-light)',
-                    color: 'var(--color-blue)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    <Clock size={22} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '4px' }}>
-                      Moins de saisie manuelle
-                    </h3>
-                    <p style={{ fontSize: '13px', color: 'var(--color-navy-muted)', lineHeight: 1.55 }}>
-                      L'intelligence artificielle prend en charge les calculs d'ancienneté, de congés trimestriels et de préavis conventionnels complexes.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2 */}
-              <div className="card card-hover" style={{ padding: '24px', backgroundColor: '#f8fafc', borderRadius: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                  <div style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '12px',
-                    backgroundColor: 'rgba(193, 255, 114, 0.35)',
-                    color: 'var(--color-lime-dark)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    <Sparkles size={22} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '4px' }}>
-                      Aide à la recherche pointue
-                    </h3>
-                    <p style={{ fontSize: '13px', color: 'var(--color-navy-muted)', lineHeight: 1.55 }}>
-                      Retrouvez l’article exact de votre convention (CCN 66, CCN 51, Éclat, Alisfa) et les clauses applicables en quelques secondes.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3 */}
-              <div className="card card-hover" style={{ padding: '24px', backgroundColor: '#f8fafc', borderRadius: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                  <div style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '12px',
-                    backgroundColor: 'var(--color-orange-light)',
-                    color: 'var(--color-orange-dark)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    <Award size={22} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '4px' }}>
-                      Préparation rapide des instances
-                    </h3>
-                    <p style={{ fontSize: '13px', color: 'var(--color-navy-muted)', lineHeight: 1.55 }}>
-                      Rassemblez instantanément les chiffres pour votre Bureau, CA ou AG annuelle sans passer des nuits à consolider des classeurs.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          PILOTASSO METRICS BLOCK:
-          "Moins cher qu'une demi-journée de travail administratif évitée chaque mois"
-          ========================================================================= */}
-      <section style={{
-        padding: 'var(--space-16) var(--space-6)',
-        maxWidth: 1100,
-        margin: '0 auto'
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-12)' }}>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '12px' }}>
-            Moins cher qu’une demi-journée de travail administratif évitée chaque mois
-          </h2>
-          <p style={{ fontSize: '16px', color: 'var(--color-navy-muted)', maxWidth: 740, margin: '0 auto', lineHeight: 1.6 }}>
-            En centralisant votre pilotage, AssoExpert IA réduit le temps passé à chercher les textes, corriger les calculs de paie et préparer vos dossiers de subvention — un gain de temps qui dépasse largement le coût de l’abonnement.
-          </p>
-        </div>
-
-        {/* 4 Stats Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
-          gap: 'var(--space-6)',
-          marginBottom: 'var(--space-8)'
-        }}>
-          <div className="card" style={{ padding: '28px', textAlign: 'center', backgroundColor: '#ffffff' }}>
-            <div className="pilot-stat-number" style={{ color: 'var(--color-blue)' }}>10h</div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', marginTop: 8 }}>
-              récupérées chaque mois
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-navy-muted)', marginTop: 4 }}>
-              Temps de reporting et de vérification manuelle en moins selon nos associations pilotes.
-            </div>
-          </div>
-
-          <div className="card" style={{ padding: '28px', textAlign: 'center', backgroundColor: '#ffffff' }}>
-            <div className="pilot-stat-number" style={{ color: '#16a34a' }}>250 €</div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', marginTop: 8 }}>
-              économisés chaque mois
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-navy-muted)', marginTop: 4 }}>
-              Valeur estimée du temps administratif et juridique ainsi libéré pour votre mission.
-            </div>
-          </div>
-
-          <div className="card" style={{ padding: '28px', textAlign: 'center', backgroundColor: '#ffffff' }}>
-            <div className="pilot-stat-number" style={{ color: 'var(--color-navy)' }}>48h</div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', marginTop: 8 }}>
-              délai garanti experte
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-navy-muted)', marginTop: 4 }}>
-              Délai maximal pour recevoir une note argumentée et signée par Laetitia Badji (Cabinet Maé).
-            </div>
-          </div>
-
-          <div className="card" style={{ padding: '28px', textAlign: 'center', backgroundColor: '#ffffff' }}>
-            <div className="pilot-stat-number" style={{ color: '#0284c7' }}>100%</div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', marginTop: 8 }}>
-              souverain & RGPD
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-navy-muted)', marginTop: 4 }}>
-              Hébergement en France, aucune donnée réutilisée ni transmise à des tiers de tracking.
-            </div>
-          </div>
-        </div>
-
-        <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--color-navy-muted)' }}>
-          Estimations moyennes indicatives, basées sur les retours des associations après centralisation de leur pilotage.
-        </div>
-      </section>
-
-      {/* =========================================================================
-          TESTIMONIALS & PROGRAMME BÊTA (PilotAsso "Construit avec le terrain")
-          ========================================================================= */}
-      <section style={{
-        backgroundColor: '#f8fafc',
-        padding: 'var(--space-16) var(--space-6)',
-        borderTop: '1px solid var(--color-border)',
-        borderBottom: '1px solid var(--color-border)'
-      }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 'var(--space-12)' }}>
-            <span className="badge badge-lime" style={{ marginBottom: '8px' }}>
-              Construit avec le terrain
+              Tarification transparente
             </span>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, color: 'var(--color-navy)' }}>
-              18 associations participent actuellement à la construction
-            </h2>
-            <p style={{ fontSize: '16px', color: 'var(--color-navy-muted)', maxWidth: 680, margin: '8px auto 0' }}>
-              Le programme bêta reste ouvert à de nouvelles structures qui souhaitent influencer directement les prochaines évolutions du produit.
-            </p>
-          </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-            gap: 'var(--space-6)'
-          }}>
-            {testimonials.map((t, idx) => (
-              <div key={idx} className="card card-hover" style={{
-                backgroundColor: '#ffffff',
-                padding: '28px',
-                borderRadius: '18px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                    <span className="badge badge-blue" style={{ fontSize: '10px' }}>
-                      {t.tag}
-                    </span>
-                    <Quote size={20} style={{ color: 'var(--color-border)', opacity: 0.8 }} />
-                  </div>
-                  <p style={{ fontSize: '14px', color: 'var(--color-navy)', lineHeight: 1.6, fontStyle: 'italic', marginBottom: '20px' }}>
-                    «&nbsp;{t.quote}&nbsp;»
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
-                  <div style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--color-blue)',
-                    color: '#ffffff',
-                    fontWeight: 800,
-                    fontSize: '14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    {t.initials}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--color-navy)' }}>
-                      {t.author}
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)' }}>
-                      {t.role} &bull; {t.asso}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ textAlign: 'center', marginTop: 'var(--space-8)' }}>
-            <button
-              onClick={() => setIsDemoModalOpen(true)}
-              className="btn btn-outline-blue"
-              style={{ borderRadius: 'var(--radius-pill)', fontWeight: 700 }}
-            >
-              <span>Découvrir le programme bêta & réserver ma démo</span>
-              <ArrowRight size={16} />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          VOYEZ ASSOEXPERT IA FONCTIONNER (PilotAsso Reassurance Banner)
-          ========================================================================= */}
-      <section style={{
-        padding: 'var(--space-16) var(--space-6)',
-        maxWidth: 1000,
-        margin: '0 auto',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          backgroundColor: '#0A2540',
-          color: '#ffffff',
-          borderRadius: '24px',
-          padding: 'clamp(32px, 6vw, 60px) 32px',
-          boxShadow: 'var(--shadow-float)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Subtle glow orb */}
-          <div style={{
-            position: 'absolute',
-            bottom: -80,
-            right: -80,
-            width: 300,
-            height: 300,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(193, 255, 114, 0.25) 0%, rgba(193, 255, 114, 0) 70%)',
-            pointerEvents: 'none'
-          }} />
-
-          <span style={{
-            display: 'inline-block',
-            backgroundColor: 'var(--color-lime)',
-            color: 'var(--color-navy)',
-            fontWeight: 800,
-            fontSize: '11px',
-            padding: '3px 12px',
-            borderRadius: 'var(--radius-pill)',
-            marginBottom: '16px',
-            letterSpacing: '0.04em'
-          }}>
-            DÉMONSTRATION PERSONNALISÉE
-          </span>
-
-          <h2 style={{
-            fontSize: 'clamp(28px, 4vw, 42px)',
-            fontWeight: 800,
-            color: '#ffffff',
-            lineHeight: 1.2,
-            marginBottom: '16px'
-          }}>
-            Voyez AssoExpert IA fonctionner avec les données de votre association
-          </h2>
-
-          <p style={{
-            fontSize: '17px',
-            color: '#cbd5e1',
-            maxWidth: 680,
-            margin: '0 auto 32px',
-            lineHeight: 1.6
-          }}>
-            Pas de discours commercial générique : une démonstration construite autour de vos priorités (CCN 66/51/Éclat/Alisfa, budgets, échéances subventions).
-          </p>
-
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            maxWidth: 580,
-            margin: '0 auto 36px',
-            textAlign: 'left'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f1f5f9', fontSize: '15px' }}>
-              <CheckCircle2 size={20} style={{ color: 'var(--color-lime)', minWidth: 20 }} />
-              <span>Un tour du produit adapté à votre association, pas une démo générique</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f1f5f9', fontSize: '15px' }}>
-              <CheckCircle2 size={20} style={{ color: 'var(--color-lime)', minWidth: 20 }} />
-              <span>Une réponse concrète à vos questions sur la mise en place et l’import de données</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f1f5f9', fontSize: '15px' }}>
-              <CheckCircle2 size={20} style={{ color: 'var(--color-lime)', minWidth: 20 }} />
-              <span>30 minutes, sans engagement, à l'heure qui vous convient le mieux</span>
-            </div>
-          </div>
-
-          <button
-            onClick={() => setIsDemoModalOpen(true)}
-            className="btn btn-lime"
-            style={{
-              height: 52,
-              padding: '0 36px',
-              fontSize: '16px',
+            <h2 style={{
+              fontSize: 'clamp(28px, 4vw, 42px)',
               fontWeight: 800,
-              borderRadius: 'var(--radius-pill)',
-              color: 'var(--color-navy)'
-            }}
-          >
-            <span>Réserver ma démo gratuite</span>
-            <ArrowRight size={18} />
-          </button>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          PRICING SECTION (PilotAsso Style)
-          ========================================================================= */}
-      <section id="tarifs" style={{
-        backgroundColor: '#ffffff',
-        borderTop: '1px solid var(--color-border)',
-        borderBottom: '1px solid var(--color-border)',
-        padding: 'var(--space-16) var(--space-6)'
-      }}>
-        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-          
-          <div style={{ textAlign: 'center', marginBottom: 'var(--space-12)' }}>
-            <span className="badge badge-lime" style={{ marginBottom: '8px' }}>
-              Tarification claire & sans engagement
-            </span>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '12px' }}>
-              Votre association a mieux à faire que comparer des grilles opaques
+              color: '#0A2540',
+              letterSpacing: '-0.025em',
+              marginBottom: 12
+            }}>
+              Des forfaits clairs pour les associations de 1 à 100 salariés
             </h2>
-            <p style={{ color: 'var(--color-navy-muted)', maxWidth: 660, margin: '0 auto', fontSize: '16px' }}>
-              Des forfaits transparents pensés pour les structures employeuses de 1 à 100 salariés. Modifiez ou résiliez sans préavis.
+
+            <p style={{
+              fontSize: 16,
+              color: 'rgba(10, 37, 64, 0.7)',
+              maxWidth: 640,
+              margin: '0 auto 24px'
+            }}>
+              Abonnement mensuel sans engagement de durée, modifiable ou résiliable en un clic.
             </p>
 
-            {/* Billing Cycle Toggle */}
+            {/* Monthly / Yearly Toggle */}
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '12px',
+              gap: 8,
               backgroundColor: '#f1f5f9',
-              padding: '4px 8px',
-              borderRadius: 'var(--radius-pill)',
-              marginTop: 'var(--space-6)',
-              fontSize: '14px',
-              fontWeight: 700
+              padding: '4px 6px',
+              borderRadius: 9999
             }}>
               <button
                 onClick={() => setBillingCycle('monthly')}
                 style={{
                   padding: '6px 16px',
-                  borderRadius: 'var(--radius-pill)',
+                  borderRadius: 9999,
+                  border: 'none',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
                   backgroundColor: billingCycle === 'monthly' ? '#ffffff' : 'transparent',
-                  color: billingCycle === 'monthly' ? 'var(--color-navy)' : 'var(--color-navy-muted)',
-                  boxShadow: billingCycle === 'monthly' ? '0 2px 6px rgba(10,37,64,0.06)' : 'none',
-                  cursor: 'pointer'
+                  color: billingCycle === 'monthly' ? '#0A2540' : 'rgba(10, 37, 64, 0.6)',
+                  boxShadow: billingCycle === 'monthly' ? '0 2px 6px rgba(10, 37, 64, 0.08)' : 'none'
                 }}
               >
-                Facturation mensuelle
+                Mensuel
               </button>
               <button
                 onClick={() => setBillingCycle('yearly')}
                 style={{
                   padding: '6px 16px',
-                  borderRadius: 'var(--radius-pill)',
-                  backgroundColor: billingCycle === 'yearly' ? '#ffffff' : 'transparent',
-                  color: billingCycle === 'yearly' ? 'var(--color-navy)' : 'var(--color-navy-muted)',
-                  boxShadow: billingCycle === 'yearly' ? '0 2px 6px rgba(10,37,64,0.06)' : 'none',
+                  borderRadius: 9999,
+                  border: 'none',
+                  fontSize: 13,
+                  fontWeight: 600,
                   cursor: 'pointer',
-                  display: 'inline-flex',
+                  backgroundColor: billingCycle === 'yearly' ? '#ffffff' : 'transparent',
+                  color: billingCycle === 'yearly' ? '#0A2540' : 'rgba(10, 37, 64, 0.6)',
+                  boxShadow: billingCycle === 'yearly' ? '0 2px 6px rgba(10, 37, 64, 0.08)' : 'none',
+                  display: 'flex',
                   alignItems: 'center',
-                  gap: '6px'
+                  gap: 6
                 }}
               >
                 <span>Annuel</span>
-                <span className="badge badge-lime" style={{ fontSize: '9px', padding: '1px 6px' }}>
+                <span style={{ backgroundColor: '#bef264', color: '#1b5400', fontSize: 10, padding: '1px 6px', borderRadius: 9999, fontWeight: 700 }}>
                   2 mois offerts
                 </span>
               </button>
@@ -1859,8 +2799,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           {/* 3 Pricing Cards */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-            gap: 'var(--space-6)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 24,
             alignItems: 'stretch'
           }}>
             {plans.map((p) => {
@@ -1871,95 +2811,79 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               return (
                 <div
                   key={p.code}
-                  className="card card-hover"
+                  className="card-interactive-tilt"
                   style={{
-                    position: 'relative',
+                    backgroundColor: '#ffffff',
+                    borderRadius: 22,
+                    padding: '32px',
                     display: 'flex',
                     flexDirection: 'column',
-                    borderColor: p.highlighted ? 'var(--color-blue)' : 'var(--color-border)',
-                    borderWidth: p.highlighted ? '2px' : '1px',
-                    boxShadow: p.highlighted ? '0 12px 36px rgba(0, 74, 173, 0.16)' : 'var(--shadow-card)',
-                    padding: '32px',
-                    borderRadius: '20px'
+                    position: 'relative',
+                    border: p.highlighted ? '2px solid #004AAD' : '1px solid rgba(10, 37, 64, 0.1)',
+                    boxShadow: p.highlighted ? '0 16px 40px -10px rgba(0, 74, 173, 0.2)' : '0 8px 24px -10px rgba(10, 37, 64, 0.06)'
                   }}
                 >
                   {p.highlighted && (
                     <div style={{
                       position: 'absolute',
-                      top: -13,
+                      top: -12,
                       left: '50%',
                       transform: 'translateX(-50%)',
-                      backgroundColor: 'var(--color-blue)',
+                      backgroundColor: '#004AAD',
                       color: '#ffffff',
-                      padding: '4px 16px',
-                      borderRadius: 'var(--radius-pill)',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      letterSpacing: '0.04em',
-                      boxShadow: '0 4px 12px rgba(0, 74, 173, 0.35)'
+                      padding: '3px 14px',
+                      borderRadius: 9999,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: '0.04em'
                     }}>
                       RECOMMANDÉ POUR LES ASSOCIATIONS
                     </div>
                   )}
 
-                  <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '6px' }}>
+                  <div style={{ marginBottom: 18 }}>
+                    <h3 style={{ fontSize: 22, fontWeight: 800, color: '#0A2540', marginBottom: 4 }}>
                       {p.label}
                     </h3>
-                    <p style={{ fontSize: '14px', color: 'var(--color-navy-muted)', lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 13, color: 'rgba(10, 37, 64, 0.6)', lineHeight: 1.5 }}>
                       {p.description}
                     </p>
                   </div>
 
-                  {/* Price */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    gap: '6px',
-                    marginBottom: '24px',
-                    paddingBottom: '20px',
-                    borderBottom: '1px solid var(--color-border)'
-                  }}>
-                    <span style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: '44px',
-                      fontWeight: 800,
-                      color: 'var(--color-navy)',
-                      letterSpacing: '-0.03em'
-                    }}>
-                      {displayPrice}&nbsp;€
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 24, paddingBottom: 18, borderBottom: '1px solid rgba(10, 37, 64, 0.08)' }}>
+                    <span style={{ fontSize: 44, fontWeight: 800, color: '#0A2540', letterSpacing: '-0.03em' }}>
+                      {displayPrice} €
                     </span>
-                    <span style={{ color: 'var(--color-navy-muted)', fontSize: '13px', fontWeight: 600 }}>
+                    <span style={{ fontSize: 13, color: 'rgba(10, 37, 64, 0.55)', fontWeight: 500 }}>
                       / mois HT
                     </span>
                   </div>
 
-                  {/* Features List */}
-                  <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px' }}>
-                      <CheckCircle2 size={18} style={{ color: 'var(--color-blue)', minWidth: 18 }} />
-                      <span>Moteur IA spécialisé : <strong>{p.features.aiModel}</strong></span>
+                  <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#0A2540' }}>
+                      <CheckCircle2 size={16} style={{ color: '#004AAD', flexShrink: 0 }} />
+                      <span>Moteur spécialisé : <strong>{p.features.aiModel}</strong></span>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px' }}>
-                      <CheckCircle2 size={18} style={{ color: 'var(--color-blue)', minWidth: 18 }} />
-                      <span>Briques : <strong>RH & Gouvernance Loi 1901</strong></span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#0A2540' }}>
+                      <CheckCircle2 size={16} style={{ color: '#004AAD', flexShrink: 0 }} />
+                      <span>Briques : <strong>RH & Gouvernance 1901</strong></span>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', color: p.features.briqueFinance ? 'var(--color-navy)' : '#94a3b8' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: p.features.briqueFinance ? '#0A2540' : '#94a3b8' }}>
                       {p.features.briqueFinance ? (
-                        <CheckCircle2 size={18} style={{ color: 'var(--color-blue)', minWidth: 18 }} />
+                        <CheckCircle2 size={16} style={{ color: '#004AAD', flexShrink: 0 }} />
                       ) : (
-                        <Lock size={18} style={{ color: '#94a3b8', minWidth: 18 }} />
+                        <Lock size={16} style={{ color: '#94a3b8', flexShrink: 0 }} />
                       )}
                       <span>Brique <strong>Finance, Budget & CER</strong></span>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', color: p.features.briqueConformite ? 'var(--color-navy)' : '#94a3b8' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: p.features.briqueConformite ? '#0A2540' : '#94a3b8' }}>
                       {p.features.briqueConformite ? (
-                        <CheckCircle2 size={18} style={{ color: 'var(--color-blue)', minWidth: 18 }} />
+                        <CheckCircle2 size={16} style={{ color: '#004AAD', flexShrink: 0 }} />
                       ) : (
-                        <Lock size={18} style={{ color: '#94a3b8', minWidth: 18 }} />
+                        <Lock size={16} style={{ color: '#94a3b8', flexShrink: 0 }} />
                       )}
                       <span>Brique <strong>Conformité & DUERP</strong></span>
                     </div>
@@ -1967,18 +2891,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '10px',
-                      fontSize: '14px',
-                      backgroundColor: p.features.expertQuestionsMonth > 0 ? 'var(--color-lime-glow)' : 'transparent',
-                      padding: p.features.expertQuestionsMonth > 0 ? '10px 12px' : '0',
-                      borderRadius: 'var(--radius-sm)'
+                      gap: 8,
+                      fontSize: 13,
+                      backgroundColor: p.features.expertQuestionsMonth > 0 ? 'rgba(190, 242, 100, 0.25)' : 'transparent',
+                      padding: p.features.expertQuestionsMonth > 0 ? '8px 10px' : '0',
+                      borderRadius: 8
                     }}>
-                      <Award size={18} style={{ color: p.features.expertQuestionsMonth > 0 ? 'var(--color-navy)' : '#94a3b8', minWidth: 18 }} />
+                      <Award size={16} style={{ color: p.features.expertQuestionsMonth > 0 ? '#1b5400' : '#94a3b8', flexShrink: 0 }} />
                       <span>
                         {p.features.expertQuestionsMonth > 0 ? (
-                          <strong>{p.features.expertQuestionsMonth} note experte Cabinet Maé / mois</strong>
+                          <strong style={{ color: '#1b5400' }}>{p.features.expertQuestionsMonth} note experte Cabinet Maé / mois</strong>
                         ) : (
-                          <span style={{ color: '#94a3b8' }}>Sans escalade experte incluse</span>
+                          <span style={{ color: '#94a3b8' }}>Sans note experte incluse</span>
                         )}
                       </span>
                     </div>
@@ -1986,425 +2910,308 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
 
                   <button
                     onClick={() => onStartOnboarding(p.code)}
-                    className={p.highlighted ? 'btn btn-primary' : 'btn btn-secondary'}
-                    style={{ width: '100%', height: 48, borderRadius: 'var(--radius-pill)', fontWeight: 700 }}
+                    className={p.highlighted ? 'pilot-primary-btn' : 'pilot-glow-btn'}
+                    style={{
+                      width: '100%',
+                      justifyContent: 'center',
+                      backgroundColor: p.highlighted ? '#004AAD' : '#f8fafc',
+                      color: p.highlighted ? '#ffffff' : '#0A2540',
+                      borderColor: p.highlighted ? 'transparent' : 'rgba(10, 37, 64, 0.15)',
+                      boxShadow: 'none'
+                    }}
                   >
-                    <span>Choisir l'offre {p.label.split(' ')[0]}</span>
-                    <ArrowRight size={16} />
+                    <span>Choisir {p.label}</span>
+                    <ArrowRight size={14} />
                   </button>
                 </div>
               );
             })}
           </div>
+        </section>
 
-          {/* PilotAsso-Style Reassurance Callout */}
-          <div style={{
-            marginTop: 'var(--space-12)',
-            padding: '24px',
-            backgroundColor: '#f8fafc',
-            borderRadius: '16px',
-            border: '1px solid var(--color-border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '16px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: 'var(--color-blue-light)', color: 'var(--color-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Users size={20} />
-              </div>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--color-navy)' }}>
-                  Accompagnement d’onboarding recommandé à la mise en place
-                </div>
-                <div style={{ fontSize: '13px', color: 'var(--color-navy-muted)' }}>
-                  Import de vos conventions, paramétrage de vos effectifs et formation de votre équipe avec nos juristes.
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setIsDemoModalOpen(true)}
-              className="btn btn-sm btn-secondary"
-              style={{ fontWeight: 700 }}
-            >
-              Voir les modalités &rarr;
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          L'EXPERTE / CABINET MAÉ SECTION WITH REAL PROFESSIONAL PORTRAIT
-          ========================================================================= */}
-      <section id="experte" style={{ maxWidth: 1100, margin: 'var(--space-16) auto', padding: '0 var(--space-6)' }}>
-        <div className="card" style={{
-          background: 'linear-gradient(135deg, #07192b 0%, var(--color-navy) 60%, #153759 100%)',
-          color: '#ffffff',
-          borderRadius: '24px',
-          padding: 'clamp(20px, 4vw, var(--space-12))',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-          gap: 'var(--space-8)',
-          alignItems: 'center',
-          boxShadow: 'var(--shadow-float)'
+        {/* =========================================================================
+            SECTION FAQ (Airy Accordion)
+            ========================================================================= */}
+        <section id="faq" style={{
+          padding: 'clamp(40px, 6vw, 80px) 24px',
+          maxWidth: 980,
+          margin: '0 auto',
+          borderTop: '1px solid rgba(10, 37, 64, 0.08)'
         }}>
-          <div>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              backgroundColor: 'var(--color-lime)',
-              color: 'var(--color-navy)',
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            <span style={{
+              display: 'inline-block',
+              backgroundColor: 'rgba(0, 74, 173, 0.08)',
+              color: '#004AAD',
+              fontWeight: 700,
+              fontSize: 11,
               padding: '3px 12px',
-              borderRadius: 'var(--radius-pill)',
-              fontSize: '11px',
-              fontWeight: 800,
-              marginBottom: 'var(--space-4)'
+              borderRadius: 9999,
+              marginBottom: 10
             }}>
-              L'EXPERTISE DU CABINET MAÉ
-            </div>
-            <h2 style={{ color: '#ffffff', fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-4)' }}>
-              Une juriste reconnue du secteur associatif à vos côtés
+              Questions fréquentes
+            </span>
+
+            <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 36px)', fontWeight: 800, color: '#0A2540' }}>
+              Tout ce que vous devez savoir
             </h2>
-            <p style={{ color: '#cbd5e1', lineHeight: 1.6, marginBottom: 'var(--space-4)', fontSize: 'var(--text-base)' }}>
-              Derrière l'intelligence artificielle, vous bénéficiez de l'accompagnement direct de <strong>Laetitia Badji</strong> (Cabinet Maé / AKILIGUE SAS), juriste spécialisée depuis plus de 15 ans dans le secteur médico-social, l'animation et l'insertion.
-            </p>
-            <p style={{ color: '#cbd5e1', lineHeight: 1.6, marginBottom: 'var(--space-6)', fontSize: 'var(--text-base)' }}>
-              <em>« L’intelligence artificielle apporte la vitesse et la synthèse ; notre cabinet apporte la rigueur, l’analyse des cas délicats et la signature juridique qui rassure votre Conseil d’Administration. »</em>
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Clock size={20} style={{ color: 'var(--color-lime)' }} />
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>Délai garanti : 48h ouvrées</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Award size={20} style={{ color: 'var(--color-lime)' }} />
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>+15 ans d'expérience associative</span>
-              </div>
-            </div>
           </div>
 
-          {/* Real Portrait Photo of Laetitia Badji */}
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              width: 170,
-              height: 170,
-              borderRadius: '50%',
-              overflow: 'hidden',
-              border: '4px solid var(--color-lime)',
-              margin: '0 auto var(--space-4)',
-              boxShadow: 'var(--shadow-lime)'
-            }}>
-              <img
-                src="/images/laetitia-badji.jpg"
-                alt="Portrait professionnel de Laetitia Badji, juriste experte en droit associatif"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '22px' }}>
-              Laetitia Badji
-            </div>
-            <div style={{ color: 'var(--color-lime)', fontSize: 'var(--text-sm)', fontWeight: 700 }}>
-              Cabinet Maé &bull; AKILIGUE SAS
-            </div>
-            <div style={{ color: '#94a3b8', fontSize: 'var(--text-xs)', marginTop: 4 }}>
-              contact@cabinet-mae.fr &bull; Paris, France
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SEO & RICH SNIPPETS INSPECTION TOOL
-          ========================================================================= */}
-      <section style={{ maxWidth: 1100, margin: 'var(--space-8) auto', padding: '0 var(--space-6)' }}>
-        <div className="card" style={{ border: '1px solid var(--color-border)', backgroundColor: '#ffffff' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: 40,
-                height: 40,
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-blue-light)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--color-blue)'
-              }}>
-                <Code2 size={22} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 'var(--text-base)', color: 'var(--color-navy)', fontWeight: 700 }}>
-                  Gabarit SEO & Balisage JSON-LD Schema.org
-                </h3>
-                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-navy-muted)' }}>
-                  Indexation et données structurées prêtes pour Google et les moteurs de recherche.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowJsonLdModal(!showJsonLdModal)}
-              className="btn btn-sm btn-outline-blue"
-            >
-              <FileSearch size={14} />
-              <span>{showJsonLdModal ? 'Masquer le JSON-LD' : 'Inspecter le JSON-LD en direct'}</span>
-            </button>
-          </div>
-
-          {showJsonLdModal && (
-            <div style={{ marginTop: 'var(--space-4)', backgroundColor: 'var(--color-navy)', color: '#38bdf8', padding: '16px', borderRadius: 'var(--radius-md)', fontSize: '13px', overflowX: 'auto', fontFamily: 'monospace' }}>
-              <pre>{JSON.stringify(jsonLdData, null, 2)}</pre>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* =========================================================================
-          FAQ SECTION (PilotAsso Style)
-          ========================================================================= */}
-      <section id="faq" style={{ maxWidth: 900, margin: 'var(--space-16) auto', padding: '0 var(--space-6)' }}>
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
-          <span className="badge badge-blue" style={{ marginBottom: '8px' }}>
-            Questions fréquentes
-          </span>
-          <h2 style={{ fontSize: 'var(--text-3xl)', color: 'var(--color-navy)', marginBottom: '8px', fontWeight: 800 }}>
-            Tout ce que vous devez savoir sur AssoExpert IA
-          </h2>
-          <p style={{ color: 'var(--color-navy-muted)', fontSize: '15px' }}>
-            Des réponses claires pour vous guider avant d'équiper votre structure.
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-          {faqs.map((f, idx) => (
-            <div
-              key={idx}
-              className="card card-hover"
-              style={{
-                cursor: 'pointer',
-                padding: 'var(--space-4) var(--space-6)',
-                backgroundColor: '#ffffff'
-              }}
-              onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-                <span style={{ fontWeight: 700, fontSize: '16px', color: 'var(--color-navy)' }}>
-                  {f.q}
-                </span>
-                <ChevronRight
-                  size={18}
-                  style={{
-                    color: 'var(--color-blue)',
-                    transform: activeFaq === idx ? 'rotate(90deg)' : 'none',
-                    transition: 'transform var(--transition-fast)'
-                  }}
-                />
-              </div>
-              {activeFaq === idx && (
-                <div style={{
-                  marginTop: 'var(--space-3)',
-                  color: 'var(--color-navy-muted)',
-                  fontSize: '14px',
-                  lineHeight: 1.6,
-                  borderTop: '1px solid var(--color-border)',
-                  paddingTop: 'var(--space-3)'
-                }}>
-                  {f.a}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* =========================================================================
-          PILOTASSO-STYLE BOTTOM CTA BANNER
-          ========================================================================= */}
-      <section style={{
-        backgroundColor: '#f8fafc',
-        borderTop: '1px solid var(--color-border)',
-        padding: 'var(--space-16) var(--space-6)',
-        textAlign: 'center'
-      }}>
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <h2 style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '12px' }}>
-            30 minutes suffisent pour voir si AssoExpert IA répond à vos besoins
-          </h2>
-          <p style={{ fontSize: '16px', color: 'var(--color-navy-muted)', marginBottom: '28px' }}>
-            Une démonstration personnalisée, construite autour de vos conventions collectives et de vos priorités de gestion.
-          </p>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setIsDemoModalOpen(true)}
-              className="btn btn-primary"
-              style={{ height: 50, padding: '0 32px', borderRadius: 'var(--radius-pill)', fontWeight: 700 }}
-            >
-              <span>Réserver ma démo gratuite</span>
-              <ArrowRight size={18} />
-            </button>
-            <button
-              onClick={() => onStartOnboarding('pro')}
-              className="btn btn-secondary"
-              style={{ height: 50, padding: '0 24px', borderRadius: 'var(--radius-pill)', fontWeight: 600 }}
-            >
-              <span>S'abonner en ligne</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          PILOTASSO-STYLE FULL FOOTER
-          ========================================================================= */}
-      <footer style={{
-        backgroundColor: '#ffffff',
-        borderTop: '1px solid var(--color-border)',
-        padding: 'var(--space-16) var(--space-6) var(--space-8)'
-      }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
-            gap: 'var(--space-8)',
-            marginBottom: 'var(--space-12)'
-          }}>
-            {/* Brand column */}
-            <div style={{ gridColumn: 'span 1' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                <div style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '8px',
-                  background: 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff'
-                }}>
-                  <Compass size={18} />
-                </div>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '18px', color: 'var(--color-navy)' }}>
-                  AssoExpert<span style={{ color: 'var(--color-blue)' }}>.IA</span>
-                </span>
-              </div>
-              <p style={{ color: 'var(--color-navy-muted)', fontSize: '13px', lineHeight: 1.6, marginBottom: '16px' }}>
-                La plateforme de pilotage des associations. Construite avec des associations, pour les associations.
-              </p>
-              <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)' }}>
-                Éditée par <strong>Cabinet Maé / AKILIGUE SAS</strong>
-              </div>
-            </div>
-
-            {/* Produit & Solutions */}
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--color-navy)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Solutions
-              </div>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-                <li><a href="#centralisation" style={{ color: 'var(--color-navy-muted)' }}>Centralisation du pilotage</a></li>
-                <li><a href="#finances" style={{ color: 'var(--color-navy-muted)' }}>Pilotez vos finances</a></li>
-                <li><a href="#financements" style={{ color: 'var(--color-navy-muted)' }}>Trouvez et suivez vos financements</a></li>
-                <li><a href="#rh" style={{ color: 'var(--color-navy-muted)' }}>RH & Conventions collectives</a></li>
-                <li><a href="#gouvernance" style={{ color: 'var(--color-navy-muted)' }}>Gouvernance Loi 1901</a></li>
-                <li><a href="#simulateur" style={{ color: 'var(--color-blue)', fontWeight: 600 }}>Simulateur d'économies & ROI</a></li>
-              </ul>
-            </div>
-
-            {/* Ressources & Entreprise */}
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--color-navy)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Entreprise & Tarifs
-              </div>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-                <li><a href="#tarifs" style={{ color: 'var(--color-navy-muted)' }}>Tarifs & Abonnements</a></li>
-                <li><button onClick={() => setIsDemoModalOpen(true)} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--color-navy-muted)', cursor: 'pointer', fontSize: '13px', textAlign: 'left' }}>Demander une démo (30 min)</button></li>
-                <li><a href="#faq" style={{ color: 'var(--color-navy-muted)' }}>FAQ & Ressources</a></li>
-                <li><a href="#experte" style={{ color: 'var(--color-navy-muted)' }}>L'Experte Laetitia Badji</a></li>
-                <li><a href="mailto:contact@cabinet-mae.fr" style={{ color: 'var(--color-navy-muted)' }}>Contact</a></li>
-              </ul>
-            </div>
-
-            {/* Newsletter Subscription (PilotAsso Style) */}
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--color-navy)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Restez informé
-              </div>
-              <p style={{ color: 'var(--color-navy-muted)', fontSize: '13px', lineHeight: 1.5, marginBottom: '12px' }}>
-                Recevez l'actualité réglementaire et les évolutions d'AssoExpert IA avant tout le monde.
-              </p>
-
-              {newsletterSubscribed ? (
-                <div style={{ backgroundColor: '#ebf3fd', color: 'var(--color-blue)', padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: 600 }}>
-                  &check; Merci ! Vous êtes bien inscrit(e) à la veille associative.
-                </div>
-              ) : (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (newsletterEmail) setNewsletterSubscribed(true);
-                  }}
-                  style={{ display: 'flex', gap: '6px' }}
-                >
-                  <input
-                    type="email"
-                    required
-                    placeholder="Votre email pro"
-                    value={newsletterEmail}
-                    onChange={(e) => setNewsletterEmail(e.target.value)}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {faqs.map((f, idx) => (
+              <div
+                key={idx}
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: 14,
+                  border: '1px solid rgba(10, 37, 64, 0.08)',
+                  padding: '16px 20px',
+                  cursor: 'pointer',
+                  transition: 'box-shadow 0.2s ease'
+                }}
+                onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+                  <span style={{ fontWeight: 700, fontSize: 15, color: '#0A2540' }}>
+                    {f.q}
+                  </span>
+                  <ChevronDown
+                    size={18}
                     style={{
-                      flexGrow: 1,
-                      height: 38,
-                      padding: '0 12px',
-                      borderRadius: '8px',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '13px'
+                      color: '#004AAD',
+                      transform: activeFaq === idx ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.2s ease',
+                      flexShrink: 0
                     }}
                   />
-                  <button
-                    type="submit"
-                    className="btn btn-sm btn-primary"
-                    style={{ height: 38, padding: '0 12px' }}
-                  >
-                    <Send size={14} />
-                  </button>
-                </form>
-              )}
-            </div>
+                </div>
+                {activeFaq === idx && (
+                  <div style={{ marginTop: 12, fontSize: 14, color: 'rgba(10, 37, 64, 0.7)', lineHeight: 1.6, borderTop: '1px solid rgba(10, 37, 64, 0.08)', paddingTop: 12 }}>
+                    {f.a}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
+        </section>
 
-          {/* Bottom Legal & Copyright Bar */}
+        {/* =========================================================================
+            SECTION CTA BANNER FINAL
+            ========================================================================= */}
+        <section style={{
+          padding: 'clamp(50px, 7vw, 90px) 24px',
+          maxWidth: 960,
+          margin: '0 auto',
+          textAlign: 'center'
+        }}>
           <div style={{
-            borderTop: '1px solid var(--color-border)',
-            paddingTop: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px',
-            fontSize: '12px',
-            color: 'var(--color-navy-muted)'
+            backgroundColor: '#0A2540',
+            color: '#ffffff',
+            borderRadius: 24,
+            padding: 'clamp(32px, 6vw, 56px) 32px',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 30px 60px -15px rgba(10, 37, 64, 0.5)'
           }}>
-            <div>
-              &copy; 2026 AssoExpert IA &bull; Cabinet Maé / AKILIGUE SAS. Tous droits réservés.
-            </div>
+            <span style={{
+              display: 'inline-block',
+              backgroundColor: '#bef264',
+              color: '#0A2540',
+              fontWeight: 800,
+              fontSize: 11,
+              padding: '3px 12px',
+              borderRadius: 9999,
+              marginBottom: 16
+            }}>
+              30 MINUTES SANS ENGAGEMENT
+            </span>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <span>Hébergement souverain VPS France</span>
-              <span>100% RGPD</span>
-              <a href="#faq" style={{ color: 'var(--color-navy-muted)' }}>Mentions Légales</a>
-              <a href="#faq" style={{ color: 'var(--color-navy-muted)' }}>Confidentialité</a>
-              <a href="#faq" style={{ color: 'var(--color-navy-muted)' }}>CGU & CGV</a>
+            <h2 style={{
+              fontSize: 'clamp(26px, 3.8vw, 38px)',
+              fontWeight: 800,
+              color: '#ffffff',
+              lineHeight: 1.2,
+              marginBottom: 14
+            }}>
+              Sécurisez votre structure dès aujourd’hui
+            </h2>
+
+            <p style={{
+              fontSize: 16,
+              color: 'rgba(255, 255, 255, 0.8)',
+              maxWidth: 620,
+              margin: '0 auto 28px',
+              lineHeight: 1.6
+            }}>
+              Un tour personnalisé de 30 minutes, construit autour de vos priorités (CCN 66/51/ÉCLAT/ALISFA, budgets, bilans CER).
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setIsDemoModalOpen(true)}
+                className="pilot-glow-btn"
+                style={{ fontSize: 15, padding: '14px 32px' }}
+              >
+                <span>Réserver ma démo gratuite</span>
+                <ChevronRight size={16} />
+              </button>
+
+              <button
+                onClick={() => onStartOnboarding('pro')}
+                className="pilot-primary-btn"
+                style={{ fontSize: 15, padding: '14px 28px' }}
+              >
+                <span>S'abonner en ligne</span>
+              </button>
             </div>
           </div>
-        </div>
-      </footer>
+        </section>
+
+        {/* =========================================================================
+            FOOTER
+            ========================================================================= */}
+        <footer style={{
+          borderTop: '1px solid rgba(10, 37, 64, 0.08)',
+          backgroundColor: '#ffffff',
+          padding: '60px 24px 32px'
+        }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: 36,
+              marginBottom: 48
+            }}>
+              {/* Brand Column */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <div style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    background: 'linear-gradient(135deg, #004AAD 0%, #002868 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff'
+                  }}>
+                    <Scale size={16} />
+                  </div>
+                  <span style={{ fontWeight: 800, fontSize: 17, color: '#0A2540' }}>
+                    AssoExpert<span style={{ color: '#004AAD' }}>.IA</span>
+                  </span>
+                </div>
+                <p style={{ fontSize: 13, color: 'rgba(10, 37, 64, 0.6)', lineHeight: 1.6, marginBottom: 12 }}>
+                  L'assistance experte pour associations employeuses. Éditée en partenariat avec le Cabinet Maé / AKILIGUE SAS.
+                </p>
+                <div style={{ fontSize: 12, color: 'rgba(10, 37, 64, 0.55)' }}>
+                  Paris, France &bull; Hébergement souverain certifié
+                </div>
+              </div>
+
+              {/* Piliers */}
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#0A2540', marginBottom: 14 }}>
+                  Piliers d'expertise
+                </div>
+                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13 }}>
+                  <li><a href="#cockpit" style={{ color: 'rgba(10, 37, 64, 0.65)' }}>RH & Conventions collectives</a></li>
+                  <li><a href="#cockpit" style={{ color: 'rgba(10, 37, 64, 0.65)' }}>Finances & Suivi CER</a></li>
+                  <li><a href="#cockpit" style={{ color: 'rgba(10, 37, 64, 0.65)' }}>Financements & Subventions</a></li>
+                  <li><a href="#cockpit" style={{ color: 'rgba(10, 37, 64, 0.65)' }}>Gouvernance Loi 1901</a></li>
+                </ul>
+              </div>
+
+              {/* Entreprise & Démo */}
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#0A2540', marginBottom: 14 }}>
+                  Plateforme
+                </div>
+                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13 }}>
+                  <li><a href="#tarifs" style={{ color: 'rgba(10, 37, 64, 0.65)' }}>Tarifs sans engagement</a></li>
+                  <li><button onClick={() => setIsDemoModalOpen(true)} style={{ background: 'none', border: 'none', padding: 0, color: 'rgba(10, 37, 64, 0.65)', cursor: 'pointer', fontSize: 13, textAlign: 'left' }}>Demander une démo (30 min)</button></li>
+                  <li><a href="#faq" style={{ color: 'rgba(10, 37, 64, 0.65)' }}>Foire aux questions</a></li>
+                  <li><a href="#experte" style={{ color: 'rgba(10, 37, 64, 0.65)' }}>L'Experte Laetitia Badji</a></li>
+                  <li><a href="mailto:contact@cabinet-mae.fr" style={{ color: 'rgba(10, 37, 64, 0.65)' }}>Contact Cabinet Maé</a></li>
+                </ul>
+              </div>
+
+              {/* Newsletter */}
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#0A2540', marginBottom: 14 }}>
+                  Veille réglementaire
+                </div>
+                <p style={{ fontSize: 13, color: 'rgba(10, 37, 64, 0.6)', lineHeight: 1.5, marginBottom: 12 }}>
+                  Recevez l'actualité réglementaire et les évolutions conventionnelles avant tout le monde.
+                </p>
+                {newsletterSubscribed ? (
+                  <div style={{ backgroundColor: 'rgba(0, 74, 173, 0.08)', color: '#004AAD', padding: '10px', borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
+                    &check; Bien inscrit(e) à la veille associative !
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (newsletterEmail) setNewsletterSubscribed(true);
+                    }}
+                    style={{ display: 'flex', gap: 6 }}
+                  >
+                    <input
+                      type="email"
+                      required
+                      placeholder="direction@votre-asso.org"
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
+                      style={{
+                        flex: 1,
+                        height: 38,
+                        padding: '0 12px',
+                        borderRadius: 8,
+                        border: '1px solid rgba(10, 37, 64, 0.15)',
+                        fontSize: 13
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      className="pilot-primary-btn"
+                      style={{ height: 38, padding: '0 14px' }}
+                    >
+                      <Send size={14} />
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom Bar */}
+            <div style={{
+              borderTop: '1px solid rgba(10, 37, 64, 0.08)',
+              paddingTop: 24,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12,
+              fontSize: 12,
+              color: 'rgba(10, 37, 64, 0.55)'
+            }}>
+              <div>
+                &copy; 2026 AssoExpert IA &bull; Cabinet Maé / AKILIGUE SAS. Tous droits réservés.
+              </div>
+              <div style={{ display: 'flex', gap: 16 }}>
+                <span>Hébergé en France</span>
+                <span>100% RGPD</span>
+                <a href="#faq" style={{ color: 'rgba(10, 37, 64, 0.55)' }}>Mentions Légales</a>
+                <a href="#faq" style={{ color: 'rgba(10, 37, 64, 0.55)' }}>Confidentialité</a>
+              </div>
+            </div>
+          </div>
+        </footer>
+
+      </div>
 
       {/* =========================================================================
-          INTERACTIVE DEMO BOOKING MODAL (PilotAsso "Réserver ma démo de 30 min")
+          INTERACTIVE DEMO BOOKING MODAL
           ========================================================================= */}
       {isDemoModalOpen && (
         <div style={{
@@ -2413,26 +3220,24 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(10, 37, 64, 0.65)',
-          backdropFilter: 'blur(6px)',
+          backgroundColor: 'rgba(10, 10, 10, 0.75)',
+          backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 100,
-          padding: '16px'
+          padding: 16
         }}>
-          <div className="card animate-fade-in" style={{
-            maxWidth: 520,
+          <div style={{
+            maxWidth: 500,
             width: '100%',
-            maxHeight: '92vh',
-            overflowY: 'auto',
             backgroundColor: '#ffffff',
-            borderRadius: '24px',
+            color: '#0A2540',
+            borderRadius: 24,
             padding: '32px',
-            boxShadow: 'var(--shadow-float)',
+            boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4)',
             position: 'relative'
           }}>
-            {/* Close Button */}
             <button
               onClick={() => { setIsDemoModalOpen(false); setDemoSubmitted(false); }}
               style={{
@@ -2442,65 +3247,74 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: 'var(--color-navy-muted)'
+                color: 'rgba(10, 37, 64, 0.4)'
               }}
               aria-label="Fermer"
             >
-              <X size={22} />
+              <X size={20} />
             </button>
 
             {demoSubmitted ? (
-              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <div style={{
-                  width: 60,
-                  height: 60,
+                  width: 56,
+                  height: 56,
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(193, 255, 114, 0.4)',
-                  color: 'var(--color-lime-dark)',
+                  backgroundColor: 'rgba(190, 242, 100, 0.35)',
+                  color: '#1b5400',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   margin: '0 auto 16px'
                 }}>
-                  <CheckCircle2 size={36} />
+                  <CheckCircle2 size={32} />
                 </div>
-                <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '8px' }}>
-                  Votre demande de démo est enregistrée !
+                <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0A2540', marginBottom: 8 }}>
+                  Demande de démo enregistrée !
                 </h3>
-                <p style={{ fontSize: '14px', color: 'var(--color-navy-muted)', lineHeight: 1.6, marginBottom: '24px' }}>
-                  Un membre de l'équipe du Cabinet Maé vous contactera sous 24h ouvrées pour convenir du créneau de 30 minutes adapté à <strong>{demoForm.assoName}</strong>.
+                <p style={{ fontSize: 14, color: 'rgba(10, 37, 64, 0.7)', lineHeight: 1.55, marginBottom: 20 }}>
+                  L'équipe du Cabinet Maé vous contactera sous 24h ouvrées pour organiser la présentation de 30 minutes adaptée à <strong>{demoForm.assoName}</strong>.
                 </p>
                 <button
                   onClick={() => { setIsDemoModalOpen(false); setDemoSubmitted(false); }}
-                  className="btn btn-primary"
-                  style={{ borderRadius: 'var(--radius-pill)', width: '100%' }}
+                  className="pilot-primary-btn"
+                  style={{ width: '100%', justifyContent: 'center' }}
                 >
                   Fermer
                 </button>
               </div>
             ) : (
               <div>
-                <div style={{ marginBottom: '20px' }}>
-                  <span className="badge badge-lime" style={{ marginBottom: '6px' }}>
+                <div style={{ marginBottom: 18 }}>
+                  <span style={{
+                    backgroundColor: 'rgba(190, 242, 100, 0.3)',
+                    color: '#1b5400',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 9999,
+                    display: 'inline-block',
+                    marginBottom: 6
+                  }}>
                     30 minutes sans engagement
                   </span>
-                  <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--color-navy)', marginBottom: '6px' }}>
-                    Réserver une démo d’AssoExpert IA
+                  <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0A2540', marginBottom: 4 }}>
+                    Réserver une démo d'AssoExpert IA
                   </h3>
-                  <p style={{ fontSize: '13px', color: 'var(--color-navy-muted)' }}>
-                    Construite autour de vos priorités (conventions, budgets, subventions).
+                  <p style={{ fontSize: 13, color: 'rgba(10, 37, 64, 0.6)' }}>
+                    Construite selon vos priorités (conventions, budgets, subventions).
                   </p>
                 </div>
 
-                <form onSubmit={handleDemoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <form onSubmit={handleDemoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy)', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#0A2540', display: 'block', marginBottom: 4 }}>
                       Votre nom & fonction
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Ex : Céline Lambert (Directrice Générale)"
+                      placeholder="Céline Lambert (Directrice Générale)"
                       className="input"
                       value={demoForm.name}
                       onChange={(e) => setDemoForm({ ...demoForm, name: e.target.value })}
@@ -2508,7 +3322,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy)', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#0A2540', display: 'block', marginBottom: 4 }}>
                       Email professionnel
                     </label>
                     <input
@@ -2521,10 +3335,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     <div>
-                      <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy)', display: 'block', marginBottom: 4 }}>
-                        Nom de l'association
+                      <label style={{ fontSize: 12, fontWeight: 600, color: '#0A2540', display: 'block', marginBottom: 4 }}>
+                        Association
                       </label>
                       <input
                         type="text"
@@ -2536,8 +3350,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                     </div>
 
                     <div>
-                      <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy)', display: 'block', marginBottom: 4 }}>
-                        Taille de l'équipe
+                      <label style={{ fontSize: 12, fontWeight: 600, color: '#0A2540', display: 'block', marginBottom: 4 }}>
+                        Effectif
                       </label>
                       <select
                         className="select"
@@ -2548,52 +3362,39 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                         <option value="10-19 salariés">10 à 19 salariés</option>
                         <option value="20-49 salariés">20 à 49 salariés</option>
                         <option value="50+ salariés">50 à 100 salariés</option>
-                        <option value="Bénévoles uniquement">Bénévoles uniquement</option>
+                        <option value="Bénévoles uniquement">Bénévoles</option>
                       </select>
                     </div>
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy)', display: 'block', marginBottom: 4 }}>
-                      Convention collective principale
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#0A2540', display: 'block', marginBottom: 4 }}>
+                      Convention collective
                     </label>
                     <select
                       className="select"
                       value={demoForm.ccn}
                       onChange={(e) => setDemoForm({ ...demoForm, ccn: e.target.value })}
                     >
-                      <option value="CCN 66 (Médico-social)">CCN 66 (Établissements pour personnes inadaptées)</option>
-                      <option value="CCN 51 (FEHAP)">CCN 51 (FEHAP - Santé & médico-social)</option>
-                      <option value="ÉCLAT (Animation)">ÉCLAT (Animation socio-culturelle)</option>
+                      <option value="CCN 66 (Médico-social)">CCN 66 (Médico-social)</option>
+                      <option value="CCN 51 (FEHAP)">CCN 51 (FEHAP)</option>
+                      <option value="ÉCLAT (Animation)">ÉCLAT (Animation)</option>
                       <option value="ALISFA (Centres sociaux)">ALISFA (Lien social & familial)</option>
-                      <option value="Autre / Sans CCN">Autre convention collective</option>
+                      <option value="Autre">Autre convention</option>
                     </select>
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-navy)', display: 'block', marginBottom: 4 }}>
-                      Vos priorités actuelles (optionnel)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ex : Congés d'ancienneté, contrôle CER, refonte statuts"
-                      className="input"
-                      value={demoForm.message}
-                      onChange={(e) => setDemoForm({ ...demoForm, message: e.target.value })}
-                    />
                   </div>
 
                   <button
                     type="submit"
-                    className="btn btn-primary"
-                    style={{ height: 48, borderRadius: 'var(--radius-pill)', fontWeight: 700, marginTop: 8 }}
+                    className="pilot-primary-btn"
+                    style={{ width: '100%', justifyContent: 'center', marginTop: 6 }}
                   >
                     <span>Confirmer ma demande de démo</span>
-                    <ArrowRight size={16} />
+                    <ArrowRight size={15} />
                   </button>
 
-                  <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', textAlign: 'center' }}>
-                    Pas de paiement requis &bull; Confidentialité garantie &bull; Sans engagement
+                  <div style={{ fontSize: 11, color: 'rgba(10, 37, 64, 0.5)', textAlign: 'center' }}>
+                    Gratuit &bull; Sans engagement &bull; Données confidentielles
                   </div>
                 </form>
               </div>
