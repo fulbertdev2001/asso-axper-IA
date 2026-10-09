@@ -1982,6 +1982,176 @@ img, svg, video, canvas, audio, iframe, embed, object {
   box-shadow: 0 20px 45px -10px rgba(10, 37, 64, 0.5), 0 0 25px rgba(190, 242, 100, 0.2);
 }
 
+/* ==========================================================================
+   HERO BACKDROP ANIMATION & VISUAL MOTIFS BEHIND TYPOGRAPHY
+   ========================================================================== */
+@keyframes heroSpotlightBreath {
+  0%, 100% {
+    opacity: 0.55;
+    transform: translate(-50%, -10%) scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translate(-50%, -8%) scale(1.12);
+  }
+}
+
+@keyframes heroGridPulse {
+  0%, 100% {
+    opacity: 0.22;
+    transform: perspective(600px) rotateX(25deg) translateY(0);
+  }
+  50% {
+    opacity: 0.38;
+    transform: perspective(600px) rotateX(25deg) translateY(-12px);
+  }
+}
+
+@keyframes heroWaveFloat {
+  0% {
+    transform: translateX(0) scaleY(1);
+  }
+  50% {
+    transform: translateX(-25px) scaleY(1.08);
+  }
+  100% {
+    transform: translateX(0) scaleY(1);
+  }
+}
+
+@keyframes heroBadgeFloat1 {
+  0%, 100% { transform: translateY(0px) rotate(-1.5deg); }
+  50% { transform: translateY(-14px) rotate(0.5deg); }
+}
+
+@keyframes heroBadgeFloat2 {
+  0%, 100% { transform: translateY(0px) rotate(2deg); }
+  50% { transform: translateY(-16px) rotate(-1deg); }
+}
+
+@keyframes heroBadgeFloat3 {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
+}
+
+@keyframes heroBadgeFloat4 {
+  0%, 100% { transform: translateY(0px) rotate(1.5deg); }
+  50% { transform: translateY(-15px) rotate(-2deg); }
+}
+
+@keyframes heroParticleTwinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8) translateY(0); }
+  50% { opacity: 0.85; transform: scale(1.3) translateY(-10px); }
+}
+
+.hero-backdrop-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.hero-spotlight-core {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  width: 900px;
+  max-width: 95vw;
+  height: 480px;
+  background: radial-gradient(ellipse at center, rgba(0, 95, 230, 0.42) 0%, rgba(190, 242, 100, 0.16) 45%, transparent 72%);
+  filter: blur(80px);
+  animation: heroSpotlightBreath 7s ease-in-out infinite;
+}
+
+.hero-cyber-grid {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1400px;
+  height: 600px;
+  transform: translateX(-50%);
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(ellipse 65% 55% at 50% 35%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 65% 55% at 50% 35%, black 20%, transparent 80%);
+  opacity: 0.35;
+  animation: heroGridPulse 9s ease-in-out infinite;
+}
+
+.hero-waves-svg {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1400px;
+  height: 520px;
+  opacity: 0.42;
+  animation: heroWaveFloat 12s ease-in-out infinite;
+}
+
+.hero-float-badge {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: rgba(10, 30, 60, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: default;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 5;
+}
+
+.hero-float-badge:hover {
+  transform: scale(1.08) translateY(-4px) !important;
+  border-color: rgba(190, 242, 100, 0.6);
+  background: rgba(15, 45, 85, 0.85);
+  box-shadow: 0 16px 36px -6px rgba(0, 74, 173, 0.4), 0 0 20px rgba(190, 242, 100, 0.25);
+}
+
+.hero-float-badge.pos-top-left {
+  top: 14%;
+  left: 2%;
+  animation: heroBadgeFloat1 6.5s ease-in-out infinite;
+}
+
+.hero-float-badge.pos-top-right {
+  top: 13%;
+  right: 2%;
+  animation: heroBadgeFloat2 7.2s ease-in-out infinite;
+}
+
+.hero-float-badge.pos-mid-left {
+  top: 48%;
+  left: 1%;
+  animation: heroBadgeFloat3 8s ease-in-out infinite;
+}
+
+.hero-float-badge.pos-mid-right {
+  top: 49%;
+  right: 1%;
+  animation: heroBadgeFloat4 7.5s ease-in-out infinite;
+}
+
+@media (max-width: 1180px) {
+  .hero-float-badge {
+    display: none;
+  }
+}
+
+
 
 
 

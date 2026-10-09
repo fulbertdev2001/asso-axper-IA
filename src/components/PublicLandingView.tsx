@@ -594,36 +594,94 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         overflow: 'hidden',
         background: '#070f1e'
       }}>
-        {/* Soft Ambient Aurora Glows */}
-        <div
-          className="animate-aurora-1"
-          style={{
-            position: 'absolute',
-            top: '-5%',
-            left: '20%',
-            width: 580,
-            height: 580,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0, 74, 173, 0.3) 0%, rgba(0, 74, 173, 0) 70%)',
-            pointerEvents: 'none',
-            filter: 'blur(75px)'
-          }}
-        />
+        {/* =========================================================================
+            DYNAMIC ANIMATED HERO BACKDROP (Waves, Grid, Spotlight & Floating Badges)
+            ========================================================================= */}
+        <div className="hero-backdrop-container">
+          {/* Central Radiant Spotlight Core */}
+          <div className="hero-spotlight-core" />
 
-        <div
-          className="animate-aurora-2"
-          style={{
-            position: 'absolute',
-            top: '25%',
-            right: '15%',
-            width: 520,
-            height: 520,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(190, 242, 100, 0.14) 0%, rgba(190, 242, 100, 0) 70%)',
-            pointerEvents: 'none',
-            filter: 'blur(70px)'
-          }}
-        />
+          {/* Perspective Cyber Grid */}
+          <div className="hero-cyber-grid" />
+
+          {/* Flowing SVG Neural / Legal Wave Curves */}
+          <svg className="hero-waves-svg" viewBox="0 0 1400 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#004AAD" stopOpacity="0.1" />
+                <stop offset="35%" stopColor="#0066FF" stopOpacity="0.75" />
+                <stop offset="70%" stopColor="#bef264" stopOpacity="0.65" />
+                <stop offset="100%" stopColor="#004AAD" stopOpacity="0.1" />
+              </linearGradient>
+              <linearGradient id="waveGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#00d2ff" stopOpacity="0.05" />
+                <stop offset="50%" stopColor="#0052cc" stopOpacity="0.6" />
+                <stop offset="85%" stopColor="#a3e635" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#00d2ff" stopOpacity="0.05" />
+              </linearGradient>
+              <filter id="waveGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            {/* Glowing flowing sine curves behind the text */}
+            <path
+              d="M-50 220 C 250 80, 500 360, 800 200 C 1100 40, 1250 300, 1450 180"
+              stroke="url(#waveGrad1)"
+              strokeWidth="2.5"
+              fill="none"
+              filter="url(#waveGlow)"
+            />
+            <path
+              d="M-50 280 C 220 380, 550 140, 850 320 C 1120 440, 1300 200, 1450 310"
+              stroke="url(#waveGrad2)"
+              strokeWidth="2"
+              fill="none"
+              strokeDasharray="6 8"
+            />
+            <path
+              d="M-50 160 C 320 290, 620 90, 920 240 C 1180 360, 1320 150, 1450 220"
+              stroke="rgba(190, 242, 100, 0.35)"
+              strokeWidth="1.5"
+              fill="none"
+            />
+          </svg>
+
+          {/* Glowing Constellation / Data Sparkles */}
+          <div style={{ position: 'absolute', top: '18%', left: '22%', width: 6, height: 6, borderRadius: '50%', backgroundColor: '#bef264', boxShadow: '0 0 12px #bef264', animation: 'heroParticleTwinkle 4s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: '38%', left: '16%', width: 5, height: 5, borderRadius: '50%', backgroundColor: '#38bdf8', boxShadow: '0 0 10px #38bdf8', animation: 'heroParticleTwinkle 5s ease-in-out infinite 1.2s' }} />
+          <div style={{ position: 'absolute', top: '22%', right: '20%', width: 6, height: 6, borderRadius: '50%', backgroundColor: '#bef264', boxShadow: '0 0 12px #bef264', animation: 'heroParticleTwinkle 4.5s ease-in-out infinite 0.7s' }} />
+          <div style={{ position: 'absolute', top: '42%', right: '14%', width: 5, height: 5, borderRadius: '50%', backgroundColor: '#60a5fa', boxShadow: '0 0 10px #60a5fa', animation: 'heroParticleTwinkle 5.5s ease-in-out infinite 2s' }} />
+
+          {/* Floating Glass Badges Framing the Headlines */}
+          <div className="hero-float-badge pos-top-left">
+            <Scale size={15} style={{ color: '#bef264' }} />
+            <span>Loi 1901 & Statuts</span>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: 'rgba(190, 242, 100, 0.2)', color: '#bef264' }}>100% Conforme</span>
+          </div>
+
+          <div className="hero-float-badge pos-top-right">
+            <ShieldCheck size={15} style={{ color: '#38bdf8' }} />
+            <span>CCN 66 • 51 • ÉCLAT</span>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8' }}>Sécurisé</span>
+          </div>
+
+          <div className="hero-float-badge pos-mid-left">
+            <Zap size={15} style={{ color: '#bef264' }} />
+            <span>Arbitrage IA immédiat</span>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: 'rgba(190, 242, 100, 0.2)', color: '#bef264' }}>&lt; 0.8s</span>
+          </div>
+
+          <div className="hero-float-badge pos-mid-right">
+            <FileCheck2 size={15} style={{ color: '#a78bfa' }} />
+            <span>Avis Cabinet Maé</span>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: 'rgba(167, 139, 250, 0.2)', color: '#c4b5fd' }}>Opposable 48h</span>
+          </div>
+        </div>
 
         <div style={{ maxWidth: 1280, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 10 }}>
           
