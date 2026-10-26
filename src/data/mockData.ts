@@ -122,7 +122,7 @@ export const INITIAL_PLANS: Plan[] = [
   {
     code: 'initiale',
     label: 'Initiale',
-    priceMonthly: 29,
+    priceMonthly: 19,
     description: 'Pour les petites associations souhaitant sécuriser leur gestion quotidienne.',
     highlighted: false,
     features: {
@@ -139,7 +139,7 @@ export const INITIAL_PLANS: Plan[] = [
   {
     code: 'pro',
     label: 'Pro (Conseillée)',
-    priceMonthly: 67,
+    priceMonthly: 59,
     description: 'La solution complète pour associations employeuses de 5 à 40 salariés.',
     highlighted: true,
     features: {
@@ -156,7 +156,7 @@ export const INITIAL_PLANS: Plan[] = [
   {
     code: 'expert',
     label: 'Expert',
-    priceMonthly: 127,
+    priceMonthly: 99,
     description: 'Pour les structures complexes ou multi-établissements avec soutien juridique prioritaire.',
     highlighted: false,
     features: {

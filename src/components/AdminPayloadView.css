@@ -1,0 +1,52 @@
+/* Espace experte : compléments au kit .ax- (app.css) */
+
+.apv-ticket-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.apv-ticket-org { font-size: 13px; color: var(--ax-muted); min-width: 0; }
+.apv-ticket-object { font-weight: 600; font-size: 14px; line-height: 1.4; margin-bottom: 6px; }
+.apv-ticket-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; color: var(--ax-faint); }
+.apv-urgent { display: inline-flex; align-items: center; gap: 4px; color: var(--color-orange-dark); font-weight: 600; }
+
+.apv-doc-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--ax-muted); }
+.apv-doc-title { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; margin-top: 6px; }
+.apv-question {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-left: 3px solid var(--ax-line-strong);
+  background: #FBFCFD;
+  border-radius: 0 10px 10px 0;
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.apv-reply { min-height: 280px; }
+.apv-notes { min-height: 72px; background: #FBFCFD; font-size: 14px; }
+
+.apv-plan-price { font-size: 13px; color: var(--ax-muted); }
+.apv-input-suffix { position: relative; }
+.apv-input-suffix .ax-input { padding-right: 56px; }
+.apv-input-suffix > span {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--ax-faint);
+  pointer-events: none;
+}
+
+.apv-slug { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.apv-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+
+@media (max-width: 720px) {
+  .apv-doc-title { font-size: 18px; }
+  .apv-reply { min-height: 220px; }
+  .apv-actions { flex-direction: column-reverse; }
+  .apv-actions .ax-btn { width: 100%; }
+  .apv-templates { width: 100%; }
+}
+
+@media (max-width: 960px) {
+  .apv-toast { bottom: calc(88px + env(safe-area-inset-bottom)); max-width: calc(100vw - 32px); }
+}

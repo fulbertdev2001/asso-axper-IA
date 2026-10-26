@@ -1,25 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { m } from 'motion/react';
 import { Domain, Organization, Plan, ChatMessage } from '../types';
 import { generateAiResponse, getDomainLabel } from '../services/aiSimulator';
-import { 
-  Users, 
-  Scale, 
-  FileText, 
-  ShieldCheck, 
-  Send, 
-  Sparkles, 
-  Lock, 
-  Trash2, 
-  ArrowUpRight, 
-  AlertTriangle, 
-  Info, 
-  UserCheck, 
-  RefreshCw,
-  Cpu,
-  CornerDownLeft,
+import {
+  Users,
+  Scale,
+  FileText,
+  ShieldCheck,
+  Send,
+  Sparkles,
+  Lock,
+  Trash2,
+  ArrowUpRight,
+  AlertTriangle,
+  UserCheck,
   Copy,
-  Check
+  Check,
+  LucideIcon
 } from 'lucide-react';
+import './AiChatView.css';
+
+const EASE_OUT = [0.22, 1, 0.36, 1] as const;
+
+// Découpe l'analyse en blocs « titre + contenu » : un paragraphe dont la première ligne est
+// courte et sans ponctuation finale (« Explication », « Actions recommandées »…) devient un titre.
+const splitAnalysis = (text: string) =>
+  text.split(/\n\s*\n/).map(par => {
+    const [first, ...rest] = par.split('\n');
+    const isTitle = rest.length > 0 && first.length <= 40 && !/[.:;!?)]$/.test(first.trim());
+    return isTitle ? { title: first.trim(), body: rest.join('\n') } : { title: '', body: par };
+  });
+
+const DOMAIN_TABS: { key: Domain; label: string; icon: LucideIcon }[] = [
+  { key: 'rh', label: 'RH et conventions', icon: Users },
+  { key: 'gouvernance', label: 'Gouvernance', icon: Scale },
+  { key: 'finance', label: 'Finance', icon: FileText },
+  { key: 'conformite', label: 'Conformité', icon: ShieldCheck }
+];
 
 interface AiChatViewProps {
   currentOrg: Organization;
@@ -144,457 +161,254 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
     }
   };
 
+  const orgShortName = currentOrg.name.split('(')[0].trim();
+  const ccnShort = currentOrg.ccn.split('(')[0].trim();
+  const domainUnlocked = isCurrentDomainUnlocked(selectedDomain);
+
   return (
-    <div className="chat-layout-grid" style={{
-      maxWidth: 1400,
-      margin: '0 auto',
-      minHeight: 'calc(100vh - 140px)'
-    }}>
-      {/* Sidebar Briques Thématiques */}
-      <aside style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-        <div className="card" style={{ padding: 'var(--space-4)' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 'var(--space-3)',
-            paddingBottom: 'var(--space-2)',
-            borderBottom: '1px solid var(--color-border)'
-          }}>
-            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 800, textTransform: 'uppercase', color: 'var(--color-navy-muted)', letterSpacing: '0.05em' }}>
-              Briques d'expertise
-            </span>
-            <span className="badge badge-blue" style={{ fontSize: '10px', padding: '1px 6px' }}>
-              {currentPlan.label.split(' ')[0]}
-            </span>
-          </div>
-
-          <div className="chat-sidebar-briques">
-            {/* Brique RH */}
-            <button
-              onClick={() => setSelectedDomain('rh')}
-              className="chat-brique-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 14px',
-                borderRadius: 'var(--radius-md)',
-                background: selectedDomain === 'rh' ? 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)' : 'transparent',
-                color: selectedDomain === 'rh' ? '#ffffff' : 'var(--color-navy)',
-                boxShadow: selectedDomain === 'rh' ? '0 4px 12px rgba(0, 74, 173, 0.25)' : 'none',
-                textAlign: 'left',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Users size={18} />
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>RH & Conventions</span>
-              </div>
-              <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px', marginLeft: 8 }}>Active</span>
-            </button>
-
-            {/* Brique Gouvernance */}
-            <button
-              onClick={() => setSelectedDomain('gouvernance')}
-              className="chat-brique-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 14px',
-                borderRadius: 'var(--radius-md)',
-                background: selectedDomain === 'gouvernance' ? 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)' : 'transparent',
-                color: selectedDomain === 'gouvernance' ? '#ffffff' : 'var(--color-navy)',
-                boxShadow: selectedDomain === 'gouvernance' ? '0 4px 12px rgba(0, 74, 173, 0.25)' : 'none',
-                textAlign: 'left',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Scale size={18} />
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>Gouvernance 1901</span>
-              </div>
-              <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px', marginLeft: 8 }}>Active</span>
-            </button>
-
-            {/* Brique Finance */}
-            <button
-              onClick={() => setSelectedDomain('finance')}
-              className="chat-brique-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 14px',
-                borderRadius: 'var(--radius-md)',
-                background: selectedDomain === 'finance' ? 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)' : 'transparent',
-                color: selectedDomain === 'finance' ? '#ffffff' : 'var(--color-navy)',
-                boxShadow: selectedDomain === 'finance' ? '0 4px 12px rgba(0, 74, 173, 0.25)' : 'none',
-                textAlign: 'left',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <FileText size={18} />
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>Finance & Subventions</span>
-              </div>
-              {currentPlan.features.briqueFinance ? (
-                <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px', marginLeft: 8 }}>Active</span>
-              ) : (
-                <Lock size={14} style={{ color: 'var(--color-orange)', marginLeft: 8 }} />
-              )}
-            </button>
-
-            {/* Brique Conformité */}
-            <button
-              onClick={() => setSelectedDomain('conformite')}
-              className="chat-brique-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 14px',
-                borderRadius: 'var(--radius-md)',
-                background: selectedDomain === 'conformite' ? 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)' : 'transparent',
-                color: selectedDomain === 'conformite' ? '#ffffff' : 'var(--color-navy)',
-                boxShadow: selectedDomain === 'conformite' ? '0 4px 12px rgba(0, 74, 173, 0.25)' : 'none',
-                textAlign: 'left',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <ShieldCheck size={18} />
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>Conformité DUERP</span>
-              </div>
-              {currentPlan.features.briqueConformite ? (
-                <span className="badge badge-lime" style={{ fontSize: '10px', padding: '1px 6px', marginLeft: 8 }}>Active</span>
-              ) : (
-                <Lock size={14} style={{ color: 'var(--color-orange)', marginLeft: 8 }} />
-              )}
-            </button>
-          </div>
+    <div className="aic">
+      {/* En-tête de page */}
+      <div className="ax-page-head aic-head">
+        <div>
+          <h1 className="ax-page-title">Assistant</h1>
+          <p className="ax-page-sub">
+            Posez vos questions : les réponses tiennent compte de votre convention ({ccnShort}) et de votre profil.
+          </p>
         </div>
-
-        {/* Association Context Box (Desktop / Tablet only) */}
-        <div className="card hide-on-mobile" style={{ padding: 'var(--space-4)', fontSize: 'var(--text-xs)', lineHeight: 1.55 }}>
-          <div style={{ fontWeight: 800, color: 'var(--color-navy)', marginBottom: 'var(--space-2)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Cpu size={14} style={{ color: 'var(--color-blue)' }} />
-            <span>Profil injecté dans le prompt :</span>
-          </div>
-          <div style={{ color: 'var(--color-navy-muted)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div><strong>Structure :</strong> {currentOrg.name.split('(')[0]}</div>
-            <div><strong>Convention :</strong> {currentOrg.ccn.split('(')[0]}</div>
-            <div><strong>Effectif :</strong> {currentOrg.employeesCount} salariés</div>
-            <div><strong>Budget :</strong> {currentOrg.annualBudget.toLocaleString('fr-FR')} €</div>
-          </div>
-          <div style={{ marginTop: 'var(--space-3)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-2)', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-blue)', fontWeight: 600 }}>
-            <span>Moteur : {currentPlan.features.aiModel}</span>
-          </div>
-        </div>
-
-        {/* History actions */}
         {messages.length > 0 && (
-          <button
-            onClick={handleClearHistory}
-            className="btn btn-sm btn-secondary hide-on-mobile"
-            style={{ width: '100%', color: 'var(--color-red)' }}
-          >
-            <Trash2 size={14} />
-            <span>Effacer la conversation</span>
-          </button>
+          <div className="ax-page-actions">
+            <button onClick={handleClearHistory} className="ax-btn ax-btn-ghost ax-btn-sm">
+              <Trash2 size={15} />
+              <span>Effacer la conversation</span>
+            </button>
+          </div>
         )}
-      </aside>
+      </div>
 
-      {/* Main Chat Interface */}
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        {/* Chat Header Bar */}
-        <div className="card" style={{
-          marginBottom: 'var(--space-4)',
-          padding: '14px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: 38,
-              height: 38,
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'var(--color-blue-light)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--color-blue)'
-            }}>
-              <Sparkles size={20} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 800, color: 'var(--color-navy)', fontSize: 'var(--text-base)' }}>
-                Brique : {getDomainLabel(selectedDomain)}
-              </div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-navy-muted)' }}>
-                {isCurrentDomainUnlocked(selectedDomain) ? (
-                  <span>Contextualisé à la convention {currentOrg.ccn.split('(')[0]} &bull; {currentPlan.features.aiModel}</span>
-                ) : (
-                  <span style={{ color: 'var(--color-orange-dark)', fontWeight: 600 }}>
-                    Brique réservée &bull; Réponse socle active
-                  </span>
-                )}
-              </div>
+      <section className="ax-card ax-chat aic-chat" aria-label="Conversation avec l'assistant">
+        {/* Choix du domaine */}
+        <div className="aic-chat-head">
+          <div className="aic-domains">
+            <div className="ax-segmented" role="tablist" aria-label="Domaine de la question">
+              {DOMAIN_TABS.map(tab => {
+                const Icon = tab.icon;
+                const isActive = selectedDomain === tab.key;
+                const unlocked = isCurrentDomainUnlocked(tab.key);
+                return (
+                  <button
+                    key={tab.key}
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setSelectedDomain(tab.key)}
+                    className={`ax-seg-btn${isActive ? ' is-active' : ''}`}
+                    title={unlocked ? tab.label : `${tab.label} (non inclus dans votre formule)`}
+                  >
+                    <Icon size={15} />
+                    <span>{tab.label}</span>
+                    {!unlocked && <Lock size={12} className="aic-lock" aria-label="Non inclus" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
-
-          {!isCurrentDomainUnlocked(selectedDomain) && (
-            <button onClick={onUpgradePlan} className="btn btn-sm btn-primary">
-              <Sparkles size={14} />
-              <span>Débloquer avec la formule Pro</span>
-            </button>
-          )}
+          <span className="ax-badge ax-hide-sm">{currentPlan.label.split(' ')[0]}</span>
         </div>
 
-        {/* Messages Scroll Area */}
-        <div className="card" style={{
-          flexGrow: 1,
-          overflowY: 'auto',
-          minHeight: '340px',
-          height: 'calc(100vh - 300px)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-6)',
-          padding: 'var(--space-4)',
-          backgroundColor: '#ffffff'
-        }}>
+        {/* Domaine non inclus dans la formule */}
+        {!domainUnlocked && (
+          <div className="aic-notice">
+            <span className="aic-notice-text">
+              <Lock size={14} />
+              <span>Le domaine « {getDomainLabel(selectedDomain)} » n'est pas inclus dans votre formule : l'assistant ne pourra pas analyser votre situation.</span>
+            </span>
+            <button onClick={onUpgradePlan} className="ax-btn ax-btn-secondary ax-btn-sm">
+              Voir les formules
+            </button>
+          </div>
+        )}
+
+        {/* Conversation */}
+        <div className="ax-chat-scroll" aria-live="polite">
           {messages.length === 0 && !isTyping && (
-            <div style={{ margin: 'auto', textAlign: 'center', maxWidth: 640, padding: 'var(--space-6)' }}>
-              <div style={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(0, 74, 173, 0.15) 0%, rgba(193, 255, 114, 0.3) 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto var(--space-4)',
-                color: 'var(--color-blue)',
-                boxShadow: 'var(--shadow-card)'
-              }}>
-                <Sparkles size={32} />
-              </div>
-              <h3 style={{ fontSize: 'var(--text-2xl)', marginBottom: 'var(--space-2)' }}>
-                Que souhaitez-vous vérifier pour votre association ?
-              </h3>
-              <p style={{ color: 'var(--color-navy-muted)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-6)', lineHeight: 1.5 }}>
-                Posez votre question réglementaire ou sociale. L'assistant appliquera les règles de votre convention ({currentOrg.ccn.split('(')[0]}) et vos déclarations d'effectif.
+            <m.div
+              className="aic-empty"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: EASE_OUT }}
+            >
+              <div className="aic-empty-icon"><Sparkles size={22} /></div>
+              <h2 className="aic-empty-title">Que souhaitez-vous vérifier ?</h2>
+              <p className="aic-empty-sub">
+                Décrivez votre situation avec vos mots. Si possible, précisez le poste, les dates ou le financeur concerné : ces éléments peuvent changer la réponse.
               </p>
 
-              {/* Suggestions */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
-                <span style={{ fontSize: 'var(--text-xs)', fontWeight: 800, color: 'var(--color-navy-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Questions fréquentes recommandées :
-                </span>
+              <div className="aic-suggest-label">Pour commencer</div>
+              <div className="aic-suggest">
                 {suggestedPrompts[selectedDomain].map((p, idx) => (
-                  <button
-                    key={idx}
+                  <m.button
+                    key={selectedDomain + idx}
                     onClick={() => handleSendMessage(p)}
-                    className="card card-hover"
-                    style={{
-                      padding: '12px 16px',
-                      fontSize: '13px',
-                      color: 'var(--color-navy)',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      backgroundColor: 'var(--color-surface-hover)'
-                    }}
+                    className="ax-chip"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: 0.05 + idx * 0.05, ease: EASE_OUT }}
                   >
-                    <span style={{ fontWeight: 500 }}>{p}</span>
-                    <ArrowUpRight size={16} style={{ color: 'var(--color-blue)', minWidth: 16 }} />
-                  </button>
+                    <span>{p}</span>
+                    <ArrowUpRight size={14} />
+                  </m.button>
                 ))}
               </div>
-            </div>
+
+              <div className="aic-context" aria-label="Profil pris en compte">
+                <span className="ax-source">{orgShortName}</span>
+                <span className="ax-source">{ccnShort}</span>
+                <span className="ax-source">{currentOrg.employeesCount} salariés</span>
+                <span className="ax-source">{currentOrg.annualBudget.toLocaleString('fr-FR')} € de budget</span>
+              </div>
+            </m.div>
           )}
 
-          {/* Rendered Messages */}
-          {messages.map((m) => (
-            <div key={m.id} className="animate-fade-in">
-              {m.role === 'user' ? (
-                <div className="chat-bubble-user">
-                  <div style={{ fontSize: 'var(--text-base)', lineHeight: 1.55 }}>{m.content}</div>
-                  <div style={{ fontSize: '11px', color: '#cbd5e1', textAlign: 'right', marginTop: '6px' }}>
-                    {m.createdAt}
-                  </div>
-                </div>
+          {messages.map((m_) => (
+            <m.div
+              key={m_.id}
+              className={m_.role === 'user' ? 'aic-msg-user-wrap' : 'aic-msg-ai-wrap'}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, ease: EASE_OUT }}
+            >
+              {m_.role === 'user' ? (
+                <>
+                  <div className="ax-msg-user">{m_.content}</div>
+                  <div className="ax-msg-meta">{m_.createdAt}</div>
+                </>
               ) : (
-                <div className="chat-bubble-ai">
-                  {/* Assistant response header */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span className="badge badge-lime" style={{ fontSize: '10px' }}>
-                        Assistant AssoExpert
-                      </span>
-                      <span style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 500 }}>
-                        {m.modelUsed}
-                      </span>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--color-navy-muted)' }}>
-                        {m.createdAt} &bull; {m.tokensCount} tokens
-                      </span>
-                      <button
-                        onClick={() => handleCopyText(m.id, `${m.structuredAnswer?.shortSummary}\n\n${m.structuredAnswer?.detailedAnalysis}`)}
-                        style={{ background: 'none', color: 'var(--color-navy-muted)', padding: '2px 4px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}
-                        title="Copier la réponse"
-                      >
-                        {copiedId === m.id ? <Check size={13} style={{ color: 'var(--color-lime-dark)' }} /> : <Copy size={13} />}
-                      </button>
-                    </div>
+                <article className="ax-msg-ai">
+                  <div className="aic-ai-head">
+                    <span className="aic-ai-name">
+                      <span className="aic-ai-mark"><Sparkles size={13} /></span>
+                      Assistant
+                    </span>
+                    <button
+                      onClick={() => handleCopyText(m_.id, `${m_.structuredAnswer?.shortSummary}\n\n${m_.structuredAnswer?.detailedAnalysis}`)}
+                      className="ax-btn ax-btn-ghost ax-btn-icon aic-copy"
+                      title="Copier la réponse"
+                      aria-label={copiedId === m_.id ? 'Réponse copiée' : 'Copier la réponse'}
+                    >
+                      {copiedId === m_.id ? <Check size={14} style={{ color: 'var(--color-lime-dark)' }} /> : <Copy size={14} />}
+                    </button>
                   </div>
 
-                  {/* 1. Synthèse directe */}
-                  <div style={{
-                    fontSize: 'var(--text-base)',
-                    fontWeight: 600,
-                    color: 'var(--color-navy)',
-                    backgroundColor: 'var(--color-surface-subtle)',
-                    padding: '14px 18px',
-                    borderRadius: 'var(--radius-md)',
-                    marginBottom: 'var(--space-4)',
-                    borderLeft: '4px solid var(--color-blue)',
-                    lineHeight: 1.5
-                  }}>
-                    {m.structuredAnswer?.shortSummary}
-                  </div>
+                  {/* Réponse directe */}
+                  <div className="aic-section-title">Réponse directe</div>
+                  <p className="aic-summary">{m_.structuredAnswer?.shortSummary}</p>
 
-                  {/* 2. Analyse détaillée */}
-                  <div style={{
-                    fontSize: 'var(--text-base)',
-                    lineHeight: 1.65,
-                    color: 'var(--color-navy)',
-                    whiteSpace: 'pre-line',
-                    marginBottom: 'var(--space-4)'
-                  }}>
-                    {m.structuredAnswer?.detailedAnalysis}
-                  </div>
-
-                  {/* 3. Références légales & conventionnelles (exigence stricte CDC) */}
-                  {m.structuredAnswer?.references && m.structuredAnswer.references.length > 0 && (
-                    <div style={{ marginTop: 'var(--space-4)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-3)' }}>
-                      <div className="ai-section-title">
-                        <Info size={16} style={{ color: 'var(--color-blue)' }} />
-                        <span>Références légales & conventionnelles citées</span>
+                  {/* Explication, application et actions */}
+                  <div className="aic-section">
+                    {splitAnalysis(m_.structuredAnswer?.detailedAnalysis || '').map((block, idx) => (
+                      <div key={idx} className="aic-block">
+                        {block.title && <div className="aic-block-title">{block.title}</div>}
+                        <div className="aic-analysis">{block.body}</div>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {m.structuredAnswer.references.map((ref, idx) => (
-                          <div key={idx} className="ai-legal-reference">
-                            &bull; {ref}
-                          </div>
+                    ))}
+                  </div>
+
+                  {/* Sources */}
+                  {m_.structuredAnswer?.references && m_.structuredAnswer.references.length > 0 && (
+                    <div className="aic-section">
+                      <div className="aic-section-title">Sources</div>
+                      <div className="aic-sources">
+                        {m_.structuredAnswer.references.map((ref, idx) => (
+                          <span key={idx} className="ax-source">{ref}</span>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* 4. Avertissement de vérification datée */}
-                  {m.structuredAnswer?.verificationNote && (
-                    <div className="ai-verification-warning">
-                      <AlertTriangle size={18} style={{ minWidth: 18 }} />
-                      <span>{m.structuredAnswer.verificationNote}</span>
+                  {/* Note de vérification */}
+                  {m_.structuredAnswer?.verificationNote && (
+                    <div className="ax-alert ax-alert-warning aic-note">
+                      <AlertTriangle size={16} />
+                      <span><strong>Limites et points à vérifier.</strong> {m_.structuredAnswer.verificationNote}</span>
                     </div>
                   )}
 
-                  {/* 5. Bouton obligatoire : Poser à l'experte */}
-                  <div className="mobile-stack" style={{
-                    marginTop: 'var(--space-6)',
-                    paddingTop: 'var(--space-4)',
-                    borderTop: '1px solid var(--color-border)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '12px'
-                  }}>
-                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-navy-muted)', fontWeight: 500 }}>
-                      Situation litigieuse ou besoin d'une attestation formelle ?
-                    </span>
+                  {/* Escalade vers l'experte */}
+                  <div className="aic-escalate">
+                    <span className="ax-small ax-muted">Situation à fort enjeu ? L'experte vous répond sous 48 h ouvrées.</span>
                     <button
                       onClick={() => onEscalateToExpert(
-                        m.structuredAnswer?.suggestedTicketDomain || selectedDomain,
-                        m.structuredAnswer?.suggestedTicketQuestion || 'Question issue de la conversation'
+                        m_.structuredAnswer?.suggestedTicketDomain || selectedDomain,
+                        m_.structuredAnswer?.suggestedTicketQuestion || 'Question issue de la conversation'
                       )}
-                      className="btn btn-sm btn-lime mobile-w-full"
-                      style={{ padding: '0 16px' }}
+                      className="ax-btn ax-btn-secondary ax-btn-sm"
                     >
-                      <UserCheck size={16} />
-                      <span>Poser cette question à l'experte (Laetitia Badji)</span>
+                      <UserCheck size={15} />
+                      <span>Demander à l'experte (Laetitia Badji)</span>
                     </button>
                   </div>
-                </div>
+
+                  <div className="ax-msg-meta">
+                    {m_.createdAt}
+                  </div>
+                </article>
               )}
-            </div>
+            </m.div>
           ))}
 
-          {/* Typing Stream Indicator */}
+          {/* Réponse en cours */}
           {isTyping && (
-            <div className="chat-bubble-ai animate-fade-in">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--space-2)' }}>
-                <RefreshCw size={14} className="spin" style={{ color: 'var(--color-blue)' }} />
-                <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--color-blue)' }}>
-                  Génération en streaming ({currentPlan.features.aiModel})...
-                </span>
+            <m.div
+              className="aic-msg-ai-wrap"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, ease: EASE_OUT }}
+            >
+              <div className="ax-msg-ai">
+                <div className="aic-stream-label">
+                  <span className="ax-typing" aria-hidden="true"><span /><span /><span /></span>
+                  <span>Rédaction de la réponse</span>
+                </div>
+                <div className="aic-stream">{streamProgress}</div>
               </div>
-              <div style={{ fontSize: 'var(--text-base)', lineHeight: 1.55, color: 'var(--color-navy)', whiteSpace: 'pre-line' }}>
-                {streamProgress}
-                <span style={{ display: 'inline-block', width: 6, height: 18, backgroundColor: 'var(--color-blue)', marginLeft: 4, verticalAlign: 'middle', animation: 'pulseDot 0.8s infinite' }}></span>
-              </div>
-            </div>
+            </m.div>
           )}
 
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Bar */}
-        <div style={{ marginTop: 'var(--space-4)' }}>
+        {/* Saisie */}
+        <div className="ax-composer">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSendMessage();
             }}
-            style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
           >
-            <input
-              type="text"
-              className="input"
-              placeholder={`Posez votre question (${getDomainLabel(selectedDomain)})...`}
-              value={inputQuery}
-              onChange={(e) => setInputQuery(e.target.value)}
-              disabled={isTyping}
-              style={{ height: 48, flex: 1, minWidth: 0 }}
-            />
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isTyping || !inputQuery.trim()}
-              style={{ height: 48, padding: '0 16px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              <span className="hide-on-mobile">Envoyer</span>
-              <Send size={16} />
-            </button>
+            <div className="ax-composer-box aic-composer-box">
+              <input
+                type="text"
+                aria-label="Votre question"
+                placeholder={`Votre question (${getDomainLabel(selectedDomain)})`}
+                value={inputQuery}
+                onChange={(e) => setInputQuery(e.target.value)}
+                disabled={isTyping}
+              />
+              <button
+                type="submit"
+                className="ax-btn ax-btn-primary ax-btn-icon"
+                disabled={isTyping || !inputQuery.trim()}
+                aria-label="Envoyer la question"
+                title="Envoyer"
+              >
+                <Send size={16} />
+              </button>
+            </div>
           </form>
-          <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)', marginTop: '8px', textAlign: 'center' }}>
-            Isolation stricte par organisation ({currentOrg.name.split('(')[0]}). Données protégées.
+          <div className="aic-composer-foot">
+            Échanges isolés à votre association ({orgShortName}), données protégées.
           </div>
         </div>
-      </main>
+      </section>
     </div>
   );
 };

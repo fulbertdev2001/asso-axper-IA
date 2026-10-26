@@ -134,7 +134,7 @@ export const BossTestGuideModal: React.FC<BossTestGuideModalProps> = ({
             </div>
             <ul style={{ fontSize: '13px', color: 'var(--color-navy)', display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '18px' }}>
               <li><strong>Traitement des tickets :</strong> Ouvrir la file des questions des assos, rédiger la réponse experte et passer le statut à « Réponse transmise ».</li>
-              <li><strong>Zéro code en dur (CDC §3) :</strong> Modifier le prix ou le quota de la formule Pro (ex: 67 € &rarr; 69 €). Constater que le tarif se met à jour instantanément sans redéploiement !</li>
+              <li><strong>Zéro code en dur (CDC §3) :</strong> Modifier le prix ou le quota de la formule Pro (ex: 59 € &rarr; 69 €). Constater que le tarif se met à jour instantanément sans redéploiement !</li>
               <li><strong>Télémétrie :</strong> Visualiser le tableau <code>ai_usage</code> avec tokens et coûts réels, sans aucun stockage du contenu des messages (RGPD).</li>
             </ul>
           </div>

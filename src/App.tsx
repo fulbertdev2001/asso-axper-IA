@@ -95,7 +95,7 @@ export const App: React.FC = () => {
   });
 
   const [plans, setPlans] = useState<Plan[]>(() => {
-    const saved = localStorage.getItem('asso_expert_plans');
+    const saved = localStorage.getItem('asso_expert_plans_v2');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* fallback */ }
     }
@@ -128,7 +128,7 @@ export const App: React.FC = () => {
   }, [tickets]);
 
   useEffect(() => {
-    localStorage.setItem('asso_expert_plans', JSON.stringify(plans));
+    localStorage.setItem('asso_expert_plans_v2', JSON.stringify(plans));
   }, [plans]);
 
   // Derived state

@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
+import { AnimatePresence, LazyMotion, MotionConfig, domMax, m } from 'motion/react';
 import { Organization } from '../types';
-import { 
-  Building2, 
-  Mail, 
-  ArrowRight, 
-  CheckCircle2, 
-  Sparkles, 
-  Compass, 
-  ShieldCheck, 
-  Lock, 
-  UserCheck, 
+import {
+  Scale,
+  Building2,
+  Mail,
+  ArrowRight,
   ArrowLeft,
-  Shield,
+  CheckCircle2,
+  Lock,
+  UserCheck,
+  ShieldCheck,
   Eye,
   EyeOff,
   AlertCircle,
-  KeyRound
+  BookOpen,
+  MessageCircle
 } from 'lucide-react';
+import '../app.css';
+import './LoginPage.css';
 
 interface LoginPageProps {
   organizations: Organization[];
@@ -25,6 +27,24 @@ interface LoginPageProps {
   onStartOnboarding: () => void;
   onBackToPublic: () => void;
 }
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } }
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } }
+};
+
+const panelSwap = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: EASE } },
+  exit: { opacity: 0, y: -6, transition: { duration: 0.18, ease: EASE } }
+};
 
 export const LoginPage: React.FC<LoginPageProps> = ({
   organizations,
@@ -107,576 +127,338 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: 'var(--color-bg-app)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '24px 16px',
-      position: 'relative'
-    }}>
-      {/* Background decoration */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '320px',
-        background: 'linear-gradient(180deg, #0A2540 0%, #163659 70%, var(--color-bg-app) 100%)',
-        zIndex: 0
-      }} />
-
-      {/* Top bar with back to public */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-        width: '100%',
-        maxWidth: '520px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px'
-      }}>
-        <button
-          onClick={onBackToPublic}
-          className="btn btn-sm"
-          style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.12)',
-            color: '#ffffff',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <ArrowLeft size={16} />
-          <span>Retour au site public</span>
-        </button>
-
-        <span style={{ color: '#cbd5e1', fontSize: '12px', fontWeight: 600 }}>
-          Authentification sécurisée
-        </span>
-      </div>
-
-      {/* Main Login Card */}
-      <div
-        className="card animate-fade-in"
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          width: '100%',
-          maxWidth: '520px',
-          backgroundColor: '#ffffff',
-          borderRadius: '20px',
-          padding: 'clamp(20px, 5vw, 36px) clamp(16px, 4vw, 32px)',
-          boxShadow: 'var(--shadow-float)',
-          border: '1px solid var(--color-border)'
-        }}
-      >
-        {/* Brand Header */}
-        <div style={{ textAlign: 'center', marginBottom: '26px' }}>
-          <div style={{
-            width: 50,
-            height: 50,
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            margin: '0 auto 12px',
-            boxShadow: '0 8px 20px rgba(0, 74, 173, 0.25)'
-          }}>
-            <Compass size={26} />
-          </div>
-          <h1 style={{
-            fontSize: '22px',
-            color: 'var(--color-navy)',
-            fontWeight: 800,
-            marginBottom: '4px'
-          }}>
-            Connexion AssoExpert<span style={{ color: 'var(--color-blue)' }}>.IA</span>
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--color-navy-muted)', margin: 0 }}>
-            Accédez à votre espace juridique, vos briques IA et vos dossiers experts.
-          </p>
-        </div>
-
-        {/* Persona Tabs (Client vs Experte) */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          backgroundColor: 'var(--color-bg-app)',
-          padding: '4px',
-          borderRadius: '12px',
-          marginBottom: '22px',
-          border: '1px solid var(--color-border)'
-        }}>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('client');
-              setAuthError(null);
-            }}
-            style={{
-              padding: '10px 12px',
-              borderRadius: '9px',
-              border: 'none',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              backgroundColor: activeTab === 'client' ? '#ffffff' : 'transparent',
-              color: activeTab === 'client' ? 'var(--color-blue)' : 'var(--color-navy-muted)',
-              boxShadow: activeTab === 'client' ? 'var(--shadow-xs)' : 'none',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Building2 size={16} />
-            <span>Espace Association</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('admin');
-              setAuthError(null);
-            }}
-            style={{
-              padding: '10px 12px',
-              borderRadius: '9px',
-              border: 'none',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              backgroundColor: activeTab === 'admin' ? '#ffffff' : 'transparent',
-              color: activeTab === 'admin' ? 'var(--color-navy)' : 'var(--color-navy-muted)',
-              boxShadow: activeTab === 'admin' ? 'var(--shadow-xs)' : 'none',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <UserCheck size={16} />
-            <span>Espace Experte</span>
-          </button>
-        </div>
-
-        {/* TAB 1: Espace Association (Genuine Secure Login Form) */}
-        {activeTab === 'client' && (
-          <div>
-            {/* Error banner */}
-            {authError && (
-              <div style={{
-                backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca',
-                borderRadius: '10px',
-                padding: '12px 14px',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '10px',
-                color: '#991b1b',
-                fontSize: '12px',
-                lineHeight: 1.5
-              }}>
-                <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>{authError}</span>
-              </div>
-            )}
-
-            {/* Forgot password notice */}
-            {forgotPasswordNotice && (
-              <div style={{
-                backgroundColor: 'var(--color-lime-glow)',
-                border: '1px solid var(--color-lime)',
-                borderRadius: '10px',
-                padding: '12px 14px',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                color: 'var(--color-navy)',
-                fontSize: '12px'
-              }}>
-                <CheckCircle2 size={16} style={{ color: 'var(--color-lime-dark)' }} />
-                <span>Un lien de réinitialisation sécurisé a été simulé et envoyé à votre adresse email.</span>
-              </div>
-            )}
-
-            {/* Authentic Authentication Form */}
-            <form onSubmit={handleClientLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Email */}
-              <div>
-                <label className="form-label" style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
-                  Adresse email de votre association :
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="email"
-                    className="input"
-                    placeholder="contact@votre-association.org"
-                    value={emailInput}
-                    onChange={(e) => {
-                      setEmailInput(e.target.value);
-                      if (authError) setAuthError(null);
-                    }}
-                    required
-                    style={{ paddingLeft: '38px', height: '44px', fontSize: '13px' }}
-                  />
-                  <Mail size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-navy-muted)' }} />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <label className="form-label" style={{ fontSize: '13px', fontWeight: 700, margin: 0 }}>
-                    Mot de passe :
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setForgotPasswordNotice(true)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: '11px',
-                      color: 'var(--color-blue)',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      padding: 0
-                    }}
-                  >
-                    Mot de passe oublié ?
-                  </button>
-                </div>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    className="input"
-                    placeholder="••••••••••••"
-                    value={passwordInput}
-                    onChange={(e) => {
-                      setPasswordInput(e.target.value);
-                      if (authError) setAuthError(null);
-                    }}
-                    required
-                    style={{ paddingLeft: '38px', paddingRight: '38px', height: '44px', fontSize: '13px' }}
-                  />
-                  <Lock size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-navy-muted)' }} />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: 'absolute',
-                      right: 12,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--color-navy-muted)',
-                      cursor: 'pointer',
-                      padding: 0,
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
-                    title={showPassword ? "Masquer" : "Afficher"}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Remember me */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  style={{ width: '15px', height: '15px', accentColor: 'var(--color-blue)', cursor: 'pointer' }}
-                />
-                <label htmlFor="rememberMe" style={{ fontSize: '12px', color: 'var(--color-navy-muted)', cursor: 'pointer', userSelect: 'none' }}>
-                  Se souvenir de cet appareil
-                </label>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={isSubmitting}
-                style={{
-                  height: '46px',
-                  fontSize: '14px',
-                  fontWeight: 800,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
+    <MotionConfig reducedMotion="user">
+      <LazyMotion features={domMax} strict>
+        <div className="ax lg">
+          {/* Panneau de marque (desktop) */}
+          <aside className="lg-brand">
+            <div className="lg-shapes" aria-hidden="true">
+              <div className="lg-dots" />
+              <m.div
+                className="lg-blob lg-blob-blue"
+                animate={{ x: [0, 24, -12, 0], y: [0, -18, 12, 0] }}
+                transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <m.div
+                className="lg-blob lg-blob-lime"
+                animate={{ x: [0, -20, 12, 0], y: [0, 16, -10, 0] }}
+                transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <m.div
+                className="lg-ring"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
               >
-                {isSubmitting ? (
-                  <span>Vérification des accès...</span>
-                ) : (
-                  <>
-                    <span>Se connecter à mon association</span>
-                    <ArrowRight size={16} />
-                  </>
-                )}
-              </button>
-            </form>
+                <span className="lg-ring-dot" />
+              </m.div>
+            </div>
 
-            {/* Test Accounts Box (Demo credentials clearly listed with 1-click fill) */}
-            <div style={{
-              marginTop: '24px',
-              padding: '16px',
-              backgroundColor: 'var(--color-surface-subtle)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '14px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '6px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <KeyRound size={15} style={{ color: 'var(--color-blue)' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-navy)' }}>
-                    Comptes de test préconfigurés :
-                  </span>
-                </div>
-                <span className="badge badge-lime" style={{ fontSize: '9px', padding: '1px 6px' }}>
-                  Mot de passe : Asso2026!
-                </span>
+            <m.div className="lg-brand-inner" variants={stagger} initial="hidden" animate="show">
+              <m.div variants={fadeUp}>
+                <button type="button" className="lg-logo" onClick={onBackToPublic}>
+                  <span className="lg-logo-mark"><Scale size={16} /></span>
+                  <span>AssoExpert</span>
+                </button>
+              </m.div>
+
+              <div className="lg-brand-body">
+                <m.h2 variants={fadeUp} className="lg-brand-title">
+                  Votre association, <span className="lp-serif lg-serif">l’esprit tranquille.</span>
+                </m.h2>
+                <m.ul variants={fadeUp} className="lg-points">
+                  <li>
+                    <span className="lg-point-icon"><BookOpen size={16} /></span>
+                    <span>Des réponses claires, sources à l’appui.</span>
+                  </li>
+                  <li>
+                    <span className="lg-point-icon"><MessageCircle size={16} /></span>
+                    <span>L’avis de l’experte sous 48 h ouvrées.</span>
+                  </li>
+                  <li>
+                    <span className="lg-point-icon"><ShieldCheck size={16} /></span>
+                    <span>Un espace réservé à votre structure.</span>
+                  </li>
+                </m.ul>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {organizations.slice(0, 3).map((org) => {
-                  const email = org.accountEmail || (org.members && org.members[0]?.email) || 'contact@asso.org';
-                  return (
-                    <div
-                      key={org.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '8px 10px',
-                        backgroundColor: '#ffffff',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '8px',
-                        fontSize: '11px'
-                      }}
-                    >
-                      <div style={{ minWidth: 0, paddingRight: '8px' }}>
-                        <div style={{ fontWeight: 700, color: 'var(--color-navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {org.name.split('(')[0].trim()}
+              <m.p variants={fadeUp} className="lg-brand-foot">
+                RH, gouvernance, finance et conformité des associations.
+              </m.p>
+            </m.div>
+          </aside>
+
+          {/* Zone formulaire */}
+          <main className="lg-main">
+            <div className="lg-topbar">
+              <button type="button" className="lg-logo lg-logo-mobile" onClick={onBackToPublic}>
+                <span className="lg-logo-mark"><Scale size={16} /></span>
+                <span>AssoExpert</span>
+              </button>
+              <button type="button" className="ax-btn ax-btn-ghost ax-btn-sm" onClick={onBackToPublic}>
+                <ArrowLeft size={15} />
+                <span>Retour au site</span>
+              </button>
+            </div>
+
+            <m.div className="lg-form-wrap" variants={stagger} initial="hidden" animate="show">
+              <m.div variants={fadeUp} className="lg-head">
+                <h1 className="lg-title">Connexion</h1>
+                <p className="lg-sub">Accédez à votre espace AssoExpert.</p>
+              </m.div>
+
+              {/* Onglets Association / Experte */}
+              <m.div variants={fadeUp}>
+                <div className="ax-segmented lg-tabs" role="tablist" aria-label="Type d’espace">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === 'client'}
+                    className={`ax-seg-btn lg-tab${activeTab === 'client' ? ' is-on' : ''}`}
+                    onClick={() => {
+                      setActiveTab('client');
+                      setAuthError(null);
+                    }}
+                  >
+                    {activeTab === 'client' && (
+                      <m.span layoutId="lg-tab-pill" className="lg-tab-pill" transition={{ type: 'spring', stiffness: 420, damping: 36 }} />
+                    )}
+                    <Building2 size={15} />
+                    <span>Espace association</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === 'admin'}
+                    className={`ax-seg-btn lg-tab${activeTab === 'admin' ? ' is-on' : ''}`}
+                    onClick={() => {
+                      setActiveTab('admin');
+                      setAuthError(null);
+                    }}
+                  >
+                    {activeTab === 'admin' && (
+                      <m.span layoutId="lg-tab-pill" className="lg-tab-pill" transition={{ type: 'spring', stiffness: 420, damping: 36 }} />
+                    )}
+                    <UserCheck size={15} />
+                    <span>Espace experte</span>
+                  </button>
+                </div>
+              </m.div>
+
+              <m.div variants={fadeUp} className="lg-panel">
+                <AnimatePresence mode="wait" initial={false}>
+                  {/* Onglet 1 : Espace association */}
+                  {activeTab === 'client' && (
+                    <m.div key="client" variants={panelSwap} initial="initial" animate="animate" exit="exit">
+                      {authError && (
+                        <div className="ax-alert ax-alert-danger lg-alert" role="alert">
+                          <AlertCircle size={16} />
+                          <span>{authError}</span>
                         </div>
-                        <div style={{ color: 'var(--color-navy-muted)', fontFamily: 'monospace', fontSize: '10px' }}>
-                          {email}
+                      )}
+
+                      {forgotPasswordNotice && (
+                        <div className="ax-alert ax-alert-success lg-alert" role="status">
+                          <CheckCircle2 size={16} />
+                          <span>Un lien de réinitialisation vous a été envoyé (simulation).</span>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleClientLogin} className="lg-form">
+                        <div className="ax-field">
+                          <label className="ax-label" htmlFor="lg-email">Adresse email</label>
+                          <div className="ax-input-wrap">
+                            <Mail size={16} />
+                            <input
+                              id="lg-email"
+                              type="email"
+                              className="ax-input"
+                              placeholder="contact@votre-association.org"
+                              autoComplete="email"
+                              value={emailInput}
+                              onChange={(e) => {
+                                setEmailInput(e.target.value);
+                                if (authError) setAuthError(null);
+                              }}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="ax-field">
+                          <div className="lg-label-row">
+                            <label className="ax-label" htmlFor="lg-password">Mot de passe</label>
+                            <button
+                              type="button"
+                              className="lg-link lg-link-sm"
+                              onClick={() => setForgotPasswordNotice(true)}
+                            >
+                              Mot de passe oublié ?
+                            </button>
+                          </div>
+                          <div className="ax-input-wrap">
+                            <Lock size={16} />
+                            <input
+                              id="lg-password"
+                              type={showPassword ? 'text' : 'password'}
+                              className="ax-input lg-input-pass"
+                              placeholder="Votre mot de passe"
+                              autoComplete="current-password"
+                              value={passwordInput}
+                              onChange={(e) => {
+                                setPasswordInput(e.target.value);
+                                if (authError) setAuthError(null);
+                              }}
+                              required
+                            />
+                            <button
+                              type="button"
+                              className="ax-input-action"
+                              onClick={() => setShowPassword(!showPassword)}
+                              aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                              title={showPassword ? 'Masquer' : 'Afficher'}
+                            >
+                              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <label className="lg-check" htmlFor="rememberMe">
+                          <input
+                            type="checkbox"
+                            id="rememberMe"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                          />
+                          <span>Se souvenir de cet appareil</span>
+                        </label>
+
+                        <button
+                          type="submit"
+                          className="ax-btn ax-btn-primary ax-btn-lg ax-btn-block lg-submit"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <span className="lg-spinner" aria-hidden="true" />
+                              <span>Vérification…</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Se connecter</span>
+                              <ArrowRight size={16} />
+                            </>
+                          )}
+                        </button>
+                      </form>
+
+                      {/* Comptes de démonstration */}
+                      <div className="lg-demo">
+                        <div className="lg-demo-head">
+                          <span className="lg-demo-label">Comptes de démonstration</span>
+                          <span className="lg-demo-hint">Mot de passe : Asso2026!</span>
+                        </div>
+                        <div className="lg-demo-list">
+                          {organizations.slice(0, 3).map((org) => {
+                            const email = org.accountEmail || (org.members && org.members[0]?.email) || 'contact@asso.org';
+                            return (
+                              <button
+                                key={org.id}
+                                type="button"
+                                className="lg-demo-item"
+                                onClick={() => handleFillDemoAccount(org)}
+                                title={`Remplir les identifiants pour ${org.name}`}
+                              >
+                                <span className="lg-demo-text">
+                                  <span className="lg-demo-name">{org.name.split('(')[0].trim()}</span>
+                                  <span className="lg-demo-email">{email}</span>
+                                </span>
+                                <span className="lg-demo-fill">Remplir</span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleFillDemoAccount(org)}
-                        className="btn btn-sm btn-secondary"
-                        style={{
-                          fontSize: '10px',
-                          padding: '3px 8px',
-                          height: '26px',
-                          fontWeight: 700,
-                          flexShrink: 0
-                        }}
-                        title={`Remplir les identifiants pour ${org.name}`}
-                      >
-                        Remplir
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Subscribe Link */}
-            <div style={{
-              marginTop: '18px',
-              paddingTop: '14px',
-              borderTop: '1px solid var(--color-border)',
-              textAlign: 'center',
-              fontSize: '12px',
-              color: 'var(--color-navy-muted)'
-            }}>
-              Votre association n'a pas encore de compte ?{' '}
-              <button
-                type="button"
-                onClick={onStartOnboarding}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--color-blue)',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  padding: 0,
-                  textDecoration: 'underline'
-                }}
-              >
-                Souscrire à une formule
-              </button>
-            </div>
-          </div>
-        )}
+                      <p className="lg-foot">
+                        Pas encore de compte ?{' '}
+                        <button type="button" className="lg-link" onClick={onStartOnboarding}>
+                          Créer l’espace de votre association
+                        </button>
+                      </p>
+                    </m.div>
+                  )}
 
-        {/* TAB 2: Espace Experte (Cabinet Maé) */}
-        {activeTab === 'admin' && (
-          <div>
-            <div style={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid var(--color-border)',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '20px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                <div style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--color-navy)',
-                  color: 'var(--color-lime)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <ShieldCheck size={18} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-navy)' }}>
-                    Laetitia Badji & Équipe Juridique
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)' }}>
-                    Cabinet Maé / AKILIGUE SAS &bull; Back-Office Payload
-                  </div>
-                </div>
-              </div>
-              <p style={{ fontSize: '12px', color: 'var(--color-navy-muted)', margin: 0, lineHeight: 1.5 }}>
-                Cet espace permet d'instruire les questions expertes des associations clientes sous 48h, de gérer les formules et de surveiller la télémétrie IA.
-              </p>
-            </div>
+                  {/* Onglet 2 : Espace experte */}
+                  {activeTab === 'admin' && (
+                    <m.div key="admin" variants={panelSwap} initial="initial" animate="animate" exit="exit">
+                      <div className="ax-alert ax-alert-info lg-alert">
+                        <ShieldCheck size={16} />
+                        <span>Réservé à l’équipe du Cabinet Maé. Connectez-vous avec votre adresse @cabinet-mae.fr.</span>
+                      </div>
 
-            {adminError && (
-              <div style={{
-                backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca',
-                borderRadius: '10px',
-                padding: '10px 12px',
-                marginBottom: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                color: '#991b1b',
-                fontSize: '12px'
-              }}>
-                <AlertCircle size={15} />
-                <span>{adminError}</span>
-              </div>
-            )}
+                      {adminError && (
+                        <div className="ax-alert ax-alert-danger lg-alert" role="alert">
+                          <AlertCircle size={16} />
+                          <span>{adminError}</span>
+                        </div>
+                      )}
 
-            <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label className="form-label" style={{ fontSize: '12px' }}>
-                  Identifiant juriste / experte :
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="email"
-                    className="input"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    style={{ height: '42px', fontSize: '13px', paddingLeft: '38px' }}
-                    required
-                  />
-                  <Mail size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-navy-muted)' }} />
-                </div>
-              </div>
+                      <form onSubmit={handleAdminLogin} className="lg-form">
+                        <div className="ax-field">
+                          <label className="ax-label" htmlFor="lg-admin-email">Adresse email professionnelle</label>
+                          <div className="ax-input-wrap">
+                            <Mail size={16} />
+                            <input
+                              id="lg-admin-email"
+                              type="email"
+                              className="ax-input"
+                              autoComplete="email"
+                              value={adminEmail}
+                              onChange={(e) => setAdminEmail(e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
 
-              <div>
-                <label className="form-label" style={{ fontSize: '12px' }}>
-                  Mot de passe :
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type={showAdminPassword ? 'text' : 'password'}
-                    className="input"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    style={{ height: '42px', fontSize: '13px', paddingLeft: '38px', paddingRight: '38px' }}
-                    required
-                  />
-                  <Lock size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-navy-muted)' }} />
-                  <button
-                    type="button"
-                    onClick={() => setShowAdminPassword(!showAdminPassword)}
-                    style={{
-                      position: 'absolute',
-                      right: 12,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--color-navy-muted)',
-                      cursor: 'pointer',
-                      padding: 0,
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
-                    title={showAdminPassword ? "Masquer" : "Afficher"}
-                  >
-                    {showAdminPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
+                        <div className="ax-field">
+                          <label className="ax-label" htmlFor="lg-admin-password">Mot de passe</label>
+                          <div className="ax-input-wrap">
+                            <Lock size={16} />
+                            <input
+                              id="lg-admin-password"
+                              type={showAdminPassword ? 'text' : 'password'}
+                              className="ax-input lg-input-pass"
+                              autoComplete="current-password"
+                              value={adminPassword}
+                              onChange={(e) => setAdminPassword(e.target.value)}
+                              required
+                            />
+                            <button
+                              type="button"
+                              className="ax-input-action"
+                              onClick={() => setShowAdminPassword(!showAdminPassword)}
+                              aria-label={showAdminPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                              title={showAdminPassword ? 'Masquer' : 'Afficher'}
+                            >
+                              {showAdminPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
 
-              <button
-                type="submit"
-                className="btn btn-primary"
-                style={{
-                  height: '44px',
-                  fontSize: '13px',
-                  backgroundColor: 'var(--color-navy)',
-                  borderColor: 'var(--color-navy)'
-                }}
-              >
-                <UserCheck size={16} style={{ color: 'var(--color-lime)' }} />
-                <span>Accéder au Back-Office Experte (Payload)</span>
-              </button>
-            </form>
-          </div>
-        )}
+                        <button type="submit" className="ax-btn ax-btn-primary ax-btn-lg ax-btn-block lg-submit lg-submit-navy">
+                          <span>Accéder à l’espace experte</span>
+                          <ArrowRight size={16} />
+                        </button>
+                      </form>
+                    </m.div>
+                  )}
+                </AnimatePresence>
+              </m.div>
 
-        {/* Security badges */}
-        <div style={{
-          marginTop: '24px',
-          paddingTop: '16px',
-          borderTop: '1px solid var(--color-border)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '16px',
-          fontSize: '11px',
-          color: 'var(--color-navy-muted)'
-        }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Lock size={12} /> Chiffrement SSL 256-bit
-          </span>
-          <span>&bull;</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Shield size={12} /> Conforme RGPD
-          </span>
+            </m.div>
+          </main>
         </div>
-      </div>
-    </div>
+      </LazyMotion>
+    </MotionConfig>
   );
 };

@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
+import { m, AnimatePresence } from 'motion/react';
 import { Domain, Organization, Plan, Subscription, ExpertTicket } from '../types';
 import { getDomainLabel } from '../services/aiSimulator';
-import { 
-  UserCheck, 
-  Clock, 
-  Send, 
-  CheckCircle2, 
-  AlertCircle, 
-  Building2, 
-  ShieldAlert, 
-  FileText, 
+import {
+  Clock,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+  Building2,
   MessageSquare,
-  Sparkles,
-  ArrowRight
+  ArrowRight,
+  X
 } from 'lucide-react';
+import './ExpertEscalationView.css';
 
 interface ExpertEscalationViewProps {
   currentOrg: Organization;
@@ -26,6 +25,21 @@ interface ExpertEscalationViewProps {
   prefillQuestion?: string;
   onUpdateTicket?: (ticket: ExpertTicket) => void;
 }
+
+const ease = [0.22, 1, 0.36, 1] as const;
+
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4, ease, delay }
+});
+
+const statusBadge = (status: ExpertTicket['status']) =>
+  status === 'answered'
+    ? { className: 'ax-badge ax-badge-lime', label: 'Répondue' }
+    : status === 'in_progress'
+      ? { className: 'ax-badge ax-badge-blue', label: 'En cours' }
+      : { className: 'ax-badge ax-badge-orange', label: 'En attente' };
 
 export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
   currentOrg,
@@ -83,454 +97,360 @@ export const ExpertEscalationView: React.FC<ExpertEscalationViewProps> = ({
     setTimeout(() => setShowSuccessToast(false), 5000);
   };
 
+  // Affichage uniquement : référence de la question la plus récente (confirmation)
+  const latestTicket = orgTickets.reduce<ExpertTicket | null>(
+    (latest, t) => (!latest || t.createdAt > latest.createdAt ? t : latest),
+    null
+  );
+  const quotaPercent = quotaTotal > 0 ? Math.min(100, (quotaUsed / quotaTotal) * 100) : 100;
+  const ccnShort = currentOrg.ccn.split('(')[0];
+
   return (
-    <div className="animate-fade-in" style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 12px 80px' }}>
-      {/* Header Banner */}
-      <div className="card" style={{
-        backgroundColor: 'var(--color-navy)',
-        color: '#ffffff',
-        marginBottom: 'var(--space-6)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '16px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{
-            width: 44,
-            height: 44,
-            borderRadius: 'var(--radius-md)',
-            backgroundColor: 'var(--color-lime)',
-            color: 'var(--color-navy)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: 'var(--shadow-lime)',
-            flexShrink: 0
-          }}>
-            <UserCheck size={24} />
-          </div>
-          <div>
-            <h1 style={{ color: '#ffffff', fontSize: 'var(--text-xl)', marginBottom: '2px' }}>
-              Escalade vers l'Experte (Laetitia Badji)
-            </h1>
-            <p style={{ color: '#cbd5e1', fontSize: 'var(--text-xs)', margin: 0 }}>
-              Analyse juridique et sociale personnalisée transmise sous 48h ouvrées par le Cabinet Maé.
-            </p>
-          </div>
-        </div>
-
-        {/* Quota Counter Card */}
-        <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          padding: '8px 16px',
-          borderRadius: 'var(--radius-md)',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#cbd5e1', fontWeight: 600 }}>
-            Quota mensuel
-          </div>
-          <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-lime)' }}>
-            {quotaRemaining} / {quotaTotal}
-          </div>
-          <div style={{ fontSize: '10px', color: '#94a3b8' }}>
-            Renouvelé au 1er du mois
-          </div>
-        </div>
-      </div>
-
-      {showSuccessToast && (
-        <div className="card animate-fade-in" style={{
-          backgroundColor: 'var(--color-lime-glow)',
-          borderColor: 'var(--color-lime)',
-          marginBottom: 'var(--space-6)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <CheckCircle2 size={24} style={{ color: 'var(--color-lime-dark)' }} />
-          <div>
-            <div style={{ fontWeight: 700, color: 'var(--color-navy)' }}>
-              Votre question a bien été enregistrée et transmise à Laetitia Badji !
-            </div>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-navy-muted)' }}>
-              Un accusé de réception a été envoyé à votre adresse et une réponse motivée sera formulée sous 48h ouvrées.
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="escalation-grid">
-        {/* Form Submission */}
+    <div>
+      {/* En-tête */}
+      <m.header className="ax-page-head" {...fadeUp(0)}>
         <div>
-          <div className="card">
-            <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: 'var(--space-4)' }}>
-              Soumettre une nouvelle question
-            </h2>
+          <h1 className="ax-page-title">Questions à l'experte</h1>
+          <p className="ax-page-sub">
+            Posez une question à Laetitia Badji (Cabinet Maé). Réponse sous 48 h ouvrées.
+          </p>
+        </div>
+      </m.header>
 
-            {isQuotaExceeded ? (
-              <div style={{
-                backgroundColor: 'var(--color-orange-light)',
-                border: '1px solid var(--color-orange)',
-                padding: 'var(--space-6)',
-                borderRadius: 'var(--radius-md)',
-                textAlign: 'center'
-              }}>
-                <AlertCircle size={32} style={{ color: 'var(--color-orange-dark)', margin: '0 auto var(--space-2)' }} />
-                <h3 style={{ fontSize: 'var(--text-base)', color: 'var(--color-navy)', marginBottom: 'var(--space-2)' }}>
-                  Quota mensuel de questions atteint
-                </h3>
-                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-navy-muted)', marginBottom: 'var(--space-4)' }}>
-                  {quotaTotal === 0 ? (
-                    'Votre formule Initiale n inclut pas de question experte. Passez à la formule Pro ou Expert pour débloquer l assistance de Laetitia Badji.'
-                  ) : (
-                    `Vous avez consommé l intégralité de vos ${quotaTotal} question(s) ce mois-ci sous la formule ${currentPlan.label}.`
-                  )}
-                </p>
-                <button onClick={onUpgradePlan} className="btn btn-primary" style={{ width: '100%' }}>
-                  <Sparkles size={16} />
-                  <span>Passer à l'offre supérieure</span>
-                </button>
-              </div>
+      {/* Quota */}
+      <m.section className="ax-card ax-esc-quota" {...fadeUp(0.05)} aria-label="Quota mensuel">
+        <div className="ax-esc-quota-main">
+          <div className="ax-esc-quota-value">
+            {quotaTotal === 0 ? (
+              'Votre formule n’inclut pas de question à l’experte'
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                {/* Prefilled association information */}
-                <div style={{
-                  backgroundColor: 'var(--color-surface-subtle)',
-                  padding: '12px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: 'var(--text-xs)',
-                  color: 'var(--color-navy-muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <Building2 size={16} style={{ color: 'var(--color-blue)', minWidth: 16 }} />
-                  <div>
-                    Prérempli pour : <strong>{currentOrg.name}</strong> (SIREN {currentOrg.siren}, CCN {currentOrg.ccn.split('(')[0]})
-                  </div>
-                </div>
-
-                {/* Domain Selector */}
-                <div>
-                  <label className="form-label">Domaine juridique ou technique :</label>
-                  <select
-                    className="select"
-                    value={domain}
-                    onChange={(e) => setDomain(e.target.value as Domain)}
-                  >
-                    <option value="rh">RH & Conventions Collectives ({currentOrg.ccn.split('(')[0]})</option>
-                    <option value="gouvernance">Gouvernance Loi 1901 (AG, CA, Statuts)</option>
-                    <option value="finance">Finance & Subventions (CER, Financement public)</option>
-                    <option value="conformite">Conformité (DUERP, Sécurité, RGPD)</option>
-                  </select>
-                </div>
-
-                {/* Urgency */}
-                <div>
-                  <label className="form-label">Délai de traitement souhaité :</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
-                    <label style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '10px 14px',
-                      borderRadius: 'var(--radius-md)',
-                      border: `1.5px solid ${urgency === 'normal_48h' ? 'var(--color-blue)' : 'var(--color-border)'}`,
-                      backgroundColor: urgency === 'normal_48h' ? 'var(--color-blue-light)' : 'transparent',
-                      cursor: 'pointer',
-                      fontSize: 'var(--text-sm)',
-                      fontWeight: 600
-                    }}>
-                      <input
-                        type="radio"
-                        name="urgency"
-                        checked={urgency === 'normal_48h'}
-                        onChange={() => setUrgency('normal_48h')}
-                      />
-                      <span>Normal (48h ouvrées)</span>
-                    </label>
-
-                    <label style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '10px 14px',
-                      borderRadius: 'var(--radius-md)',
-                      border: `1.5px solid ${urgency === 'urgent' ? 'var(--color-orange)' : 'var(--color-border)'}`,
-                      backgroundColor: urgency === 'urgent' ? 'var(--color-orange-light)' : 'transparent',
-                      cursor: 'pointer',
-                      fontSize: 'var(--text-sm)',
-                      fontWeight: 600
-                    }}>
-                      <input
-                        type="radio"
-                        name="urgency"
-                        checked={urgency === 'urgent'}
-                        onChange={() => setUrgency('urgent')}
-                      />
-                      <span>Prioritaire</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Object */}
-                <div>
-                  <label className="form-label">Objet synthétique de la demande :</label>
-                  <input
-                    type="text"
-                    className="input"
-                    placeholder="Ex: Modalités de calcul du préavis de démission CCN 66"
-                    value={object}
-                    onChange={(e) => setObject(e.target.value)}
-                    required
-                  />
-                </div>
-
-                {/* Question */}
-                <div>
-                  <label className="form-label">Détail de votre situation et questions :</label>
-                  <textarea
-                    className="textarea"
-                    placeholder="Exposez précisément les faits, l'ancienneté du salarié concerné, les clauses contractuelles ou la décision de l'AG..."
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    rows={5}
-                    required
-                  />
-                  <div className="form-hint">
-                    Transmis directement à contact@cabinet-mae.fr avec votre profil d'association.
-                  </div>
-                </div>
-
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                  <Send size={16} />
-                  <span>Envoyer la question à l'experte</span>
-                </button>
-              </form>
+              <>
+                <strong>{quotaRemaining}</strong> sur {quotaTotal}{' '}
+                {quotaRemaining > 1 ? 'questions restantes' : 'question restante'} ce mois-ci
+              </>
             )}
           </div>
+          {quotaTotal > 0 && (
+            <div
+              className="ax-progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={quotaTotal}
+              aria-valuenow={Math.min(quotaUsed, quotaTotal)}
+            >
+              <span style={{ width: `${quotaPercent}%` }} />
+            </div>
+          )}
         </div>
+        <span className="ax-xs ax-faint">Renouvelé le 1er de chaque mois</span>
+      </m.section>
 
-        {/* Existing Tickets List & Tracking */}
-        <div>
-          <div className="card">
-            <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: 'var(--space-4)' }}>
-              Historique des questions expertes ({orgTickets.length})
-            </h2>
-
-            {orgTickets.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-navy-muted)' }}>
-                <MessageSquare size={36} style={{ margin: '0 auto var(--space-2)', opacity: 0.4 }} />
-                <p style={{ fontSize: 'var(--text-sm)' }}>
-                  Aucune question experte soumise pour le moment pour {currentOrg.name}.
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                {orgTickets.map((t) => (
-                  <div
-                    key={t.id}
-                    className="card"
-                    style={{
-                      cursor: 'pointer',
-                      borderLeft: `4px solid ${
-                        t.status === 'answered' ? 'var(--color-lime-dark)' :
-                        t.status === 'in_progress' ? 'var(--color-blue)' : 'var(--color-orange)'
-                      }`,
-                      padding: '14px 16px'
-                    }}
-                    onClick={() => setSelectedTicket(t)}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '12px', color: 'var(--color-blue)' }}>
-                        {t.ref}
-                      </span>
-                      <span className={
-                        t.status === 'answered' ? 'badge badge-lime' :
-                        t.status === 'in_progress' ? 'badge badge-blue' : 'badge badge-orange'
-                      } style={{ fontSize: '10px' }}>
-                        {t.status === 'answered' ? 'Réponse transmise' :
-                         t.status === 'in_progress' ? 'En cours d analyse' : 'En attente'}
-                      </span>
-                    </div>
-
-                    <div style={{ fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--color-navy)', marginBottom: '4px' }}>
-                      {t.object}
-                    </div>
-
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-navy-muted)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span>{getDomainLabel(t.domain)}</span>
-                      <span>{new Date(t.createdAt).toLocaleDateString('fr-FR')}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Ticket Details Modal */}
-      {selectedTicket && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(10, 37, 64, 0.65)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 100,
-          padding: '24px'
-        }}>
-          <div className="card animate-fade-in" style={{ maxWidth: 700, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+      <AnimatePresence initial={false}>
+        {showSuccessToast && (
+          <m.div
+            key="success"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div className="ax-alert ax-alert-success" role="status" style={{ marginBottom: 24 }}>
+              <CheckCircle2 size={18} />
               <div>
-                <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '13px', color: 'var(--color-blue)' }}>
-                  {selectedTicket.ref}
-                </span>
-                <h3 style={{ fontSize: 'var(--text-lg)', color: 'var(--color-navy)' }}>
-                  {selectedTicket.object}
-                </h3>
-              </div>
-              <button onClick={() => setSelectedTicket(null)} className="btn btn-sm btn-secondary">
-                Fermer
-              </button>
-            </div>
-
-            <div style={{ marginBottom: 'var(--space-4)' }}>
-              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-navy-muted)', marginBottom: '4px' }}>
-                Question soumise par l'association :
-              </div>
-              <div style={{ backgroundColor: 'var(--color-surface-subtle)', padding: '12px 16px', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)', color: 'var(--color-navy)', lineHeight: 1.6 }}>
-                {selectedTicket.question}
+                <div className="ax-alert-title">Votre question a bien été envoyée</div>
+                <div className="ax-small ax-muted">
+                  {latestTicket ? <>Référence {latestTicket.ref}. </> : null}
+                  Laetitia Badji vous répondra sous 48 h ouvrées.
+                </div>
               </div>
             </div>
+          </m.div>
+        )}
+      </AnimatePresence>
 
-            {selectedTicket.status === 'answered' && selectedTicket.answer ? (
-              <div style={{ marginTop: 'var(--space-6)' }}>
-                {/* Laetitia's Official Verified Answer */}
-                <div style={{
-                  backgroundColor: '#ffffff',
-                  border: '2px solid var(--color-blue)',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  boxShadow: 'var(--shadow-card)'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '14px',
-                    paddingBottom: '12px',
-                    borderBottom: '1px solid var(--color-border)',
-                    flexWrap: 'wrap',
-                    gap: '10px'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '10px',
-                        background: 'linear-gradient(135deg, var(--color-navy) 0%, #163659 100%)',
-                        color: 'var(--color-lime)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 800,
-                        fontSize: '14px',
-                        boxShadow: '0 2px 8px rgba(10, 37, 64, 0.2)'
-                      }}>
-                        LB
-                      </div>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--color-navy)' }}>
-                            Laetitia Badji
-                          </span>
-                          <span className="badge badge-lime" style={{ fontSize: '10px' }}>
-                            Experte Juridique & RH
-                          </span>
-                        </div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)' }}>
-                          Cabinet Maé / AKILIGUE SAS &bull; {selectedTicket.answeredAt ? new Date(selectedTicket.answeredAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Réponse transmise'}
-                        </div>
-                      </div>
-                    </div>
+      <div className="ax-split">
+        {/* Formulaire */}
+        <m.section className="ax-card" {...fadeUp(0.1)}>
+          <div className="ax-card-head">
+            <div>
+              <h2 className="ax-card-title">Nouvelle question</h2>
+              <p className="ax-card-sub">Décrivez votre situation le plus précisément possible.</p>
+            </div>
+          </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-lime-dark)', fontSize: '12px', fontWeight: 700 }}>
-                      <CheckCircle2 size={16} />
-                      <span>Avis certifié conforme</span>
-                    </div>
+          <div className="ax-card-body">
+            {isQuotaExceeded ? (
+              <div className="ax-alert ax-alert-warning">
+                <AlertCircle size={18} />
+                <div className="ax-stack-sm" style={{ flex: 1, minWidth: 0 }}>
+                  <div className="ax-alert-title">
+                    {quotaTotal === 0 ? 'Option non incluse dans votre formule' : 'Quota du mois atteint'}
+                  </div>
+                  <p className="ax-small ax-muted">
+                    {quotaTotal === 0
+                      ? 'Les formules Pro et Expert incluent des questions à Laetitia Badji.'
+                      : `Vous avez utilisé vos ${quotaTotal} question(s) de la formule ${currentPlan.label.replace(/\s*\(.*\)\s*/, '')} ce mois-ci.`}
+                  </p>
+                  <div>
+                    <button type="button" onClick={onUpgradePlan} className="ax-btn ax-btn-primary ax-btn-sm">
+                      <span>Changer de formule</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="ax-stack-lg">
+                <div className="ax-esc-org">
+                  <Building2 size={15} />
+                  <span>
+                    Pour <strong className="ax-strong" style={{ color: 'var(--color-navy)' }}>{currentOrg.name}</strong>
+                    {' '}· SIREN {currentOrg.siren} · CCN {ccnShort}
+                  </span>
+                </div>
+
+                <div className="ax-form-grid">
+                  <div className="ax-field">
+                    <label className="ax-label" htmlFor="esc-domain">Domaine</label>
+                    <select
+                      id="esc-domain"
+                      className="ax-select"
+                      value={domain}
+                      onChange={(e) => setDomain(e.target.value as Domain)}
+                    >
+                      <option value="rh">RH et convention collective ({ccnShort.trim()})</option>
+                      <option value="gouvernance">Gouvernance loi 1901 (AG, CA, statuts)</option>
+                      <option value="finance">Finance et subventions</option>
+                      <option value="conformite">Conformité (DUERP, sécurité, RGPD)</option>
+                    </select>
                   </div>
 
-                  <div style={{
-                    fontSize: 'var(--text-sm)',
-                    lineHeight: 1.65,
-                    color: 'var(--color-navy)',
-                    whiteSpace: 'pre-line',
-                    marginBottom: '16px'
-                  }}>
-                    {selectedTicket.answer}
-                  </div>
-
-                  {/* Follow-up question form */}
-                  <div style={{
-                    marginTop: '20px',
-                    paddingTop: '16px',
-                    borderTop: '1px solid var(--color-border)'
-                  }}>
-                    <label className="form-label" style={{ fontSize: '12px', marginBottom: '6px' }}>
-                      Besoin d'une précision supplémentaire sur cette réponse ?
-                    </label>
-                    <div className="mobile-stack" style={{ display: 'flex', gap: '8px' }}>
-                      <input
-                        type="text"
-                        className="input"
-                        placeholder="Ex: Merci pour ce retour. Pouvez-vous préciser le délai de prévenance ?"
-                        value={followUpText}
-                        onChange={(e) => setFollowUpText(e.target.value)}
-                        style={{ height: '40px', fontSize: '13px', flex: 1 }}
-                      />
+                  <div className="ax-field">
+                    <span className="ax-label" id="esc-urgency-label">Délai souhaité</span>
+                    <div className="ax-segmented ax-esc-urgency" role="radiogroup" aria-labelledby="esc-urgency-label">
                       <button
                         type="button"
-                        onClick={() => {
-                          if (!followUpText.trim() || !onUpdateTicket) return;
-                          const updated: ExpertTicket = {
-                            ...selectedTicket,
-                            question: `${selectedTicket.question}\n\n[Précision association le ${new Date().toLocaleTimeString('fr-FR')}] : ${followUpText.trim()}`,
-                            status: 'in_progress'
-                          };
-                          onUpdateTicket(updated);
-                          setSelectedTicket(updated);
-                          setFollowUpText('');
-                        }}
-                        className="btn btn-sm btn-primary"
-                        style={{ whiteSpace: 'nowrap' }}
+                        role="radio"
+                        aria-checked={urgency === 'normal_48h'}
+                        className={`ax-seg-btn${urgency === 'normal_48h' ? ' is-active' : ''}`}
+                        onClick={() => setUrgency('normal_48h')}
                       >
-                        <Send size={14} />
-                        <span>Envoyer</span>
+                        Normal · 48 h
+                      </button>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={urgency === 'urgent'}
+                        className={`ax-seg-btn${urgency === 'urgent' ? ' is-active' : ''}`}
+                        onClick={() => setUrgency('urgent')}
+                      >
+                        <Clock size={13} />
+                        Prioritaire
                       </button>
                     </div>
                   </div>
+
+                  <div className="ax-field ax-span-2">
+                    <label className="ax-label" htmlFor="esc-object">Objet</label>
+                    <input
+                      id="esc-object"
+                      type="text"
+                      className="ax-input"
+                      placeholder="Ex. : calcul du préavis de démission, CCN 66"
+                      value={object}
+                      onChange={(e) => setObject(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="ax-field ax-span-2">
+                    <label className="ax-label" htmlFor="esc-question">Votre question</label>
+                    <textarea
+                      id="esc-question"
+                      className="ax-textarea"
+                      placeholder="Les faits, les dates, l'ancienneté du salarié, la clause ou la décision concernée…"
+                      value={question}
+                      onChange={(e) => setQuestion(e.target.value)}
+                      rows={6}
+                      required
+                    />
+                    <span className="ax-hint">Précisez les faits, les dates, les montants et les documents concernés. Votre question est transmise avec le profil de votre association.</span>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div style={{ backgroundColor: 'var(--color-orange-light)', padding: '16px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
-                <Clock size={20} style={{ color: 'var(--color-orange-dark)', minWidth: 20 }} />
-                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-orange-dark)', fontWeight: 500 }}>
-                  Cette question est en cours d'instruction par Laetitia Badji (Cabinet Maé). La réponse argumentée sera notifiée avant l'échéance des 48h ouvrées.
-                </span>
-              </div>
+
+                <div className="ax-row" style={{ justifyContent: 'flex-end' }}>
+                  <button type="submit" className="ax-btn ax-btn-primary">
+                    <Send size={15} />
+                    <span>Envoyer la question</span>
+                  </button>
+                </div>
+              </form>
             )}
           </div>
-        </div>
-      )}
+        </m.section>
+
+        {/* Historique */}
+        <m.section className="ax-card ax-sticky" {...fadeUp(0.15)}>
+          <div className="ax-card-head">
+            <h2 className="ax-card-title">Vos questions</h2>
+            <span className="ax-count">{orgTickets.length}</span>
+          </div>
+
+          {orgTickets.length === 0 ? (
+            <div className="ax-empty">
+              <div className="ax-empty-icon">
+                <MessageSquare size={22} />
+              </div>
+              <div className="ax-empty-title">Aucune question pour l'instant</div>
+              <p className="ax-small">Les questions envoyées et les réponses de l'experte apparaîtront ici.</p>
+            </div>
+          ) : (
+            <div className="ax-list ax-esc-list">
+              {orgTickets.map((t, i) => {
+                const badge = statusBadge(t.status);
+                return (
+                  <m.button
+                    key={t.id}
+                    type="button"
+                    className={`ax-list-item${selectedTicket?.id === t.id ? ' is-active' : ''}`}
+                    onClick={() => setSelectedTicket(t)}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease, delay: 0.2 + Math.min(i, 8) * 0.04 }}
+                  >
+                    <div className="ax-row-between" style={{ flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+                      <span className="ax-strong" style={{ minWidth: 0, wordBreak: 'break-word' }}>{t.object}</span>
+                      <span className={badge.className}>{badge.label}</span>
+                    </div>
+                    <div className="ax-esc-ticket-meta">
+                      <span className="ax-ellipsis">{getDomainLabel(t.domain)}</span>
+                      <span style={{ flexShrink: 0 }}>{new Date(t.createdAt).toLocaleDateString('fr-FR')}</span>
+                    </div>
+                  </m.button>
+                );
+              })}
+            </div>
+          )}
+        </m.section>
+      </div>
+
+      {/* Détail d'une question */}
+      <AnimatePresence>
+        {selectedTicket && (
+          <m.div
+            key="ticket-overlay"
+            className="ax-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <m.div
+              className="ax-modal ax-esc-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="esc-ticket-title"
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ duration: 0.3, ease }}
+            >
+              <div className="ax-card-head" style={{ alignItems: 'flex-start' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div className="ax-row" style={{ marginBottom: 4 }}>
+                    <span className="ax-esc-ref">{selectedTicket.ref}</span>
+                    <span className={statusBadge(selectedTicket.status).className}>
+                      {statusBadge(selectedTicket.status).label}
+                    </span>
+                  </div>
+                  <h3 id="esc-ticket-title" className="ax-h3" style={{ wordBreak: 'break-word' }}>
+                    {selectedTicket.object}
+                  </h3>
+                  <div className="ax-xs ax-muted" style={{ marginTop: 2 }}>
+                    {getDomainLabel(selectedTicket.domain)} · {new Date(selectedTicket.createdAt).toLocaleDateString('fr-FR')}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTicket(null)}
+                  className="ax-btn ax-btn-ghost ax-btn-icon"
+                  aria-label="Fermer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="ax-card-body ax-stack-lg">
+                <div>
+                  <div className="ax-esc-section-label">Votre question</div>
+                  <div className="ax-esc-question ax-prewrap">{selectedTicket.question}</div>
+                </div>
+
+                {selectedTicket.status === 'answered' && selectedTicket.answer ? (
+                  <div className="ax-stack">
+                    <div className="ax-row">
+                      <span className="ax-avatar">LB</span>
+                      <div style={{ minWidth: 0 }}>
+                        <div className="ax-strong">Laetitia Badji</div>
+                        <div className="ax-xs ax-muted">
+                          Cabinet Maé ·{' '}
+                          {selectedTicket.answeredAt
+                            ? new Date(selectedTicket.answeredAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            : 'Réponse transmise'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="ax-esc-answer ax-prewrap">{selectedTicket.answer}</div>
+
+                    <hr className="ax-divider" />
+
+                    <div className="ax-field">
+                      <label className="ax-label" htmlFor="esc-followup">Besoin d'une précision ?</label>
+                      <div className="ax-esc-followup">
+                        <input
+                          id="esc-followup"
+                          type="text"
+                          className="ax-input"
+                          placeholder="Ex. : pouvez-vous préciser le délai de prévenance ?"
+                          value={followUpText}
+                          onChange={(e) => setFollowUpText(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!followUpText.trim() || !onUpdateTicket) return;
+                            const updated: ExpertTicket = {
+                              ...selectedTicket,
+                              question: `${selectedTicket.question}\n\n[Précision association le ${new Date().toLocaleTimeString('fr-FR')}] : ${followUpText.trim()}`,
+                              status: 'in_progress'
+                            };
+                            onUpdateTicket(updated);
+                            setSelectedTicket(updated);
+                            setFollowUpText('');
+                          }}
+                          className="ax-btn ax-btn-primary"
+                        >
+                          <Send size={14} />
+                          <span>Envoyer</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="ax-alert ax-alert-info">
+                    <Clock size={18} />
+                    <span className="ax-muted">
+                      Laetitia Badji étudie votre question. Vous recevrez sa réponse sous 48 h ouvrées.
+                    </span>
+                  </div>
+                )}
+              </div>
+            </m.div>
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

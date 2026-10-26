@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
+import { m, AnimatePresence } from 'motion/react';
 import { Organization, OrgMember } from '../types';
-import { 
-  Building2, 
-  CheckCircle2, 
-  Save, 
-  Trash2, 
-  Info, 
-  ShieldCheck, 
-  Calendar, 
-  Coins, 
-  Users, 
-  Landmark,
+import {
+  Building2,
+  CheckCircle2,
+  Save,
+  Trash2,
+  Coins,
+  Users,
   Plus,
   X,
   CreditCard,
-  UserCheck
+  RotateCcw
 } from 'lucide-react';
+import './OrgProfileView.css';
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const cardMotion = (i: number) => ({
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4, ease: EASE, delay: 0.05 + i * 0.06 }
+});
 
 interface OrgProfileViewProps {
   currentOrg: Organization;
@@ -100,371 +106,26 @@ export const OrgProfileView: React.FC<OrgProfileViewProps> = ({
     setTimeout(() => setSaveSuccess(false), 4000);
   };
 
+
+  const maskId = (value: string) =>
+    value.length > 4 ? `•••• ${value.slice(-4)}` : value;
+
   return (
-    <div className="animate-fade-in" style={{ maxWidth: 1000, margin: '0 auto', padding: 'var(--space-6)' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 'var(--space-8)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'var(--space-2)' }}>
-          <span className="badge badge-blue">Lot 2 — Multi-tenant & Profil</span>
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-navy-muted)' }}>
-            Isolation stricte par organization_id
-          </span>
+    <div>
+      {/* En-tête */}
+      <m.div
+        className="ax-page-head"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: EASE }}
+      >
+        <div>
+          <h1 className="ax-page-title">Mon association</h1>
+          <p className="ax-page-sub">
+            Ces informations permettent de personnaliser les réponses de l'assistant et de préremplir vos questions à l'experte.
+          </p>
         </div>
-        <h1 style={{ fontSize: 'var(--text-3xl)', color: 'var(--color-navy)', marginBottom: 'var(--space-2)' }}>
-          Profil de l'association employeuse
-        </h1>
-        <p style={{ color: 'var(--color-navy-muted)', fontSize: 'var(--text-base)' }}>
-          Ces informations alimentent automatiquement le prompt de l'assistant IA et le préremplissage des questions expertes adressées à Laetitia Badji.
-        </p>
-      </div>
-
-      {saveSuccess && (
-        <div className="card animate-fade-in" style={{
-          backgroundColor: 'var(--color-lime-glow)',
-          borderColor: 'var(--color-lime)',
-          marginBottom: 'var(--space-6)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <CheckCircle2 size={24} style={{ color: 'var(--color-lime-dark)' }} />
-          <div>
-            <div style={{ fontWeight: 700, color: 'var(--color-navy)' }}>
-              Profil mis à jour avec succès !
-            </div>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-navy-muted)' }}>
-              Les nouvelles données sont désormais immédiatement appliquées à vos futures requêtes IA.
-            </div>
-          </div>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-        {/* Identité Légale */}
-        <div className="card">
-          <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Building2 size={20} style={{ color: 'var(--color-blue)' }} />
-            <span>Identité légale et déclarative</span>
-          </h2>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
-            <div>
-              <label className="form-label">Nom officiel de l'association :</label>
-              <input
-                type="text"
-                className="input"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="form-label">Numéro SIREN (9 chiffres) :</label>
-              <input
-                type="text"
-                className="input"
-                value={formData.siren}
-                onChange={(e) => setFormData({ ...formData, siren: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="form-label">Numéro RNA (W + 9 chiffres) :</label>
-              <input
-                type="text"
-                className="input"
-                value={formData.rna}
-                onChange={(e) => setFormData({ ...formData, rna: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="form-label">Secteur d'activité principal :</label>
-              <input
-                type="text"
-                className="input"
-                value={formData.sector}
-                onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Cadre Social & RH */}
-        <div className="card">
-          <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Users size={20} style={{ color: 'var(--color-blue)' }} />
-            <span>Cadre social et convention collective</span>
-          </h2>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="form-label">Convention collective applicable :</label>
-              <select
-                className="select"
-                value={formData.ccn}
-                onChange={(e) => setFormData({ ...formData, ccn: e.target.value })}
-              >
-                {ccnOptions.map((c, idx) => (
-                  <option key={idx} value={c}>{c}</option>
-                ))}
-              </select>
-              <div className="form-hint">
-                L'IA utilisera exclusivement les grilles et articles de cette convention pour vos réponses RH.
-              </div>
-            </div>
-
-            <div>
-              <label className="form-label">Nombre de salariés (1 à 100) :</label>
-              <input
-                type="number"
-                min={1}
-                max={100}
-                className="input"
-                value={formData.employeesCount}
-                onChange={(e) => setFormData({ ...formData, employeesCount: parseInt(e.target.value) || 1 })}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="form-label">Nombre d'établissements gérés :</label>
-              <input
-                type="number"
-                min={1}
-                className="input"
-                value={formData.establishmentsCount}
-                onChange={(e) => setFormData({ ...formData, establishmentsCount: parseInt(e.target.value) || 1 })}
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Cadre Financier & Gouvernance */}
-        <div className="card">
-          <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Coins size={20} style={{ color: 'var(--color-blue)' }} />
-            <span>Finances, calendrier et gouvernance</span>
-          </h2>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
-            <div>
-              <label className="form-label">Budget annuel global (€) :</label>
-              <input
-                type="number"
-                step={5000}
-                className="input"
-                value={formData.annualBudget}
-                onChange={(e) => setFormData({ ...formData, annualBudget: parseInt(e.target.value) || 0 })}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="form-label">Date de clôture d'exercice :</label>
-              <input
-                type="text"
-                className="input"
-                value={formData.fiscalYearEnd}
-                onChange={(e) => setFormData({ ...formData, fiscalYearEnd: e.target.value })}
-                placeholder="Ex: 31 décembre"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="form-label">Mois habituel de l'AG d'approbation :</label>
-              <input
-                type="text"
-                className="input"
-                value={formData.usualAgMonth}
-                onChange={(e) => setFormData({ ...formData, usualAgMonth: e.target.value })}
-                placeholder="Ex: Juin"
-                required
-              />
-            </div>
-
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="form-label">Principaux financeurs publics (séparés par des virgules) :</label>
-              <input
-                type="text"
-                className="input"
-                value={formData.mainFunders.join(', ')}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  mainFunders: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                })}
-                placeholder="Ex: Conseil Départemental 75, CAF, ARS"
-              />
-            </div>
-
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="form-label">Description synthétique de la gouvernance :</label>
-              <textarea
-                className="textarea"
-                value={formData.governanceSummary}
-                onChange={(e) => setFormData({ ...formData, governanceSummary: e.target.value })}
-                rows={3}
-                placeholder="Ex: Conseil d'administration de 9 membres, bureau exécutif avec Présidente et Trésorier..."
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Membres & Gouvernance (Bureau, CA, Salariés) */}
-        <div className="card">
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 'var(--space-4)',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            <div>
-              <h2 style={{ fontSize: 'var(--text-xl)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <Users size={20} style={{ color: 'var(--color-blue)' }} />
-                <span>Membres du bureau, gouvernance & équipe</span>
-              </h2>
-              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-navy-muted)', margin: 0 }}>
-                Habilitations déclaratives, signataires légaux et correspondants RH de l'association.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsAddMemberModalOpen(true)}
-              className="btn btn-sm btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              <Plus size={16} />
-              <span>Nouveau membre</span>
-            </button>
-          </div>
-
-          {/* Members List */}
-          {(!formData.members || formData.members.length === 0) ? (
-            <div style={{
-              textAlign: 'center',
-              padding: '32px 16px',
-              backgroundColor: 'var(--color-bg-app)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--color-navy-muted)'
-            }}>
-              <Users size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
-              <p style={{ fontSize: 'var(--text-sm)', marginBottom: '12px' }}>
-                Aucun membre déclaré pour le moment dans le bureau.
-              </p>
-              <button
-                type="button"
-                onClick={() => setIsAddMemberModalOpen(true)}
-                className="btn btn-sm btn-outline-blue"
-              >
-                + Ajouter le premier membre
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {formData.members.map((member) => (
-                <div
-                  key={member.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '14px 16px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: '#ffffff',
-                    flexWrap: 'wrap',
-                    gap: '12px'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 'var(--radius-pill)',
-                      backgroundColor: 'var(--color-blue-light)',
-                      color: 'var(--color-blue)',
-                      fontWeight: 800,
-                      fontSize: '14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      {member.firstName.charAt(0)}{member.lastName.charAt(0)}
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--color-navy)' }}>
-                          {member.firstName} {member.lastName}
-                        </span>
-                        <span className="badge badge-blue" style={{ fontSize: '10px' }}>
-                          {member.role}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)', display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px', flexWrap: 'wrap' }}>
-                        <span>{member.email}</span>
-                        {member.phone && <span>&bull; {member.phone}</span>}
-                        <span>&bull; Ajouté le {member.joinedDate}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    {/* CNI Optional badge */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '4px 10px',
-                      borderRadius: 'var(--radius-pill)',
-                      fontSize: '11px',
-                      backgroundColor: member.idCardNumber ? 'var(--color-lime-glow)' : 'var(--color-bg-app)',
-                      border: `1px solid ${member.idCardNumber ? 'var(--color-lime)' : 'var(--color-border)'}`,
-                      color: member.idCardNumber ? 'var(--color-navy)' : 'var(--color-navy-muted)'
-                    }}>
-                      <CreditCard size={12} style={{ color: member.idCardNumber ? 'var(--color-lime-dark)' : 'var(--color-navy-muted)' }} />
-                      <span>
-                        {member.idCardNumber ? `CNI : ${member.idCardNumber}` : 'CNI non renseignée'}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteMember(member.id)}
-                      className="btn btn-sm"
-                      style={{
-                        padding: '6px',
-                        color: 'var(--color-red)',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer'
-                      }}
-                      title="Supprimer ce membre"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-          <button type="submit" className="btn btn-primary" style={{ minWidth: 200 }}>
-            <Save size={18} />
-            <span>Enregistrer les modifications</span>
-          </button>
-
+        <div className="ax-page-actions">
           <button
             type="button"
             onClick={() => {
@@ -472,199 +133,507 @@ export const OrgProfileView: React.FC<OrgProfileViewProps> = ({
                 setFormData({ ...currentOrg });
               }
             }}
-            className="btn btn-secondary"
+            className="ax-btn ax-btn-secondary"
+          >
+            <RotateCcw size={16} />
+            <span>Réinitialiser</span>
+          </button>
+          <button type="submit" form="org-profile-form" className="ax-btn ax-btn-primary">
+            <Save size={16} />
+            <span>Enregistrer</span>
+          </button>
+        </div>
+      </m.div>
+
+      <form id="org-profile-form" onSubmit={handleSubmit} className="ax-stack-lg">
+        {/* Identité */}
+        <m.section className="ax-card" {...cardMotion(0)}>
+          <div className="ax-card-head">
+            <div>
+              <div className="ax-card-title op-card-title">
+                <Building2 size={18} />
+                <span>Identité</span>
+              </div>
+              <div className="ax-card-sub">Informations légales de l'association.</div>
+            </div>
+          </div>
+          <div className="ax-card-body">
+            <div className="ax-form-grid">
+              <div className="ax-field ax-span-2">
+                <label className="ax-label" htmlFor="op-name">Nom officiel</label>
+                <input
+                  id="op-name"
+                  type="text"
+                  className="ax-input"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="ax-field">
+                <label className="ax-label" htmlFor="op-siren">Numéro SIREN</label>
+                <input
+                  id="op-siren"
+                  type="text"
+                  className="ax-input"
+                  value={formData.siren}
+                  onChange={(e) => setFormData({ ...formData, siren: e.target.value })}
+                  required
+                />
+                <span className="ax-hint">9 chiffres</span>
+              </div>
+
+              <div className="ax-field">
+                <label className="ax-label" htmlFor="op-rna">Numéro RNA</label>
+                <input
+                  id="op-rna"
+                  type="text"
+                  className="ax-input"
+                  value={formData.rna}
+                  onChange={(e) => setFormData({ ...formData, rna: e.target.value })}
+                  required
+                />
+                <span className="ax-hint">W suivi de 9 chiffres</span>
+              </div>
+
+              <div className="ax-field ax-span-2">
+                <label className="ax-label" htmlFor="op-sector">Secteur d'activité</label>
+                <input
+                  id="op-sector"
+                  type="text"
+                  className="ax-input"
+                  value={formData.sector}
+                  onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </m.section>
+
+        {/* Activité et emploi */}
+        <m.section className="ax-card" {...cardMotion(1)}>
+          <div className="ax-card-head">
+            <div>
+              <div className="ax-card-title op-card-title">
+                <Users size={18} />
+                <span>Activité et emploi</span>
+              </div>
+              <div className="ax-card-sub">Convention collective et taille de la structure.</div>
+            </div>
+          </div>
+          <div className="ax-card-body">
+            <div className="ax-form-grid">
+              <div className="ax-field ax-span-2">
+                <label className="ax-label" htmlFor="op-ccn">Convention collective</label>
+                <select
+                  id="op-ccn"
+                  className="ax-select"
+                  value={formData.ccn}
+                  onChange={(e) => setFormData({ ...formData, ccn: e.target.value })}
+                >
+                  {ccnOptions.map((c, idx) => (
+                    <option key={idx} value={c}>{c}</option>
+                  ))}
+                </select>
+                <span className="ax-hint">
+                  Les réponses RH s'appuient sur les grilles et articles de cette convention.
+                </span>
+              </div>
+
+              <div className="ax-field">
+                <label className="ax-label" htmlFor="op-employees">Nombre de salariés</label>
+                <input
+                  id="op-employees"
+                  type="number"
+                  min={1}
+                  max={100}
+                  className="ax-input"
+                  value={formData.employeesCount}
+                  onChange={(e) => setFormData({ ...formData, employeesCount: parseInt(e.target.value) || 1 })}
+                  required
+                />
+                <span className="ax-hint">De 1 à 100</span>
+              </div>
+
+              <div className="ax-field">
+                <label className="ax-label" htmlFor="op-establishments">Nombre d'établissements</label>
+                <input
+                  id="op-establishments"
+                  type="number"
+                  min={1}
+                  className="ax-input"
+                  value={formData.establishmentsCount}
+                  onChange={(e) => setFormData({ ...formData, establishmentsCount: parseInt(e.target.value) || 1 })}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </m.section>
+
+        {/* Gouvernance et financements */}
+        <m.section className="ax-card" {...cardMotion(2)}>
+          <div className="ax-card-head">
+            <div>
+              <div className="ax-card-title op-card-title">
+                <Coins size={18} />
+                <span>Gouvernance et financements</span>
+              </div>
+              <div className="ax-card-sub">Budget, calendrier annuel et financeurs.</div>
+            </div>
+          </div>
+          <div className="ax-card-body">
+            <div className="ax-form-grid">
+              <div className="ax-field">
+                <label className="ax-label" htmlFor="op-budget">Budget annuel (€)</label>
+                <input
+                  id="op-budget"
+                  type="number"
+                  step={5000}
+                  className="ax-input"
+                  value={formData.annualBudget}
+                  onChange={(e) => setFormData({ ...formData, annualBudget: parseInt(e.target.value) || 0 })}
+                  required
+                />
+              </div>
+
+              <div className="ax-field">
+                <label className="ax-label" htmlFor="op-fye">Clôture de l'exercice</label>
+                <input
+                  id="op-fye"
+                  type="text"
+                  className="ax-input"
+                  value={formData.fiscalYearEnd}
+                  onChange={(e) => setFormData({ ...formData, fiscalYearEnd: e.target.value })}
+                  placeholder="Ex. : 31 décembre"
+                  required
+                />
+              </div>
+
+              <div className="ax-field">
+                <label className="ax-label" htmlFor="op-ag">Mois habituel de l'AG</label>
+                <input
+                  id="op-ag"
+                  type="text"
+                  className="ax-input"
+                  value={formData.usualAgMonth}
+                  onChange={(e) => setFormData({ ...formData, usualAgMonth: e.target.value })}
+                  placeholder="Ex. : juin"
+                  required
+                />
+              </div>
+
+              <div className="ax-field ax-span-2">
+                <label className="ax-label" htmlFor="op-funders">Principaux financeurs</label>
+                <input
+                  id="op-funders"
+                  type="text"
+                  className="ax-input"
+                  value={formData.mainFunders.join(', ')}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    mainFunders: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                  })}
+                  placeholder="Ex. : Conseil départemental, CAF, ARS"
+                />
+                <span className="ax-hint">Séparez-les par des virgules.</span>
+                {formData.mainFunders.length > 0 && (
+                  <div className="op-funders">
+                    {formData.mainFunders.map((funder, idx) => (
+                      <span key={idx} className="ax-badge ax-badge-blue">{funder}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="ax-field ax-span-2">
+                <label className="ax-label" htmlFor="op-governance">Gouvernance en quelques mots</label>
+                <textarea
+                  id="op-governance"
+                  className="ax-textarea"
+                  value={formData.governanceSummary}
+                  onChange={(e) => setFormData({ ...formData, governanceSummary: e.target.value })}
+                  rows={3}
+                  placeholder="Ex. : conseil d'administration de 9 membres, bureau avec présidente et trésorier"
+                />
+              </div>
+            </div>
+          </div>
+        </m.section>
+
+        {/* Membres */}
+        <m.section className="ax-card" {...cardMotion(3)}>
+          <div className="ax-card-head">
+            <div>
+              <div className="ax-card-title op-card-title">
+                <Users size={18} />
+                <span>Membres</span>
+                {formData.members && formData.members.length > 0 && (
+                  <span className="ax-count">{formData.members.length}</span>
+                )}
+              </div>
+              <div className="ax-card-sub">Bureau, conseil d'administration et équipe.</div>
+            </div>
+            {formData.members && formData.members.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsAddMemberModalOpen(true)}
+                className="ax-btn ax-btn-secondary ax-btn-sm"
+              >
+                <Plus size={15} />
+                <span>Ajouter</span>
+              </button>
+            )}
+          </div>
+
+          {(!formData.members || formData.members.length === 0) ? (
+            <div className="ax-empty">
+              <div className="ax-empty-icon"><Users size={22} /></div>
+              <div className="ax-empty-title">Aucun membre pour le moment</div>
+              <p className="ax-small" style={{ marginBottom: 16 }}>
+                Ajoutez les membres du bureau et vos interlocuteurs RH.
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsAddMemberModalOpen(true)}
+                className="ax-btn ax-btn-primary ax-btn-sm"
+              >
+                <Plus size={15} />
+                <span>Ajouter un membre</span>
+              </button>
+            </div>
+          ) : (
+            <ul className="op-members">
+              {formData.members.map((member) => (
+                <li key={member.id} className="op-member">
+                  <span className="ax-avatar ax-avatar-soft" aria-hidden="true">
+                    {member.firstName.charAt(0)}{member.lastName.charAt(0)}
+                  </span>
+                  <div style={{ minWidth: 0 }}>
+                    <div className="ax-row">
+                      <span className="op-member-name">{member.firstName} {member.lastName}</span>
+                      <span className="ax-badge">{member.role}</span>
+                    </div>
+                    <div className="op-member-meta">
+                      <span>{member.email}</span>
+                      {member.phone && <span>{member.phone}</span>}
+                      <span>Ajouté le {member.joinedDate}</span>
+                    </div>
+                  </div>
+                  <div className="op-member-side">
+                    <span
+                      className="ax-xs ax-faint ax-row"
+                      style={{ gap: 4 }}
+                      title={member.idCardNumber ? "Pièce d'identité renseignée" : "Pièce d'identité non renseignée"}
+                    >
+                      <CreditCard size={13} />
+                      <span>{member.idCardNumber ? maskId(member.idCardNumber) : 'Pièce non renseignée'}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteMember(member.id)}
+                      className="ax-btn ax-btn-danger ax-btn-sm"
+                      title="Retirer ce membre"
+                      aria-label={`Retirer ${member.firstName} ${member.lastName}`}
+                    >
+                      <Trash2 size={14} />
+                      <span className="ax-hide-sm">Retirer</span>
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </m.section>
+
+        {/* Actions bas de page */}
+        <div className="op-bottom-actions">
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('Voulez-vous réinitialiser le formulaire avec les valeurs actuelles ?')) {
+                setFormData({ ...currentOrg });
+              }
+            }}
+            className="ax-btn ax-btn-ghost"
           >
             Réinitialiser
+          </button>
+          <button type="submit" className="ax-btn ax-btn-primary">
+            <Save size={16} />
+            <span>Enregistrer les modifications</span>
           </button>
         </div>
       </form>
 
-      {/* Modal Nouveau Membre */}
-      {isAddMemberModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(10, 37, 64, 0.6)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 150,
-          padding: '20px'
-        }}>
-          <div
-            className="card animate-fade-in"
-            style={{
-              maxWidth: 540,
-              width: '100%',
-              backgroundColor: '#ffffff',
-              borderRadius: '20px',
-              padding: '28px',
-              boxShadow: 'var(--shadow-float)'
-            }}
+      {/* Confirmation */}
+      <AnimatePresence>
+        {saveSuccess && (
+          <m.div
+            key="op-toast"
+            className="ax-toast op-toast"
+            role="status"
+            style={{ x: '-50%' }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.25, ease: EASE }}
           >
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '20px',
-              paddingBottom: '14px',
-              borderBottom: '1px solid var(--color-border)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '10px',
-                  backgroundColor: 'var(--color-blue-light)',
-                  color: 'var(--color-blue)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <UserCheck size={20} />
+            <CheckCircle2 size={18} />
+            <span>Modifications enregistrées. L'assistant en tiendra compte.</span>
+          </m.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modale nouveau membre */}
+      <AnimatePresence>
+        {isAddMemberModalOpen && (
+          <m.div
+            key="op-overlay"
+            className="ax-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <m.div
+              className="ax-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="op-modal-title"
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ duration: 0.3, ease: EASE }}
+            >
+              <form onSubmit={handleAddMember}>
+                <div className="op-modal-head">
+                  <div>
+                    <h2 id="op-modal-title" className="ax-h3">Ajouter un membre</h2>
+                    <div className="ax-card-sub">Bureau, conseil d'administration ou équipe salariée.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddMemberModalOpen(false)}
+                    className="ax-btn ax-btn-ghost ax-btn-icon"
+                    aria-label="Fermer"
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
-                <div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)', margin: 0 }}>
-                    Ajouter un nouveau membre
-                  </h3>
-                  <div style={{ fontSize: '12px', color: 'var(--color-navy-muted)' }}>
-                    Bureau, Conseil d'Administration ou équipe salariée
+
+                <div className="op-modal-body">
+                  <div className="ax-form-grid">
+                    <div className="ax-field">
+                      <label className="ax-label" htmlFor="op-m-first">Prénom</label>
+                      <input
+                        id="op-m-first"
+                        type="text"
+                        className="ax-input"
+                        placeholder="Ex. : Hélène"
+                        value={newMemberFirst}
+                        onChange={(e) => setNewMemberFirst(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="ax-field">
+                      <label className="ax-label" htmlFor="op-m-last">Nom</label>
+                      <input
+                        id="op-m-last"
+                        type="text"
+                        className="ax-input"
+                        placeholder="Ex. : Dubois"
+                        value={newMemberLast}
+                        onChange={(e) => setNewMemberLast(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="ax-field ax-span-2">
+                      <label className="ax-label" htmlFor="op-m-role">Rôle</label>
+                      <select
+                        id="op-m-role"
+                        className="ax-select"
+                        value={newMemberRole}
+                        onChange={(e) => setNewMemberRole(e.target.value)}
+                        required
+                      >
+                        <option value="Présidente / Président">Présidente / Président</option>
+                        <option value="Vice-Présidente / Vice-Président">Vice-Présidente / Vice-Président</option>
+                        <option value="Trésorière / Trésorier">Trésorière / Trésorier</option>
+                        <option value="Secrétaire générale / Secrétaire général">Secrétaire générale / Secrétaire général</option>
+                        <option value="Membre du Conseil d'Administration">Membre du Conseil d'Administration</option>
+                        <option value="Directrice générale salariée / Directeur">Directrice générale salariée / Directeur</option>
+                        <option value="Responsable RH / Paie">Responsable RH / Paie</option>
+                        <option value="Salarié(e)">Salarié(e)</option>
+                      </select>
+                    </div>
+
+                    <div className="ax-field">
+                      <label className="ax-label" htmlFor="op-m-email">E-mail</label>
+                      <input
+                        id="op-m-email"
+                        type="email"
+                        className="ax-input"
+                        placeholder="contact@asso.org"
+                        value={newMemberEmail}
+                        onChange={(e) => setNewMemberEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="ax-field">
+                      <label className="ax-label" htmlFor="op-m-phone">
+                        Téléphone <span className="ax-faint" style={{ fontWeight: 400 }}>(facultatif)</span>
+                      </label>
+                      <input
+                        id="op-m-phone"
+                        type="tel"
+                        className="ax-input"
+                        placeholder="06 12 34 56 78"
+                        value={newMemberPhone}
+                        onChange={(e) => setNewMemberPhone(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="ax-field op-id-field">
+                    <label className="ax-label" htmlFor="op-m-id">
+                      Pièce d'identité <span className="ax-faint" style={{ fontWeight: 400 }}>(facultatif)</span>
+                    </label>
+                    <input
+                      id="op-m-id"
+                      type="text"
+                      className="ax-input"
+                      placeholder="Numéro de carte d'identité ou de passeport"
+                      value={newMemberIdCard}
+                      onChange={(e) => setNewMemberIdCard(e.target.value)}
+                    />
+                    <span className="ax-hint">
+                      Utile pour les formalités en préfecture (statuts, bureau) et les délégations bancaires.
+                    </span>
                   </div>
                 </div>
-              </div>
 
-              <button
-                type="button"
-                onClick={() => setIsAddMemberModalOpen(false)}
-                className="btn btn-sm"
-                style={{ padding: '6px', background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddMember} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
-                <div>
-                  <label className="form-label">Prénom * :</label>
-                  <input
-                    type="text"
-                    className="input"
-                    placeholder="Ex: Hélène"
-                    value={newMemberFirst}
-                    onChange={(e) => setNewMemberFirst(e.target.value)}
-                    required
-                  />
+                <div className="op-modal-foot">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddMemberModalOpen(false)}
+                    className="ax-btn ax-btn-secondary"
+                  >
+                    Annuler
+                  </button>
+                  <button type="submit" className="ax-btn ax-btn-primary">
+                    <Plus size={16} />
+                    <span>Ajouter le membre</span>
+                  </button>
                 </div>
-                <div>
-                  <label className="form-label">Nom * :</label>
-                  <input
-                    type="text"
-                    className="input"
-                    placeholder="Ex: Dubois"
-                    value={newMemberLast}
-                    onChange={(e) => setNewMemberLast(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="form-label">Rôle / Fonction dans l'association * :</label>
-                <select
-                  className="select"
-                  value={newMemberRole}
-                  onChange={(e) => setNewMemberRole(e.target.value)}
-                  required
-                >
-                  <option value="Présidente / Président">Présidente / Président</option>
-                  <option value="Vice-Présidente / Vice-Président">Vice-Présidente / Vice-Président</option>
-                  <option value="Trésorière / Trésorier">Trésorière / Trésorier</option>
-                  <option value="Secrétaire générale / Secrétaire général">Secrétaire générale / Secrétaire général</option>
-                  <option value="Membre du Conseil d'Administration">Membre du Conseil d'Administration</option>
-                  <option value="Directrice générale salariée / Directeur">Directrice générale salariée / Directeur</option>
-                  <option value="Responsable RH / Paie">Responsable RH / Paie</option>
-                  <option value="Salarié(e)">Salarié(e)</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
-                <div>
-                  <label className="form-label">Email professionnel * :</label>
-                  <input
-                    type="email"
-                    className="input"
-                    placeholder="contact@asso.org"
-                    value={newMemberEmail}
-                    onChange={(e) => setNewMemberEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="form-label">Téléphone (Optionnel) :</label>
-                  <input
-                    type="tel"
-                    className="input"
-                    placeholder="06 12 34 56 78"
-                    value={newMemberPhone}
-                    onChange={(e) => setNewMemberPhone(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Champ optionnel CNI exigé par l'utilisateur */}
-              <div style={{
-                backgroundColor: 'var(--color-bg-app)',
-                padding: '14px',
-                borderRadius: '12px',
-                border: '1.5px dashed var(--color-border)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <label className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CreditCard size={15} style={{ color: 'var(--color-blue)' }} />
-                    <span>Numéro de carte d'identité ou passeport :</span>
-                  </label>
-                  <span className="badge badge-blue" style={{ fontSize: '10px' }}>
-                    Optionnel
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="Ex: 240875102934 ou 19AB12345"
-                  value={newMemberIdCard}
-                  onChange={(e) => setNewMemberIdCard(e.target.value)}
-                  style={{ backgroundColor: '#ffffff' }}
-                />
-                <div className="form-hint" style={{ marginTop: '4px', fontSize: '11px' }}>
-                  Facultatif. Utile pour les formalités officielles en préfecture (modification des statuts/bureau) et les délégations bancaires.
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
-                <button
-                  type="button"
-                  onClick={() => setIsAddMemberModalOpen(false)}
-                  className="btn btn-secondary"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                >
-                  <Plus size={16} />
-                  <span>Enregistrer le membre</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+              </form>
+            </m.div>
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

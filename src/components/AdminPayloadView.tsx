@@ -1,22 +1,21 @@
 import React, { useState } from 'react';
+import { m, AnimatePresence } from 'motion/react';
 import { Plan, ExpertTicket, AiUsageRecord } from '../types';
-import { 
-  Settings2, 
-  CheckCircle2, 
-  UserCheck, 
-  DollarSign, 
-  Cpu, 
-  Globe2, 
-  FileEdit, 
-  Save, 
-  Search,
-  MessageSquare,
+import {
+  CheckCircle2,
+  UserCheck,
+  CreditCard,
+  Cpu,
+  Globe2,
+  Save,
+  Send,
   Lock,
-  ArrowRight,
-  LogOut,
-  Sparkles,
-  Scale
+  Inbox,
+  FileText,
+  AlertCircle
 } from 'lucide-react';
+import { AppShell, AppShellNavItem, EASE } from './AppShell';
+import './AdminPayloadView.css';
 
 interface AdminPayloadViewProps {
   plans: Plan[];
@@ -26,6 +25,33 @@ interface AdminPayloadViewProps {
   aiUsageRecords: AiUsageRecord[];
   onLogout?: () => void;
 }
+
+type AdminTab = 'tickets' | 'plans' | 'ai_usage' | 'seo';
+
+const DOMAIN_LABELS: Record<string, string> = {
+  rh: 'RH',
+  gouvernance: 'Gouvernance',
+  finance: 'Finance',
+  conformite: 'Conformité'
+};
+
+const STATUS_META: Record<ExpertTicket['status'], { label: string; cls: string }> = {
+  pending: { label: 'À traiter', cls: 'ax-badge ax-badge-orange' },
+  in_progress: { label: 'En cours', cls: 'ax-badge ax-badge-blue' },
+  answered: { label: 'Répondu', cls: 'ax-badge ax-badge-lime' }
+};
+
+// Affichage uniquement : date courte si la valeur est interprétable, sinon valeur brute
+const formatDate = (value: string) => {
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+const listItem = {
+  hidden: { opacity: 0, y: 8 },
+  show: (i: number) => ({ opacity: 1, y: 0, transition: { duration: 0.3, ease: EASE, delay: Math.min(i, 10) * 0.04 } })
+};
 
 export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
   plans,
@@ -100,542 +126,425 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
 
   const pendingTicketsCount = tickets.filter(t => t.status !== 'answered').length;
 
+  // Valeurs dérivées en lecture seule (affichage des indicateurs)
+  const countPending = tickets.filter(t => t.status === 'pending').length;
+  const countInProgress = tickets.filter(t => t.status === 'in_progress').length;
+  const countAnswered = tickets.filter(t => t.status === 'answered').length;
+  const totalCost = aiUsageRecords.reduce((sum, r) => sum + r.costEstimateEur, 0);
+  const totalTokens = aiUsageRecords.reduce((sum, r) => sum + r.inputTokens + r.outputTokens, 0);
+
+  const navItems: AppShellNavItem<AdminTab>[] = [
+    {
+      key: 'tickets',
+      label: 'Questions',
+      shortLabel: 'Questions',
+      icon: UserCheck,
+      count: pendingTicketsCount,
+      countTone: pendingTicketsCount > 0 ? 'alert' : 'neutral'
+    },
+    { key: 'plans', label: 'Formules', shortLabel: 'Formules', icon: CreditCard },
+    { key: 'ai_usage', label: 'Usage IA', shortLabel: 'Usage IA', icon: Cpu },
+    { key: 'seo', label: 'Pages SEO', shortLabel: 'SEO', icon: Globe2 }
+  ];
+
   return (
-    <div className="animate-fade-in" style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg)' }}>
-      {/* SaaS Admin Header Bar for Laetitia Badji (All on 1 single row) */}
-      <header style={{
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid var(--color-border)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 40,
-        boxShadow: '0 2px 8px rgba(10, 37, 64, 0.04)',
-        padding: '0 20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '16px',
-        height: '62px'
-      }}>
-        {/* Left: Identity & Status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          <div style={{
-            width: 36,
-            height: 36,
-            borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, var(--color-blue) 0%, #003680 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            boxShadow: '0 3px 10px rgba(0, 74, 173, 0.25)',
-            flexShrink: 0
-          }}>
-            <Scale size={18} />
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--color-navy)', letterSpacing: '-0.02em' }}>
-                Cabinet Maé
-              </span>
-              <span className="badge badge-lime" style={{ fontSize: '9px', padding: '1px 5px' }}>
-                Payload CMS
-              </span>
-            </div>
-            <div className="hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: 'var(--color-navy-muted)' }}>
-              <span style={{
-                display: 'inline-block',
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                backgroundColor: '#10b981'
-              }} />
-              <span style={{ fontWeight: 600, color: 'var(--color-navy)' }}>Laetitia Badji</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Center: Navigation Tabs (On Desktop / Tablet) */}
-        <nav className="header-desktop-nav" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '2px',
-          overflowX: 'auto',
-          whiteSpace: 'nowrap',
-          scrollbarWidth: 'none',
-          height: '100%',
-          flex: 1,
-          justifyContent: 'center',
-          minWidth: 0
-        }}>
-          {/* Tab 1: Questions */}
-          <button
-            onClick={() => setActiveTab('tickets')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '0 14px',
-              height: '100%',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: activeTab === 'tickets' ? 'var(--color-blue)' : 'var(--color-navy-muted)',
-              borderBottom: activeTab === 'tickets' ? '3px solid var(--color-blue)' : '3px solid transparent',
-              transition: 'all 0.15s ease',
-              flexShrink: 0
-            }}
-          >
-            <UserCheck size={16} />
-            <span>Questions & Arbitrages</span>
-            <span className={pendingTicketsCount > 0 ? "badge badge-orange" : "badge badge-lime"} style={{ fontSize: '9px', padding: '1px 5px' }}>
-              {pendingTicketsCount}
-            </span>
-          </button>
-
-          {/* Tab 2: Plans */}
-          <button
-            onClick={() => setActiveTab('plans')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '0 14px',
-              height: '100%',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: activeTab === 'plans' ? 'var(--color-blue)' : 'var(--color-navy-muted)',
-              borderBottom: activeTab === 'plans' ? '3px solid var(--color-blue)' : '3px solid transparent',
-              transition: 'all 0.15s ease',
-              flexShrink: 0
-            }}
-          >
-            <DollarSign size={16} />
-            <span>Formules & Quotas</span>
-          </button>
-
-          {/* Tab 3: AI Telemetry */}
-          <button
-            onClick={() => setActiveTab('ai_usage')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '0 14px',
-              height: '100%',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: activeTab === 'ai_usage' ? 'var(--color-blue)' : 'var(--color-navy-muted)',
-              borderBottom: activeTab === 'ai_usage' ? '3px solid var(--color-blue)' : '3px solid transparent',
-              transition: 'all 0.15s ease',
-              flexShrink: 0
-            }}
-          >
-            <Cpu size={16} />
-            <span>Télémétrie IA</span>
-          </button>
-
-          {/* Tab 4: SEO CMS */}
-          <button
-            onClick={() => setActiveTab('seo')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '0 14px',
-              height: '100%',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: activeTab === 'seo' ? 'var(--color-blue)' : 'var(--color-navy-muted)',
-              borderBottom: activeTab === 'seo' ? '3px solid var(--color-blue)' : '3px solid transparent',
-              transition: 'all 0.15s ease',
-              flexShrink: 0
-            }}
-          >
-            <Globe2 size={16} />
-            <span>CMS SEO</span>
-          </button>
-        </nav>
-
-        {/* Right actions: Counter, Avatar, Logout (On the SAME row) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          <div className="hide-on-mobile" style={{
-            backgroundColor: pendingTicketsCount > 0 ? '#fff7ed' : 'var(--color-surface-subtle)',
-            border: `1px solid ${pendingTicketsCount > 0 ? '#ffedd5' : 'var(--color-border)'}`,
-            padding: '4px 10px',
-            borderRadius: 'var(--radius-pill)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            fontSize: '11px'
-          }}>
-            <Sparkles size={13} style={{ color: pendingTicketsCount > 0 ? '#ea580c' : 'var(--color-lime-dark)' }} />
-            <span style={{
-              color: pendingTicketsCount > 0 ? '#c2410c' : 'var(--color-navy)',
-              fontWeight: 700
-            }}>
-              {pendingTicketsCount} à traiter
-            </span>
-          </div>
-
-          <div style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            backgroundColor: 'var(--color-navy)',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 800,
-            fontSize: '11px',
-            boxShadow: '0 2px 6px rgba(10, 37, 64, 0.2)'
-          }}>
-            LB
-          </div>
-
-          {onLogout && (
-            <button
-              onClick={onLogout}
-              className="btn btn-sm"
-              style={{
-                fontSize: '12px',
-                padding: '3px 10px',
-                height: '30px',
-                color: 'var(--color-red)',
-                backgroundColor: 'var(--color-red-light)',
-                border: '1px solid rgba(229, 62, 62, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-              title="Se déconnecter de l'espace experte"
-            >
-              <LogOut size={13} />
-              <span className="hide-on-mobile">Déconnexion</span>
-            </button>
-          )}
-        </div>
-      </header>
-
-      {/* Main Back-Office Content Container */}
-      <div className="has-mobile-bottom-nav" style={{ maxWidth: 1400, margin: '0 auto', padding: '16px 16px' }}>
-        {/* Contextual Sub-header */}
-        <div style={{ marginBottom: '20px' }}>
-          <h1 style={{ fontSize: 'var(--text-2xl)', color: 'var(--color-navy)', marginBottom: '4px' }}>
-            {activeTab === 'tickets' && "File d'attente des arbitrages juridiques"}
-            {activeTab === 'plans' && "Gestion des formules d'abonnement & quotas"}
-            {activeTab === 'ai_usage' && "Supervision des modèles & télémétrie IA"}
-            {activeTab === 'seo' && "Éditeur de pages & référencement SEO"}
-          </h1>
-          <p style={{ color: 'var(--color-navy-muted)', fontSize: 'var(--text-sm)', margin: 0 }}>
-            {activeTab === 'tickets' && "Consultez les sollicitations escaladées par les associations clientes et rédigez vos réponses argumentées sous 48h."}
-            {activeTab === 'plans' && "Ajustez les tarifs mensuels et les plafonds de questions expertes en direct sans déploiement technique."}
-            {activeTab === 'ai_usage' && "Audit des tokens consommés et suivi des coûts des modèles d'IA par structure cliente."}
-            {activeTab === 'seo' && "Personnalisez les balises méta, titres H1 et contenus des pages sectorielles pour le moteur de recherche."}
-          </p>
-        </div>
-
-      {saveToast && (
-        <div className="card animate-fade-in" style={{
-          backgroundColor: 'var(--color-lime-glow)',
-          borderColor: 'var(--color-lime)',
-          marginBottom: 'var(--space-6)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <CheckCircle2 size={24} style={{ color: 'var(--color-lime-dark)' }} />
-          <div style={{ fontWeight: 700, color: 'var(--color-navy)' }}>
-            Modifications enregistrées en base Payload avec succès !
-          </div>
-        </div>
-      )}
-
-      {/* TAB 1: Questions Expertes (Traitement) */}
+    <AppShell
+      spaceLabel="Espace experte"
+      contextCard={{ title: 'Cabinet Maé', meta: 'DAF externalisée · secteur associatif' }}
+      navItems={navItems}
+      activeKey={activeTab}
+      onSelect={setActiveTab}
+      user={{ initials: 'LB', name: 'Laetitia Badji', role: 'Cabinet Maé' }}
+      onLogout={onLogout}
+    >
+      {/* Questions expertes */}
       {activeTab === 'tickets' && (
-        <div className="admin-split-grid">
-          {/* List of tickets */}
-          <div className="card" style={{ padding: 'var(--space-4)' }}>
-            <h3 style={{ fontSize: 'var(--text-base)', marginBottom: 'var(--space-4)', color: 'var(--color-navy)' }}>
-              File des questions ({tickets.length})
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {tickets.map((t) => (
-                <div
-                  key={t.id}
-                  onClick={() => handleSelectTicketToReview(t)}
-                  style={{
-                    padding: '12px',
-                    borderRadius: 'var(--radius-md)',
-                    border: `1.5px solid ${selectedTicket?.id === t.id ? 'var(--color-blue)' : 'var(--color-border)'}`,
-                    backgroundColor: selectedTicket?.id === t.id ? 'var(--color-blue-light)' : '#ffffff',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '12px', color: 'var(--color-blue)' }}>
-                      {t.ref}
-                    </span>
-                    <span className={
-                      t.status === 'answered' ? 'badge badge-lime' :
-                      t.status === 'in_progress' ? 'badge badge-blue' : 'badge badge-orange'
-                    } style={{ fontSize: '10px' }}>
-                      {t.status === 'answered' ? 'Répondu' :
-                       t.status === 'in_progress' ? 'En cours' : 'À traiter'}
-                    </span>
-                  </div>
-                  <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-navy)', marginBottom: '2px' }}>
-                    {t.object}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-navy-muted)' }}>
-                    {t.orgName}
-                  </div>
-                </div>
-              ))}
+        <div className="ax-stack-lg">
+          <div className="ax-page-head" style={{ marginBottom: 0 }}>
+            <div>
+              <h1 className="ax-page-title">Questions des associations</h1>
+              <p className="ax-page-sub">Répondez aux questions transmises par vos associations clientes, sous 48 h.</p>
             </div>
           </div>
 
-          {/* Ticket Review & Answer Panel */}
-          {selectedTicket ? (
-            <div className="card">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
-                <div>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--color-blue)', fontSize: '13px' }}>
-                    Réf : {selectedTicket.ref} &bull; {selectedTicket.orgName}
-                  </span>
-                  <h2 style={{ fontSize: 'var(--text-xl)' }}>{selectedTicket.object}</h2>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => handleSaveExpertAnswer(false)}
-                    className="btn btn-sm btn-secondary"
-                  >
-                    Sauvegarder brouillon
-                  </button>
-                  <button
-                    onClick={() => handleSaveExpertAnswer(true)}
-                    className="btn btn-sm btn-lime"
-                  >
-                    <CheckCircle2 size={16} />
-                    <span>Transmettre la réponse à l'asso</span>
-                  </button>
-                </div>
+          <div className="ax-stats">
+            <div className="ax-stat">
+              <div className="ax-stat-label"><span className="ax-dot" style={{ color: 'var(--color-orange)' }} />À traiter</div>
+              <div className="ax-stat-value">{countPending}</div>
+            </div>
+            <div className="ax-stat">
+              <div className="ax-stat-label"><span className="ax-dot" style={{ color: 'var(--color-blue)' }} />En cours</div>
+              <div className="ax-stat-value">{countInProgress}</div>
+            </div>
+            <div className="ax-stat">
+              <div className="ax-stat-label"><span className="ax-dot" style={{ color: 'var(--color-lime-dark)' }} />Répondues</div>
+              <div className="ax-stat-value">{countAnswered}</div>
+            </div>
+          </div>
+
+          <div className="ax-split-list">
+            {/* Liste des questions */}
+            <div className="ax-card">
+              <div className="ax-card-head">
+                <div className="ax-card-title">Toutes les questions</div>
+                <span className="ax-count">{tickets.length}</span>
               </div>
-
-              {/* Question details */}
-              <div style={{ marginBottom: 'var(--space-4)' }}>
-                <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-navy-muted)', marginBottom: '4px' }}>
-                  Question posée par l'association :
+              {tickets.length === 0 ? (
+                <div className="ax-empty">
+                  <div className="ax-empty-icon"><Inbox size={22} /></div>
+                  <div className="ax-empty-title">Aucune question</div>
+                  <div className="ax-small">Les nouvelles questions apparaîtront ici.</div>
                 </div>
-                <div style={{ backgroundColor: 'var(--color-surface-subtle)', padding: '12px 16px', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)', lineHeight: 1.6, color: 'var(--color-navy)' }}>
-                  {selectedTicket.question}
+              ) : (
+                <div className="ax-list" style={{ borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
+                  {tickets.map((t, i) => {
+                    const status = STATUS_META[t.status];
+                    return (
+                      <m.button
+                        type="button"
+                        key={t.id}
+                        custom={i}
+                        variants={listItem}
+                        initial="hidden"
+                        animate="show"
+                        onClick={() => handleSelectTicketToReview(t)}
+                        className={`ax-list-item${selectedTicket?.id === t.id ? ' is-active' : ''}`}
+                        aria-current={selectedTicket?.id === t.id ? 'true' : undefined}
+                      >
+                        <div className="apv-ticket-top">
+                          <span className="apv-ticket-org ax-ellipsis">{t.orgName}</span>
+                          <span className={status.cls}>{status.label}</span>
+                        </div>
+                        <div className="apv-ticket-object">{t.object}</div>
+                        <div className="apv-ticket-meta">
+                          <span>{DOMAIN_LABELS[t.domain] ?? t.domain}</span>
+                          <span aria-hidden="true">·</span>
+                          <span>{formatDate(t.createdAt)}</span>
+                          {t.urgency === 'urgent' && (
+                            <>
+                              <span aria-hidden="true">·</span>
+                              <span className="apv-urgent"><AlertCircle size={12} />Urgent</span>
+                            </>
+                          )}
+                        </div>
+                      </m.button>
+                    );
+                  })}
                 </div>
-              </div>
+              )}
+            </div>
 
-              {/* Response Editor */}
-              <div style={{ marginBottom: 'var(--space-4)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
-                  <label className="form-label" style={{ margin: 0 }}>
-                    Réponse juridique & sociale rédigée par Laetitia Badji (transmise par email et dans l'app) :
-                  </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--color-navy-muted)', fontWeight: 600 }}>
-                      Modèles rapides :
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setExpertReply(`Bonjour,\n\nAprès analyse approfondie de votre situation au regard des dispositions légales et de votre convention collective (${selectedTicket.orgName}) :\n\n1. Cadre juridique applicable : La procédure requiert une convocation écrite avec délai de prévenance strict et information explicite sur la faculté d'assistance.\n\n2. Risques identifiés : Veillez à consigner l'accord dans le formulaire Cerfa réglementaire et respecter le délai d'homologation DREETS de 15 jours ouvrables.\n\n3. Recommandation du Cabinet Maé : Nous vous recommandons de formaliser l'entretien préalable par écrit avant toute signature de protocole transactionnel.\n\nRestant à votre entière disposition pour vous assister.\n\nBien cordialement,\nLaetitia Badji\nJuriste Référente Associations — Cabinet Maé / AKILIGUE SAS`);
-                      }}
-                      className="btn btn-sm"
-                      style={{ fontSize: '11px', padding: '3px 8px', backgroundColor: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}
-                    >
-                      <Sparkles size={12} style={{ color: 'var(--color-blue)' }} />
-                      <span>Modèle RH / Procédure</span>
-                    </button>
+            {/* Question sélectionnée et réponse */}
+            <AnimatePresence mode="wait" initial={false}>
+              {selectedTicket ? (
+                <m.div
+                  key={selectedTicket.id}
+                  className="ax-stack"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.24, ease: EASE }}
+                >
+                  <article className="ax-card ax-card-pad">
+                    <div className="apv-doc-meta">
+                      <span className={STATUS_META[selectedTicket.status].cls}>{STATUS_META[selectedTicket.status].label}</span>
+                      {selectedTicket.urgency === 'urgent' && <span className="ax-badge ax-badge-orange">Urgent</span>}
+                      <span className="ax-strong" style={{ color: 'var(--color-navy)' }}>{selectedTicket.orgName}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{DOMAIN_LABELS[selectedTicket.domain] ?? selectedTicket.domain}</span>
+                      <span aria-hidden="true">·</span>
+                      <span className="ax-faint">Réf. {selectedTicket.ref}</span>
+                    </div>
+                    <h2 className="apv-doc-title">{selectedTicket.object}</h2>
+                    <div className="ax-xs ax-faint" style={{ marginTop: 4 }}>
+                      Reçue le {formatDate(selectedTicket.createdAt)}
+                    </div>
+                    <div className="apv-question">{selectedTicket.question}</div>
+                  </article>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setExpertReply(`Bonjour,\n\nConcernant votre problématique de gouvernance et de régularité des délibérations associatives :\n\n1. Règle statutaire : En l'absence de quorum suffisant lors de la première convocation, l'Assemblée ne peut valablement délibérer sous peine de nullité des résolutions adoptées.\n\n2. Procédure de régularisation : Vous devez adresser une seconde convocation dans un délai de 15 jours. Sauf stipulation contraire expresse de vos statuts, cette seconde AG délibérera valablement quel que soit le nombre de membres présents ou représentés.\n\n3. Formalités : Pensez à annexer la feuille d'émargement de la première séance infructueuse au procès-verbal définitif.\n\nBien à vous,\nLaetitia Badji\nCabinet Maé`);
-                      }}
-                      className="btn btn-sm"
-                      style={{ fontSize: '11px', padding: '3px 8px', backgroundColor: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}
-                    >
-                      <Sparkles size={12} style={{ color: 'var(--color-blue)' }} />
-                      <span>Modèle AG / Quorum</span>
-                    </button>
+                  <div className="ax-card">
+                    <div className="ax-card-head" style={{ flexWrap: 'wrap' }}>
+                      <div>
+                        <div className="ax-card-title">Votre réponse</div>
+                        <div className="ax-card-sub">Envoyée à l’association par e-mail et dans l’application.</div>
+                      </div>
+                      <div className="ax-row apv-templates">
+                        <span className="ax-xs ax-muted">Modèles</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setExpertReply(`Bonjour,\n\nAprès analyse approfondie de votre situation au regard des dispositions légales et de votre convention collective (${selectedTicket.orgName}) :\n\n1. Cadre juridique applicable : La procédure requiert une convocation écrite avec délai de prévenance strict et information explicite sur la faculté d'assistance.\n\n2. Risques identifiés : Veillez à consigner l'accord dans le formulaire Cerfa réglementaire et respecter le délai d'homologation DREETS de 15 jours ouvrables.\n\n3. Recommandation du Cabinet Maé : Nous vous recommandons de formaliser l'entretien préalable par écrit avant toute signature de protocole transactionnel.\n\nRestant à votre entière disposition pour vous assister.\n\nBien cordialement,\nLaetitia Badji\nJuriste Référente Associations — Cabinet Maé / AKILIGUE SAS`);
+                          }}
+                          className="ax-chip"
+                        >
+                          <FileText size={13} />
+                          <span>Procédure RH</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setExpertReply(`Bonjour,\n\nConcernant votre problématique de gouvernance et de régularité des délibérations associatives :\n\n1. Règle statutaire : En l'absence de quorum suffisant lors de la première convocation, l'Assemblée ne peut valablement délibérer sous peine de nullité des résolutions adoptées.\n\n2. Procédure de régularisation : Vous devez adresser une seconde convocation dans un délai de 15 jours. Sauf stipulation contraire expresse de vos statuts, cette seconde AG délibérera valablement quel que soit le nombre de membres présents ou représentés.\n\n3. Formalités : Pensez à annexer la feuille d'émargement de la première séance infructueuse au procès-verbal définitif.\n\nBien à vous,\nLaetitia Badji\nCabinet Maé`);
+                          }}
+                          className="ax-chip"
+                        >
+                          <FileText size={13} />
+                          <span>AG et quorum</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="ax-card-body ax-stack">
+                      <div className="ax-field">
+                        <label className="ax-label" htmlFor="apv-reply">Réponse</label>
+                        <textarea
+                          id="apv-reply"
+                          className="ax-textarea apv-reply"
+                          value={expertReply}
+                          onChange={(e) => setExpertReply(e.target.value)}
+                          rows={9}
+                          placeholder="Analyse, références applicables et recommandations concrètes…"
+                        />
+                      </div>
+
+                      <div className="ax-field">
+                        <label className="ax-label ax-row" htmlFor="apv-notes" style={{ gap: 6 }}>
+                          <Lock size={13} className="ax-faint" />
+                          <span>Notes internes</span>
+                        </label>
+                        <textarea
+                          id="apv-notes"
+                          className="ax-textarea apv-notes"
+                          value={internalNotes}
+                          onChange={(e) => setInternalNotes(e.target.value)}
+                          rows={2}
+                          placeholder="Ex. : risque prud’homal modéré, à recontacter si récidive"
+                        />
+                        <span className="ax-hint">Visibles uniquement par vous.</span>
+                      </div>
+                    </div>
+
+                    <div className="ax-card-foot apv-actions">
+                      <button
+                        type="button"
+                        onClick={() => handleSaveExpertAnswer(false)}
+                        className="ax-btn ax-btn-secondary"
+                      >
+                        <Save size={16} />
+                        <span>Enregistrer le brouillon</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSaveExpertAnswer(true)}
+                        className="ax-btn ax-btn-primary"
+                      >
+                        <Send size={16} />
+                        <span>Envoyer la réponse</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-
-                <textarea
-                  className="textarea"
-                  value={expertReply}
-                  onChange={(e) => setExpertReply(e.target.value)}
-                  rows={9}
-                  placeholder="Rédigez l'analyse juridique, les références conventionnelles et les préconisations concrètes..."
-                />
-              </div>
-
-              {/* Internal Notes */}
-              <div>
-                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Lock size={14} style={{ color: 'var(--color-navy-muted)' }} />
-                  <span>Notes internes confidentielles (visibles uniquement par le cabinet Maé) :</span>
-                </label>
-                <input
-                  type="text"
-                  className="input"
-                  value={internalNotes}
-                  onChange={(e) => setInternalNotes(e.target.value)}
-                  placeholder="Ex: Risque prud'homal modéré, à recontacter si récidive..."
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="card" style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'var(--color-navy-muted)' }}>
-              Sélectionnez un ticket pour rédiger la réponse experte.
-            </div>
-          )}
+                </m.div>
+              ) : (
+                <m.div
+                  key="empty"
+                  className="ax-card ax-empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div className="ax-empty-icon"><Inbox size={22} /></div>
+                  <div className="ax-empty-title">Aucune question sélectionnée</div>
+                  <div className="ax-small">Choisissez une question dans la liste pour y répondre.</div>
+                </m.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       )}
 
-      {/* TAB 2: Formules & Quotas Editor */}
+      {/* Formules et quotas */}
       {activeTab === 'plans' && (
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
+        <div className="ax-stack-lg">
+          <div className="ax-page-head" style={{ marginBottom: 0 }}>
             <div>
-              <h2 style={{ fontSize: 'var(--text-xl)' }}>Éditeur dynamique des formules et des quotas</h2>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-navy-muted)' }}>
-                Exigence CDC §3 : aucun prix ou quota codé en dur. Les modifications s'appliquent immédiatement à la page tarifs et aux droits de l'application.
-              </p>
+              <h1 className="ax-page-title">Formules</h1>
+              <p className="ax-page-sub">Les tarifs et quotas s’appliquent immédiatement à la page tarifs et aux comptes.</p>
             </div>
-            <button onClick={handleSaveAllPlans} className="btn btn-primary">
-              <Save size={16} />
-              <span>Publier les nouveaux tarifs</span>
-            </button>
+            <div className="ax-page-actions">
+              <button type="button" onClick={handleSaveAllPlans} className="ax-btn ax-btn-primary">
+                <Save size={16} />
+                <span>Enregistrer les formules</span>
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'var(--space-6)' }}>
-            {editablePlans.map((p) => (
-              <div key={p.code} className="card" style={{ backgroundColor: 'var(--color-surface-subtle)', padding: 'var(--space-6)' }}>
-                <h3 style={{ fontSize: 'var(--text-lg)', marginBottom: 'var(--space-4)' }}>Formule {p.label}</h3>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                  <div>
-                    <label className="form-label">Prix mensuel (€ HT) :</label>
-                    <input
-                      type="number"
-                      className="input"
-                      value={p.priceMonthly}
-                      onChange={(e) => handlePlanPriceChange(p.code, parseFloat(e.target.value) || 0)}
-                    />
+          <div className="ax-grid-3">
+            {editablePlans.map((p, i) => (
+              <m.div
+                key={p.code}
+                className="ax-card"
+                custom={i}
+                variants={listItem}
+                initial="hidden"
+                animate="show"
+              >
+                <div className="ax-card-head">
+                  <div className="ax-card-title">{p.label}</div>
+                </div>
+                <div className="ax-card-body ax-stack">
+                  <div className="ax-field">
+                    <label className="ax-label" htmlFor={`apv-price-${p.code}`}>Prix mensuel</label>
+                    <div className="apv-input-suffix">
+                      <input
+                        id={`apv-price-${p.code}`}
+                        type="number"
+                        className="ax-input"
+                        value={p.priceMonthly}
+                        onChange={(e) => handlePlanPriceChange(p.code, parseFloat(e.target.value) || 0)}
+                      />
+                      <span>€ HT</span>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="form-label">Questions expertes par mois :</label>
+                  <div className="ax-field">
+                    <label className="ax-label" htmlFor={`apv-quota-${p.code}`}>Questions expertes par mois</label>
                     <input
+                      id={`apv-quota-${p.code}`}
                       type="number"
-                      className="input"
+                      className="ax-input"
                       value={p.features.expertQuestionsMonth}
                       onChange={(e) => handlePlanQuotaChange(p.code, parseInt(e.target.value) || 0)}
                     />
                   </div>
 
-                  <div>
-                    <label className="form-label">Modèle Claude configuré :</label>
+                  <div className="ax-field">
+                    <label className="ax-label" htmlFor={`apv-model-${p.code}`}>Modèle d’IA</label>
                     <input
+                      id={`apv-model-${p.code}`}
                       type="text"
-                      className="input"
+                      className="ax-input apv-mono"
                       value={p.features.aiModel}
                       readOnly
-                      style={{ backgroundColor: '#ffffff', opacity: 0.8 }}
+                      disabled
                     />
                   </div>
                 </div>
-              </div>
+              </m.div>
             ))}
           </div>
         </div>
       )}
 
-      {/* TAB 3: Télémétrie & Coûts IA */}
+      {/* Usage de l'IA */}
       {activeTab === 'ai_usage' && (
-        <div className="card">
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h2 style={{ fontSize: 'var(--text-xl)' }}>Journalisation de l'usage de l'IA (`ai_usage`)</h2>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-navy-muted)' }}>
-              Conformité stricte CDC §3.7 : <strong>aucun contenu</strong> de question ou de réponse n'est conservé dans les logs techniques. Seuls les tokens, versions de prompts et coûts estimés sont enregistrés.
-            </p>
+        <div className="ax-stack-lg">
+          <div className="ax-page-head" style={{ marginBottom: 0 }}>
+            <div>
+              <h1 className="ax-page-title">Usage IA</h1>
+              <p className="ax-page-sub">Tokens et coûts estimés par association. Aucun contenu de question n’est conservé.</p>
+            </div>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 'var(--text-sm)' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid var(--color-border)', color: 'var(--color-navy-muted)' }}>
-                <th style={{ padding: '10px 12px' }}>Organisation</th>
-                <th style={{ padding: '10px 12px' }}>Modèle</th>
-                <th style={{ padding: '10px 12px' }}>Version Prompt</th>
-                <th style={{ padding: '10px 12px' }}>Tokens In</th>
-                <th style={{ padding: '10px 12px' }}>Tokens Out</th>
-                <th style={{ padding: '10px 12px' }}>Coût Estimé</th>
-                <th style={{ padding: '10px 12px' }}>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {aiUsageRecords.map((r) => (
-                <tr key={r.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <td style={{ padding: '10px 12px', fontWeight: 600 }}>{r.orgName}</td>
-                  <td style={{ padding: '10px 12px', fontFamily: 'monospace' }}>{r.model}</td>
-                  <td style={{ padding: '10px 12px' }}>
-                    <span className="badge badge-blue" style={{ fontSize: '10px' }}>{r.promptVersion}</span>
-                  </td>
-                  <td style={{ padding: '10px 12px' }}>{r.inputTokens}</td>
-                  <td style={{ padding: '10px 12px' }}>{r.outputTokens}</td>
-                  <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--color-lime-dark)' }}>
-                    {r.costEstimateEur.toFixed(4)} €
-                  </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--color-navy-muted)' }}>{r.createdAt}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="ax-stats">
+            <div className="ax-stat">
+              <div className="ax-stat-label">Coût total estimé</div>
+              <div className="ax-stat-value">{totalCost.toFixed(2)} €</div>
+            </div>
+            <div className="ax-stat">
+              <div className="ax-stat-label">Requêtes</div>
+              <div className="ax-stat-value">{aiUsageRecords.length}</div>
+            </div>
+            <div className="ax-stat">
+              <div className="ax-stat-label">Tokens</div>
+              <div className="ax-stat-value">{totalTokens.toLocaleString('fr-FR')}</div>
+            </div>
+          </div>
+
+          <div className="ax-card" style={{ overflow: 'hidden' }}>
+            {aiUsageRecords.length === 0 ? (
+              <div className="ax-empty">
+                <div className="ax-empty-icon"><Cpu size={22} /></div>
+                <div className="ax-empty-title">Aucune utilisation enregistrée</div>
+              </div>
+            ) : (
+              <div className="ax-table-wrap">
+                <table className="ax-table">
+                  <thead>
+                    <tr>
+                      <th>Association</th>
+                      <th className="ax-hide-sm">Modèle</th>
+                      <th className="ax-hide-sm">Version du prompt</th>
+                      <th className="ax-num ax-hide-sm">Tokens entrée</th>
+                      <th className="ax-num ax-hide-sm">Tokens sortie</th>
+                      <th className="ax-num">Coût estimé</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {aiUsageRecords.map((r) => (
+                      <tr key={r.id}>
+                        <td className="ax-strong">{r.orgName}</td>
+                        <td className="apv-mono ax-muted ax-hide-sm">{r.model}</td>
+                        <td className="ax-hide-sm">
+                          <span className="ax-badge">{r.promptVersion}</span>
+                        </td>
+                        <td className="ax-num ax-hide-sm">{r.inputTokens}</td>
+                        <td className="ax-num ax-hide-sm">{r.outputTokens}</td>
+                        <td className="ax-num ax-strong">{r.costEstimateEur.toFixed(4)} €</td>
+                        <td className="ax-muted" style={{ whiteSpace: 'nowrap' }}>{r.createdAt}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* TAB 4: CMS Pages SEO */}
+      {/* Pages SEO */}
       {activeTab === 'seo' && (
-        <div className="card">
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h2 style={{ fontSize: 'var(--text-xl)' }}>Éditeur de pages SEO (Gabarit Payload)</h2>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-navy-muted)' }}>
-              Permet à Laetitia de modifier les métadonnées des pages piliers sans développeur.
-            </p>
+        <div className="ax-stack-lg">
+          <div className="ax-page-head" style={{ marginBottom: 0 }}>
+            <div>
+              <h1 className="ax-page-title">Pages SEO</h1>
+              <p className="ax-page-sub">Modifiez le titre et la description des pages principales.</p>
+            </div>
+            <div className="ax-page-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setSaveToast(true);
+                  setTimeout(() => setSaveToast(false), 3000);
+                }}
+                className="ax-btn ax-btn-primary"
+              >
+                <Save size={16} />
+                <span>Publier les pages</span>
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+          <div className="ax-stack">
             {seoPages.map((page, idx) => (
-              <div key={idx} className="card" style={{ backgroundColor: 'var(--color-surface-subtle)' }}>
-                <div style={{ fontWeight: 700, color: 'var(--color-blue)', marginBottom: 'var(--space-2)' }}>
-                  Slug : {page.slug}
+              <m.div
+                key={idx}
+                className="ax-card"
+                custom={idx}
+                variants={listItem}
+                initial="hidden"
+                animate="show"
+              >
+                <div className="ax-card-head">
+                  <span className="ax-badge apv-slug">{page.slug}</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                  <div>
-                    <label className="form-label">Meta Title :</label>
+                <div className="ax-card-body ax-stack">
+                  <div className="ax-field">
+                    <label className="ax-label" htmlFor={`apv-seo-title-${idx}`}>Titre de la page</label>
                     <input
+                      id={`apv-seo-title-${idx}`}
                       type="text"
-                      className="input"
+                      className="ax-input"
                       value={page.title}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -643,11 +552,12 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
                       }}
                     />
                   </div>
-                  <div>
-                    <label className="form-label">Meta Description :</label>
+                  <div className="ax-field">
+                    <label className="ax-label" htmlFor={`apv-seo-desc-${idx}`}>Description</label>
                     <input
+                      id={`apv-seo-desc-${idx}`}
                       type="text"
-                      className="input"
+                      className="ax-input"
                       value={page.metaDescription}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -656,74 +566,27 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
                     />
                   </div>
                 </div>
-              </div>
+              </m.div>
             ))}
-            <button onClick={() => {
-              setSaveToast(true);
-              setTimeout(() => setSaveToast(false), 3000);
-            }} className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
-              <Save size={16} />
-              <span>Publier les pages SEO</span>
-            </button>
           </div>
         </div>
       )}
-      </div>
 
-      {/* Mobile Bottom Navigation Bar for Admin */}
-      <nav className="mobile-bottom-nav" aria-label="Navigation administration mobile">
-        <div className="mobile-bottom-nav-inner">
-          <button
-            onClick={() => setActiveTab('tickets')}
-            className={`mobile-nav-item ${activeTab === 'tickets' ? 'active' : ''}`}
-            aria-label="Questions et Arbitrages"
+      <AnimatePresence>
+        {saveToast && (
+          <m.div
+            className="ax-toast apv-toast"
+            role="status"
+            initial={{ opacity: 0, y: 12, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 8, x: '-50%' }}
+            transition={{ duration: 0.25, ease: EASE }}
           >
-            <div style={{ position: 'relative', display: 'inline-flex' }}>
-              <UserCheck size={20} />
-              {pendingTicketsCount > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: -2,
-                  right: -4,
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  backgroundColor: '#ea580c',
-                  border: '1.5px solid #ffffff'
-                }} />
-              )}
-            </div>
-            <span>Questions</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('plans')}
-            className={`mobile-nav-item ${activeTab === 'plans' ? 'active' : ''}`}
-            aria-label="Gestion des formules"
-          >
-            <DollarSign size={20} />
-            <span>Formules</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('ai_usage')}
-            className={`mobile-nav-item ${activeTab === 'ai_usage' ? 'active' : ''}`}
-            aria-label="Télémétrie IA"
-          >
-            <Cpu size={20} />
-            <span>Télémétrie</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('seo')}
-            className={`mobile-nav-item ${activeTab === 'seo' ? 'active' : ''}`}
-            aria-label="CMS SEO"
-          >
-            <Globe2 size={20} />
-            <span>SEO</span>
-          </button>
-        </div>
-      </nav>
-    </div>
+            <CheckCircle2 size={18} />
+            <span>Modifications enregistrées</span>
+          </m.div>
+        )}
+      </AnimatePresence>
+    </AppShell>
   );
 };
