@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { Organization, Plan, Subscription } from '../types';
 import { 
@@ -13,8 +14,127 @@ import {
   Compass, 
   Award, 
   Coins, 
-  Calendar 
+  Calendar,
+  Search,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Info
 } from 'lucide-react';
+
+interface SearchableComboboxProps {
+  value: string;
+  onChange: (val: string) => void;
+  options: string[];
+  placeholder: string;
+}
+
+const SearchableCombobox: React.FC<SearchableComboboxProps> = ({
+  value,
+  onChange,
+  options,
+  placeholder
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const filtered = options.filter((opt) =>
+    opt.toLowerCase().includes(value.trim().toLowerCase())
+  );
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <Search
+          size={15}
+          style={{
+            position: 'absolute',
+            left: 12,
+            color: 'var(--color-navy-muted)',
+            pointerEvents: 'none'
+          }}
+        />
+        <input
+          type="text"
+          className="input"
+          style={{ paddingLeft: 36, paddingRight: 36 }}
+          placeholder={placeholder}
+          value={value}
+          onFocus={() => setIsOpen(true)}
+          onBlur={() => setTimeout(() => setIsOpen(false), 180)}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setIsOpen(true);
+          }}
+          required
+        />
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          style={{
+            position: 'absolute',
+            right: 10,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--color-navy-muted)',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+          tabIndex={-1}
+        >
+          <ChevronDown size={16} />
+        </button>
+      </div>
+
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            right: 0,
+            zIndex: 40,
+            backgroundColor: '#ffffff',
+            border: '1px solid var(--color-border)',
+            borderRadius: 10,
+            boxShadow: '0 10px 25px rgba(15, 23, 42, 0.12)',
+            maxHeight: 220,
+            overflowY: 'auto',
+            padding: 4
+          }}
+        >
+          {filtered.length > 0 ? (
+            filtered.map((opt, idx) => (
+              <div
+                key={idx}
+                onMouseDown={() => {
+                  onChange(opt);
+                  setIsOpen(false);
+                }}
+                style={{
+                  padding: '9px 12px',
+                  fontSize: 13,
+                  borderRadius: 7,
+                  cursor: 'pointer',
+                  fontWeight: value === opt ? 700 : 500,
+                  backgroundColor: value === opt ? 'var(--color-blue-light)' : 'transparent',
+                  color: 'var(--color-navy)'
+                }}
+              >
+                {opt}
+              </div>
+            ))
+          ) : (
+            <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--color-navy-muted)' }}>
+              Saisie personnalisée conservée : <strong>« {value} »</strong>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface OnboardingFlowProps {
   plans: Plan[];
@@ -29,29 +149,59 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Form State
-  const [leaderName, setLeaderName] = useState('Claire Delorme');
-  const [leaderRole, setLeaderRole] = useState('Directrice générale');
-  const [leaderEmail, setLeaderEmail] = useState('direction@asso-initiative.org');
+  // Form State (aucun champ prérempli)
+  const [leaderName, setLeaderName] = useState('');
+  const [leaderRole, setLeaderRole] = useState('');
+  const [leaderEmail, setLeaderEmail] = useState('');
+  const [leaderPassword, setLeaderPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [step1Error, setStep1Error] = useState<string | null>(null);
 
-  const [orgName, setOrgName] = useState('Initiative & Solidarité');
-  const [siren, setSiren] = useState('512 890 123');
-  const [rna, setRna] = useState('W751098432');
-  const [sector, setSector] = useState('Médico-social & Handicap');
-  const [employeesCount, setEmployeesCount] = useState<number>(16);
-  const [annualBudget, setAnnualBudget] = useState<number>(680000);
+  const [orgName, setOrgName] = useState('');
+  const [siren, setSiren] = useState('');
+  const [rna, setRna] = useState('');
+  const [sector, setSector] = useState('');
+  const [employeesCount, setEmployeesCount] = useState<string>('');
+  const [annualBudget, setAnnualBudget] = useState<string>('');
   const [fiscalYearEnd, setFiscalYearEnd] = useState('31 décembre');
-  const [usualAgMonth, setUsualAgMonth] = useState('Juin');
-  const [mainFunders, setMainFunders] = useState('Conseil Départemental, ARS, CAF');
+  const [usualAgMonth, setUsualAgMonth] = useState('');
+  const [mainFunders, setMainFunders] = useState('');
+
+  const roleSuggestions = [
+    'Directeur / Directrice générale',
+    'Président / Présidente bénévole',
+    'Trésorier / Trésorière',
+    'Secrétaire général(e)',
+    'Responsable RH / Coordinateur',
+    'Directeur Administratif et Financier (DAF)',
+    'Chef(fe) de service éducatif',
+    'Administrateur / Membre du Bureau',
+    'Expert-comptable / Commissaire aux comptes'
+  ];
+
+  const sectorSuggestions = [
+    'Médico-social & Handicap',
+    'Protection de l’enfance (MECS)',
+    'Animation socioculturelle & Centre social',
+    'Insertion par l’activité économique (IAE / ACI)',
+    'Aide et soin à domicile (SAAD / SSIAD)',
+    'Petite enfance & Crèches associatives',
+    'Culture & Spectacle vivant',
+    'Sport & Loisirs',
+    'Éducation populaire & Jeunesse',
+    'Humanitaire, Caritatif & Aide alimentaire',
+    'Environnement & Transition écologique'
+  ];
 
   const [ccn, setCcn] = useState('CCN 66 (Convention Collective Nationale de 1966)');
 
   const [selectedPlanCode, setSelectedPlanCode] = useState<'initiale' | 'pro' | 'expert'>('pro');
   const [isProcessingStripe, setIsProcessingStripe] = useState(false);
-  const [cardHolder, setCardHolder] = useState('Claire Delorme');
-  const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
-  const [cardExpiry, setCardExpiry] = useState('12/28');
-  const [cardCvc, setCardCvc] = useState('123');
+  const [cardHolder, setCardHolder] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
 
   const ccnOptions = [
     'CCN 66 (Convention Collective Nationale de 1966)',
@@ -86,7 +236,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         mainFunders: mainFunders.split(',').map(s => s.trim()).filter(Boolean),
         establishmentsCount: 1,
         accountEmail: leaderEmail.trim(),
-        password: 'Asso2026!',
+        password: leaderPassword.trim() || 'Asso2026!',
         members: [
           {
             id: 'mem-' + Date.now(),
@@ -190,11 +340,29 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {step1Error && (
+              <div style={{
+                padding: '12px 14px',
+                borderRadius: 10,
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#b91c1c',
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}>
+                <AlertCircle size={16} />
+                <span>{step1Error}</span>
+              </div>
+            )}
+
             <div>
               <label className="form-label">Nom et prénom du dirigeant / coordinateur :</label>
               <input
                 type="text"
                 className="input"
+                placeholder="Ex: Jean Dupont"
                 value={leaderName}
                 onChange={(e) => setLeaderName(e.target.value)}
                 required
@@ -202,17 +370,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             </div>
 
             <div>
-              <label className="form-label">Fonction dans l'association :</label>
-              <select
-                className="select"
+              <label className="form-label">
+                Fonction dans l'association <span style={{ fontWeight: 400, fontSize: 12, color: 'var(--color-navy-muted)' }}>(recherchez dans la liste ou saisissez librement votre fonction)</span> :
+              </label>
+              <SearchableCombobox
                 value={leaderRole}
-                onChange={(e) => setLeaderRole(e.target.value)}
-              >
-                <option value="Directeur / Directrice générale">Directeur / Directrice générale</option>
-                <option value="Président / Présidente bénévole">Président / Présidente bénévole</option>
-                <option value="Trésorier / Trésorière">Trésorier / Trésorière</option>
-                <option value="Responsable RH / Coordinateur">Responsable RH / Coordinateur</option>
-              </select>
+                onChange={setLeaderRole}
+                options={roleSuggestions}
+                placeholder="Rechercher ou saisir votre fonction (ex: Président, Coordinatrice...)"
+              />
             </div>
 
             <div>
@@ -220,16 +386,75 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               <input
                 type="email"
                 className="input"
+                placeholder="direction@votre-association.org"
                 value={leaderEmail}
                 onChange={(e) => setLeaderEmail(e.target.value)}
                 required
               />
             </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+              <div>
+                <label className="form-label">Créer votre mot de passe :</label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    className="input"
+                    style={{ paddingRight: 38 }}
+                    placeholder="Minimum 6 caractères"
+                    value={leaderPassword}
+                    onChange={(e) => setLeaderPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: 10,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--color-navy-muted)'
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label">Confirmer le mot de passe :</label>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="input"
+                  placeholder="Répétez votre mot de passe"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px' }}>
             <button
-              onClick={() => setCurrentStep(2)}
+              onClick={() => {
+                setStep1Error(null);
+                if (!leaderName.trim() || !leaderRole.trim() || !leaderEmail.trim()) {
+                  setStep1Error('Veuillez renseigner votre nom, votre fonction et votre adresse email.');
+                  return;
+                }
+                if (leaderPassword.trim().length < 6) {
+                  setStep1Error('Votre mot de passe doit contenir au moins 6 caractères.');
+                  return;
+                }
+                if (leaderPassword !== confirmPassword) {
+                  setStep1Error('Les deux mots de passe ne correspondent pas.');
+                  return;
+                }
+                setCurrentStep(2);
+              }}
               className="btn btn-primary"
             >
               <span>Continuer : Identité de l'association</span>
@@ -256,6 +481,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               <input
                 type="text"
                 className="input"
+                placeholder="Ex: Association Entraide & Solidarité"
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
                 required
@@ -267,10 +493,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               <input
                 type="text"
                 className="input"
+                placeholder="Ex: 512 890 123"
                 value={siren}
                 onChange={(e) => setSiren(e.target.value)}
                 required
               />
+              <div style={{ fontSize: 11, color: 'var(--color-navy-muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Info size={12} />
+                <span>Identifiant INSEE à 9 chiffres (employeur / subventions).</span>
+              </div>
             </div>
 
             <div>
@@ -278,21 +509,27 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               <input
                 type="text"
                 className="input"
+                placeholder="Ex: W751098432"
                 value={rna}
                 onChange={(e) => setRna(e.target.value)}
                 required
               />
+              <div style={{ fontSize: 11, color: 'var(--color-navy-muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Info size={12} />
+                <span>Répertoire National des Associations (W + 9 chiffres, Préfecture).</span>
+              </div>
             </div>
 
-            <div>
-              <label className="form-label">Secteur d'activité :</label>
-              <select className="select" value={sector} onChange={(e) => setSector(e.target.value)}>
-                <option value="Médico-social & Handicap">Médico-social & Handicap</option>
-                <option value="Animation socioculturelle">Animation socioculturelle</option>
-                <option value="Insertion par l activité économique (IAE)">Insertion par l activité économique</option>
-                <option value="Culture & Spectacle vivant">Culture & Spectacle vivant</option>
-                <option value="Sport & Loisirs">Sport & Loisirs</option>
-              </select>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label className="form-label">
+                Secteur d'activité <span style={{ fontWeight: 400, fontSize: 12, color: 'var(--color-navy-muted)' }}>(recherchez dans la liste ou saisissez librement votre secteur)</span> :
+              </label>
+              <SearchableCombobox
+                value={sector}
+                onChange={setSector}
+                options={sectorSuggestions}
+                placeholder="Rechercher ou saisir votre secteur d'activité..."
+              />
             </div>
 
             <div>
@@ -302,8 +539,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 min={1}
                 max={100}
                 className="input"
+                placeholder="Ex: 15"
                 value={employeesCount}
-                onChange={(e) => setEmployeesCount(parseInt(e.target.value) || 1)}
+                onChange={(e) => setEmployeesCount(e.target.value)}
                 required
               />
             </div>
@@ -314,8 +552,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 type="number"
                 step={5000}
                 className="input"
+                placeholder="Ex: 500000"
                 value={annualBudget}
-                onChange={(e) => setAnnualBudget(parseInt(e.target.value) || 0)}
+                onChange={(e) => setAnnualBudget(e.target.value)}
                 required
               />
             </div>

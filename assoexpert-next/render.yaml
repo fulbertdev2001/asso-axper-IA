@@ -1,0 +1,45 @@
+# ==============================================================================
+# Render Blueprint — AssoExpert IA
+# Permet de déployer l'application Next.js (Fullstack) + PostgreSQL + Redis/Valkey
+# en 1 clic sur Render, avec exactement le même code que Docker / Coolify.
+# ==============================================================================
+
+services:
+  # Application Fullstack Next.js (Front + API + Drizzle ORM)
+  - type: web
+    name: assoexpert-ia
+    runtime: node
+    rootDir: assoexpert-next
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: assoexpert-postgres
+          property: connectionString
+      - key: VALKEY_URL
+        fromService:
+          type: redis
+          name: assoexpert-valkey
+          property: connectionString
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: PAYLOAD_SECRET
+        generateValue: true
+
+  # Cache / Rate Limiter (10 req/min/user)
+  - type: redis
+    name: assoexpert-valkey
+    ipAllowList: []
+    plan: free
+
+databases:
+  # Base de données PostgreSQL standard
+  - name: assoexpert-postgres
+    databaseName: assoexpert
+    user: assoexpert
+    plan: free
+

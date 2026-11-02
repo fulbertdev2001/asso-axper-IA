@@ -1,0 +1,51 @@
+name: CI — AssoExpert IA (Lot 1 Socle Technique)
+
+on:
+  push:
+    branches: [main, preprod]
+  pull_request:
+    branches: [main, preprod]
+
+jobs:
+  quality-and-security:
+    name: Typecheck, Tests & Vérification Secrets Bundle
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: assoexpert-next/package-lock.json
+
+      - name: Install dependencies
+        working-directory: assoexpert-next
+        run: npm install
+
+      - name: TypeScript Strict Check
+        working-directory: assoexpert-next
+        run: npm run typecheck
+
+      - name: Run Automated Unit & Security Tests (Vitest)
+        working-directory: assoexpert-next
+        run: npm test
+
+      - name: Check Client Bundle Secrets (Source Scan)
+        working-directory: assoexpert-next
+        run: npm run check:secrets
+
+      - name: Build Next.js Standalone Production Bundle
+        working-directory: assoexpert-next
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+        run: npm run build
+
+      - name: Verify Built Client Chunks Contain Zero Secrets
+        working-directory: assoexpert-next
+        run: npm run check:secrets
+

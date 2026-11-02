@@ -1,0 +1,251 @@
+/* ==========================================================================
+   Page de connexion — même langage que la landing (.lp-) et le kit (.ax-)
+   ========================================================================== */
+
+.lg {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #FFFFFF;
+  overflow-x: clip;
+}
+
+/* ---------- Panneau de marque ---------- */
+.lg-brand {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #F7F9FC 0%, #F1F5FB 100%);
+  border-right: 1px solid var(--ax-line);
+}
+.lg-shapes { position: absolute; inset: 0; pointer-events: none; }
+.lg-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(10, 37, 64, 0.1) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 60% 55%, #000 15%, transparent 70%);
+  mask-image: radial-gradient(ellipse 70% 60% at 60% 55%, #000 15%, transparent 70%);
+}
+.lg-blob { position: absolute; border-radius: 50%; filter: blur(70px); }
+.lg-blob-blue { width: 380px; height: 380px; top: -120px; right: -120px; background: rgba(0, 74, 173, 0.12); }
+.lg-blob-lime { width: 300px; height: 300px; bottom: -110px; left: -60px; background: rgba(193, 255, 114, 0.38); }
+.lg-ring {
+  position: absolute;
+  width: 460px;
+  height: 460px;
+  right: -200px;
+  bottom: -140px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 74, 173, 0.12);
+}
+.lg-ring-dot {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--color-blue);
+  opacity: 0.45;
+}
+
+.lg-brand-inner {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 36px 48px 40px;
+}
+.lg-brand-body { margin: auto 0; max-width: 420px; padding: 40px 0; }
+.lg-brand-title {
+  font-size: clamp(30px, 3vw, 40px);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--color-navy);
+  margin: 0 0 28px;
+}
+.lg-serif { font-size: 1.08em; letter-spacing: -0.01em; }
+.lg-points { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.lg-points li { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--ax-muted); }
+.lg-point-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: #FFFFFF;
+  border: 1px solid var(--ax-line);
+  color: var(--color-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.lg-brand-foot { font-size: 13px; color: var(--ax-faint); margin: 0; }
+
+/* ---------- Logo ---------- */
+.lg-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--color-navy);
+  cursor: pointer;
+}
+.lg-logo:active { transform: none; }
+.lg-logo-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--color-navy);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Zone formulaire ---------- */
+.lg-main { display: flex; flex-direction: column; min-width: 0; padding: 24px 32px 40px; }
+.lg-topbar { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-height: 40px; }
+.lg-logo-mobile { display: none; }
+
+.lg-form-wrap {
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  padding: 32px 0;
+}
+.lg-head { margin-bottom: 24px; }
+.lg-title { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; margin: 0; color: var(--color-navy); }
+.lg-sub { margin: 6px 0 0; color: var(--ax-muted); font-size: 15px; }
+
+/* Onglets */
+.lg-tabs { display: grid; grid-template-columns: 1fr 1fr; width: 100%; margin-bottom: 24px; }
+.lg-tab { justify-content: center; height: 36px; transition: color 150ms ease; }
+.lg-tab > :not(.lg-tab-pill) { position: relative; z-index: 1; }
+.lg-tab.is-on { color: var(--color-navy); }
+.lg-tab.is-on svg { color: var(--color-blue); }
+.lg-tab-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: var(--ax-surface);
+  box-shadow: 0 1px 3px rgba(10, 37, 64, 0.1);
+  z-index: 0;
+}
+
+/* Formulaires */
+.lg-alert { margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+.lg-form { display: flex; flex-direction: column; gap: 16px; }
+.lg-label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lg-input-pass { padding-right: 44px; }
+.lg .ax-input { height: 46px; }
+
+.lg-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--color-blue);
+  cursor: pointer;
+  text-underline-offset: 3px;
+}
+.lg-link:hover { text-decoration: underline; }
+.lg-link:active { transform: none; }
+.lg-link-sm { font-size: 13px; font-weight: 500; }
+
+.lg-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ax-muted);
+  cursor: pointer;
+  user-select: none;
+  align-self: flex-start;
+}
+.lg-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--color-blue); cursor: pointer; }
+
+.lg-submit { margin-top: 4px; }
+.lg-submit svg { transition: transform 250ms var(--ax-ease); }
+.lg-submit:hover:not(:disabled) svg { transform: translateX(3px); }
+.lg-submit-navy { background: var(--color-navy); }
+.lg-submit-navy:hover:not(:disabled) { background: #13345A; box-shadow: 0 8px 18px -10px rgba(10, 37, 64, 0.6); }
+.lg-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: lg-spin 0.8s linear infinite;
+}
+@keyframes lg-spin { to { transform: rotate(360deg); } }
+
+/* Comptes de démonstration */
+.lg-demo { margin-top: 28px; }
+.lg-demo-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.lg-demo-label { font-size: 13px; font-weight: 600; color: var(--color-navy); }
+.lg-demo-hint { font-size: 12px; color: var(--ax-faint); }
+.lg-demo-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ax-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.lg-demo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--ax-surface);
+  border: 0;
+  border-bottom: 1px solid var(--ax-line);
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.lg-demo-item:last-child { border-bottom: 0; }
+.lg-demo-item:active { transform: none; }
+.lg-demo-item:hover { background: #FAFBFD; }
+.lg-demo-text { display: flex; flex-direction: column; min-width: 0; }
+.lg-demo-name { font-size: 14px; font-weight: 500; color: var(--color-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lg-demo-email { font-size: 12px; color: var(--ax-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lg-demo-fill { flex-shrink: 0; font-size: 13px; font-weight: 600; color: var(--ax-muted); transition: color 150ms ease; }
+.lg-demo-item:hover .lg-demo-fill { color: var(--color-blue); }
+
+.lg-foot { margin: 24px 0 0; text-align: center; font-size: 14px; color: var(--ax-muted); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+  .lg { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+  .lg-brand-inner { padding: 32px; }
+}
+
+@media (max-width: 720px) {
+  .lg { grid-template-columns: minmax(0, 1fr); }
+  .lg-brand { display: none; }
+  .lg-main { padding: 16px 16px 32px; }
+  .lg-topbar { justify-content: space-between; }
+  .lg-logo-mobile { display: inline-flex; }
+  .lg-form-wrap { margin: 0 auto; padding: 28px 0 0; }
+  .lg-title { font-size: 24px; }
+  .lg-tab { padding: 0 8px; font-size: 13px; }
+}
+
+@media (max-width: 360px) {
+  .lg-tab svg { display: none; }
+}

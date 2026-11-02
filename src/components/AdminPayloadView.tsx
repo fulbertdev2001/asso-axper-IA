@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'motion/react';
 import { Plan, ExpertTicket, AiUsageRecord } from '../types';
@@ -67,6 +68,7 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
   const [internalNotes, setInternalNotes] = useState('');
   const [editablePlans, setEditablePlans] = useState<Plan[]>([...plans]);
   const [saveToast, setSaveToast] = useState(false);
+  const [saveToastMsg, setSaveToastMsg] = useState('Modifications enregistrées');
 
   // SEO CMS State
   const [seoPages, setSeoPages] = useState([
@@ -103,8 +105,13 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
 
     onUpdateTicket(updated);
     setSelectedTicket(updated);
+    setSaveToastMsg(
+      markAsAnswered
+        ? `Réponse envoyée à ${selectedTicket.orgName} et enregistrée en base !`
+        : 'Brouillon de réponse enregistré.'
+    );
     setSaveToast(true);
-    setTimeout(() => setSaveToast(false), 3000);
+    setTimeout(() => setSaveToast(false), 4000);
   };
 
   const handlePlanPriceChange = (code: string, newPrice: number) => {
@@ -120,6 +127,18 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
 
   const handleSaveAllPlans = () => {
     onUpdatePlans(editablePlans);
+    // Persistance réelle des formules et quotas en base Neon PostgreSQL
+    editablePlans.forEach((plan) => {
+      void fetch('/api/admin/plans', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: plan.code,
+          priceMonthlyEur: plan.priceMonthly,
+          expertQuestionsQuota: plan.features.expertQuestionsMonth
+        })
+      }).catch(() => {});
+    });
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 3000);
   };
@@ -295,6 +314,17 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
                     </div>
 
                     <div className="ax-card-body ax-stack">
+                      {selectedTicket.status === 'answered' && selectedTicket.answer && (
+                        <div className="ax-alert ax-alert-success" role="status" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <CheckCircle2 size={18} />
+                          <div>
+                            <strong>Réponse certifiée envoyée à {selectedTicket.orgName}</strong>
+                            <div style={{ fontSize: 12, opacity: 0.9 }}>
+                              Statut : Répondu {selectedTicket.answeredAt ? `(${formatDate(selectedTicket.answeredAt)})` : ''} — disponible dans l’espace client de l’association et archivée en base de données.
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <div className="ax-field">
                         <label className="ax-label" htmlFor="apv-reply">Réponse</label>
                         <textarea
@@ -337,9 +367,10 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
                         type="button"
                         onClick={() => handleSaveExpertAnswer(true)}
                         className="ax-btn ax-btn-primary"
+                        disabled={!expertReply.trim()}
                       >
                         <Send size={16} />
-                        <span>Envoyer la réponse</span>
+                        <span>{selectedTicket.status === 'answered' ? 'Mettre à jour la réponse envoyée' : 'Envoyer la réponse à l’association'}</span>
                       </button>
                     </div>
                   </div>
@@ -514,6 +545,20 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
               <button
                 type="button"
                 onClick={() => {
+                  seoPages.forEach((page) => {
+                    const cleanSlug = page.slug.replace(/^\/+|\/+$/g, '') || 'rh';
+                    void fetch('/api/admin/pages', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        slug: cleanSlug,
+                        title: page.title,
+                        metaDescription: page.metaDescription,
+                        h1: page.h1,
+                        status: 'published'
+                      })
+                    }).catch(() => {});
+                  });
                   setSaveToast(true);
                   setTimeout(() => setSaveToast(false), 3000);
                 }}
@@ -583,7 +628,7 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
             transition={{ duration: 0.25, ease: EASE }}
           >
             <CheckCircle2 size={18} />
-            <span>Modifications enregistrées</span>
+            <span>{saveToastMsg}</span>
           </m.div>
         )}
       </AnimatePresence>

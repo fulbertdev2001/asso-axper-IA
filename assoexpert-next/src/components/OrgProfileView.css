@@ -1,0 +1,67 @@
+/* Mon association — compléments locaux au kit .ax- */
+
+.op-card-title { display: flex; align-items: center; gap: 10px; }
+.op-card-title svg { color: var(--color-blue); flex-shrink: 0; }
+
+.op-funders { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
+/* Liste des membres : lignes empilées, lisibles sur mobile */
+.op-members { display: flex; flex-direction: column; list-style: none; margin: 0; padding: 0; }
+.op-member {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--ax-line);
+}
+.op-member:last-child { border-bottom: 0; }
+.op-member-name { font-weight: 600; font-size: 15px; line-height: 1.3; }
+.op-member-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--ax-muted);
+  min-width: 0;
+}
+.op-member-meta span { overflow-wrap: anywhere; }
+.op-member-side { display: flex; align-items: center; gap: 8px; }
+
+.op-id-field {
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--ax-bg);
+  border: 1px solid var(--ax-line);
+}
+
+.op-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--ax-line);
+}
+.op-modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.op-modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--ax-line);
+}
+
+.op-bottom-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .op-member { grid-template-columns: auto minmax(0, 1fr); padding: 14px 18px; }
+  .op-member-side { grid-column: 2; justify-content: space-between; }
+  .op-modal-head, .op-modal-body, .op-modal-foot { padding-left: 18px; padding-right: 18px; }
+  .op-modal-foot .ax-btn, .op-bottom-actions .ax-btn { flex: 1; }
+}
+
+@media (max-width: 960px) {
+  .op-toast { bottom: 92px; max-width: calc(100vw - 32px); }
+}

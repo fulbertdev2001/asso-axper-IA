@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { AnimatePresence, LazyMotion, MotionConfig, domMax, m } from 'motion/react';
 import { Organization } from '../types';
@@ -17,7 +18,7 @@ import {
   BookOpen,
   MessageCircle
 } from 'lucide-react';
-import '../app.css';
+import '../styles/app.css';
 import './LoginPage.css';
 
 interface LoginPageProps {
@@ -63,67 +64,146 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [forgotPasswordNotice, setForgotPasswordNotice] = useState(false);
+  const [resetNewPassword, setResetNewPassword] = useState('');
+  const [resetSuccessMsg, setResetSuccessMsg] = useState<string | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
 
   // Admin Form State
-  const [adminEmail, setAdminEmail] = useState('laetitia.badji@cabinet-mae.fr');
-  const [adminPassword, setAdminPassword] = useState('CabinetMae2026!');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [adminError, setAdminError] = useState<string | null>(null);
 
-  // Handle Client Authentication
-  const handleClientLogin = (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    setResetSuccessMsg(null);
+    const cleanEmail = emailInput.trim().toLowerCase();
+    if (!cleanEmail) {
+      setAuthError('Veuillez saisir votre adresse email ci-dessous pour modifier votre mot de passe.');
+      return;
+    }
+    if (resetNewPassword.trim().length < 6) {
+      setAuthError('Le nouveau mot de passe doit comporter au moins 6 caractères.');
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, newPassword: resetNewPassword.trim() })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAuthError(data.error || 'Impossible de mettre à jour le mot de passe.');
+        setIsResetting(false);
+        return;
+      }
+
+      // Mettre à jour aussi le cache local si l'organisation s'y trouve
+      const matchedOrg = organizations.find(
+        (org) =>
+          (org.accountEmail || '').toLowerCase() === cleanEmail ||
+          (org.members || []).some((m) => m.email.toLowerCase() === cleanEmail)
+      );
+      if (matchedOrg) {
+        matchedOrg.password = resetNewPassword.trim();
+      }
+
+      setPasswordInput(resetNewPassword.trim());
+      setForgotPasswordNotice(false);
+      setResetNewPassword('');
+      setResetSuccessMsg('Votre nouveau mot de passe a bien été enregistré en base de données. Vous pouvez maintenant vous connecter.');
+    } catch {
+      setAuthError('Erreur lors de la modification du mot de passe.');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  // Handle Client Authentication
+  const handleClientLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setResetSuccessMsg(null);
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const cleanEmail = emailInput.trim().toLowerCase();
-      const cleanPass = passwordInput.trim();
+    const cleanEmail = emailInput.trim().toLowerCase();
+    const cleanPass = passwordInput.trim();
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password: cleanPass })
+      });
+      const data = await res.json().catch(() => ({}));
 
       // Find organization by accountEmail OR any member email
-      const matchedOrg = organizations.find(org => {
+      const matchedOrg = organizations.find((org) => {
         const isOrgEmail = (org.accountEmail || '').toLowerCase() === cleanEmail;
-        const isMemberEmail = (org.members || []).some(m => m.email.toLowerCase() === cleanEmail);
+        const isMemberEmail = (org.members || []).some((m) => m.email.toLowerCase() === cleanEmail);
         return isOrgEmail || isMemberEmail;
       });
 
-      if (!matchedOrg) {
-        setAuthError(`Aucun compte association n'est associé à l'adresse "${emailInput}". Veuillez vérifier ou utiliser un compte démo ci-dessous.`);
+      if (res.ok && data.ok) {
         setIsSubmitting(false);
+        onLoginAsOrg(matchedOrg || organizations[0]);
         return;
       }
 
-      // Check password (matches org.password OR default demo password 'Asso2026!')
-      const expectedPassword = matchedOrg.password || 'Asso2026!';
-      if (cleanPass !== expectedPassword && cleanPass !== 'Asso2026!' && cleanPass !== 'asso123') {
-        setAuthError("Mot de passe incorrect pour cette structure associative. (Indice : utilisez le mot de passe démo Asso2026!)");
+      // Fallback si le compte vient d'être créé localement dans la session navigateur
+      if (matchedOrg && matchedOrg.password && cleanPass === matchedOrg.password) {
+        await fetch('/api/auth/demo-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ organizationId: matchedOrg.id, email: cleanEmail })
+        }).catch(() => {});
         setIsSubmitting(false);
+        onLoginAsOrg(matchedOrg);
         return;
       }
 
-      // Success
+      if (!matchedOrg && res.status === 401) {
+        setAuthError(data.error || 'Adresse email ou mot de passe incorrect.');
+      } else {
+        setAuthError('Mot de passe incorrect pour ce compte.');
+      }
+    } catch {
+      setAuthError('Impossible de joindre le serveur d’authentification.');
+    } finally {
       setIsSubmitting(false);
-      onLoginAsOrg(matchedOrg);
-    }, 600);
+    }
   };
 
-  // Quick fill helper
-  const handleFillDemoAccount = (org: Organization) => {
-    const email = org.accountEmail || (org.members && org.members[0]?.email) || 'contact@association.org';
-    const pwd = org.password || 'Asso2026!';
-    setEmailInput(email);
-    setPasswordInput(pwd);
-    setAuthError(null);
-  };
-
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminError(null);
     if (!adminEmail.includes('@cabinet-mae.fr')) {
       setAdminError("Accès restreint. Seules les adresses @cabinet-mae.fr sont autorisées.");
       return;
     }
-    onLoginAsAdmin();
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: adminEmail.trim(), password: adminPassword })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAdminError(data.error || 'Identifiants administrateur incorrects en base de données.');
+        return;
+      }
+      if (!data.user?.isPlatformAdmin) {
+        setAdminError('Ce compte ne dispose pas des droits administrateur Cabinet Maé.');
+        return;
+      }
+      onLoginAsAdmin();
+    } catch {
+      setAdminError('Impossible de vérifier les identifiants auprès de la base de données.');
+    }
   };
 
   return (
@@ -256,10 +336,38 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                         </div>
                       )}
 
-                      {forgotPasswordNotice && (
+                      {resetSuccessMsg && (
                         <div className="ax-alert ax-alert-success lg-alert" role="status">
                           <CheckCircle2 size={16} />
-                          <span>Un lien de réinitialisation vous a été envoyé (simulation).</span>
+                          <span>{resetSuccessMsg}</span>
+                        </div>
+                      )}
+
+                      {forgotPasswordNotice && (
+                        <div className="ax-card" style={{ padding: 14, marginBottom: 16, border: '1px solid var(--color-border)' }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--color-navy)' }}>
+                            Définir un nouveau mot de passe
+                          </div>
+                          <p style={{ fontSize: 12, color: 'var(--color-navy-muted)', marginBottom: 10 }}>
+                            Saisissez votre adresse email ci-dessous puis choisissez votre nouveau mot de passe :
+                          </p>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <input
+                              type="password"
+                              className="ax-input"
+                              placeholder="Nouveau mot de passe (min. 6 caractères)"
+                              value={resetNewPassword}
+                              onChange={(e) => setResetNewPassword(e.target.value)}
+                            />
+                            <button
+                              type="button"
+                              className="ax-btn ax-btn-primary ax-btn-sm"
+                              onClick={handleResetPassword}
+                              disabled={isResetting}
+                            >
+                              {isResetting ? 'Enregistrement…' : 'Valider'}
+                            </button>
+                          </div>
                         </div>
                       )}
 
@@ -351,34 +459,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                         </button>
                       </form>
 
-                      {/* Comptes de démonstration */}
-                      <div className="lg-demo">
-                        <div className="lg-demo-head">
-                          <span className="lg-demo-label">Comptes de démonstration</span>
-                          <span className="lg-demo-hint">Mot de passe : Asso2026!</span>
-                        </div>
-                        <div className="lg-demo-list">
-                          {organizations.slice(0, 3).map((org) => {
-                            const email = org.accountEmail || (org.members && org.members[0]?.email) || 'contact@asso.org';
-                            return (
-                              <button
-                                key={org.id}
-                                type="button"
-                                className="lg-demo-item"
-                                onClick={() => handleFillDemoAccount(org)}
-                                title={`Remplir les identifiants pour ${org.name}`}
-                              >
-                                <span className="lg-demo-text">
-                                  <span className="lg-demo-name">{org.name.split('(')[0].trim()}</span>
-                                  <span className="lg-demo-email">{email}</span>
-                                </span>
-                                <span className="lg-demo-fill">Remplir</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
                       <p className="lg-foot">
                         Pas encore de compte ?{' '}
                         <button type="button" className="lg-link" onClick={onStartOnboarding}>
@@ -412,6 +492,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                               id="lg-admin-email"
                               type="email"
                               className="ax-input"
+                              placeholder="prenom.nom@cabinet-mae.fr"
                               autoComplete="email"
                               value={adminEmail}
                               onChange={(e) => setAdminEmail(e.target.value)}
@@ -428,6 +509,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                               id="lg-admin-password"
                               type={showAdminPassword ? 'text' : 'password'}
                               className="ax-input lg-input-pass"
+                              placeholder="Votre mot de passe"
                               autoComplete="current-password"
                               value={adminPassword}
                               onChange={(e) => setAdminPassword(e.target.value)}

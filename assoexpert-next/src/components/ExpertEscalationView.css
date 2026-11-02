@@ -1,0 +1,64 @@
+/* Questions à l'experte — compléments au kit .ax- */
+
+.ax-esc-quota {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+.ax-esc-quota-main { flex: 1; min-width: 0; }
+.ax-esc-quota-value { font-size: 15px; font-weight: 600; }
+.ax-esc-quota-value strong { font-variant-numeric: tabular-nums; }
+.ax-esc-quota .ax-progress { margin-top: 10px; max-width: 360px; }
+
+.ax-esc-org {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--ax-bg);
+  font-size: 13px;
+  color: var(--ax-muted);
+}
+.ax-esc-org svg { flex-shrink: 0; color: var(--ax-faint); }
+
+.ax-esc-urgency { display: flex; width: 100%; }
+.ax-esc-urgency .ax-seg-btn { flex: 1; justify-content: center; height: 36px; }
+
+.ax-esc-ticket-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ax-muted);
+}
+.ax-esc-ref { font-size: 12px; color: var(--ax-faint); font-variant-numeric: tabular-nums; }
+
+.ax-esc-modal { max-width: 680px; }
+.ax-esc-section-label { font-size: 12px; font-weight: 600; color: var(--ax-muted); margin-bottom: 8px; }
+.ax-esc-question {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--ax-bg);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.ax-esc-answer {
+  font-size: 15px;
+  line-height: 1.7;
+}
+.ax-esc-followup { display: flex; gap: 8px; }
+.ax-esc-followup .ax-input { flex: 1; }
+
+@media (max-width: 720px) {
+  .ax-esc-quota { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 16px; margin-bottom: 18px; }
+  .ax-esc-quota .ax-btn { width: 100%; }
+  .ax-esc-urgency .ax-seg-btn { height: 40px; }
+  .ax-esc-followup { flex-direction: column; }
+  .ax-esc-followup .ax-btn { height: 42px; }
+  .ax-esc-list .ax-list-item { min-height: 56px; }
+}

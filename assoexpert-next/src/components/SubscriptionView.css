@@ -1,0 +1,76 @@
+/* Écran Abonnement — compléments au kit .ax- */
+
+.sv-current { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 32px; align-items: start; }
+.sv-plan-name { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
+.sv-price { display: flex; align-items: baseline; gap: 6px; }
+.sv-price strong { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.sv-price span { font-size: 13px; color: var(--ax-muted); }
+
+.sv-modules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 20px; list-style: none; padding: 0; margin: 0; }
+.sv-modules li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.sv-modules li svg { flex-shrink: 0; color: var(--color-blue); }
+.sv-modules li.is-off { color: var(--ax-faint); }
+.sv-modules li.is-off svg { color: #CBD5E1; }
+
+.sv-usage { background: var(--ax-bg); border-radius: 12px; padding: 16px; }
+.sv-usage-value { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+.sv-section-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+
+/* Cartes formules — même présentation que la landing */
+.sv-plans { align-items: stretch; padding-top: 12px; }
+.sv-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--ax-surface);
+  border: 1px solid var(--ax-line);
+  border-radius: 16px;
+  padding: 26px 22px 22px;
+  transition: box-shadow 250ms var(--ax-ease), border-color 200ms ease;
+}
+.sv-plan:hover { box-shadow: 0 16px 36px -24px rgba(10, 37, 64, 0.3); border-color: var(--ax-line-strong); }
+.sv-plan-featured, .sv-plan-featured:hover { border: 2px solid var(--color-blue); }
+.sv-plan-current { background: #FBFCFE; }
+.sv-plan-badge { position: absolute; top: -11px; left: 22px; }
+.sv-plan-badge .ax-badge { box-shadow: 0 0 0 3px var(--ax-bg); }
+.sv-plan h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+.sv-plan-desc { font-size: 14px; color: var(--ax-muted); margin-bottom: 16px; min-height: 66px; }
+.sv-plan .sv-price { margin-bottom: 18px; }
+.sv-plan ul { list-style: none; padding: 0; margin: 0 0 22px; display: grid; gap: 9px; flex-grow: 1; }
+.sv-plan li { display: flex; gap: 9px; align-items: flex-start; font-size: 14px; }
+.sv-plan li svg { flex-shrink: 0; margin-top: 3px; color: var(--color-blue); }
+.sv-plan li.is-off { color: var(--ax-faint); }
+.sv-plan li.is-off svg { color: #CBD5E1; }
+
+.sv-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+
+/* Outils de démonstration (repliables) */
+.sv-demo > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+}
+.sv-demo > summary::-webkit-details-marker { display: none; }
+.sv-demo > summary .sv-chevron { color: var(--ax-faint); transition: transform 200ms ease; flex-shrink: 0; }
+.sv-demo[open] > summary .sv-chevron { transform: rotate(180deg); }
+.sv-demo[open] > summary { border-bottom: 1px solid var(--ax-line); }
+
+.sv-modal-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--ax-line); font-size: 14px; }
+.sv-modal-row:last-child { border-bottom: 0; }
+
+@media (max-width: 960px) {
+  .sv-current { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+}
+
+@media (max-width: 720px) {
+  .sv-modules { grid-template-columns: minmax(0, 1fr); }
+  .sv-plans { gap: 22px; }
+  .sv-plan-desc { min-height: 0; }
+  .sv-demo > summary { padding: 14px 18px; }
+  .sv-actions .ax-btn { flex: 1; }
+}

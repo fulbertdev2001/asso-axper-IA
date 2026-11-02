@@ -1,0 +1,66 @@
+services:
+  # 1. Base de données PostgreSQL 16 (Standard, portable, sans extension propriétaire)
+  postgres:
+    image: postgres:16-alpine
+    container_name: assoexpert-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-assoexpert}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-assoexpert_local_pwd}
+      POSTGRES_DB: ${POSTGRES_DB:-assoexpert}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-assoexpert} -d ${POSTGRES_DB:-assoexpert}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Valkey 8 (Alternative open source à Redis pour le Rate Limiting 10 req/min/user)
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: assoexpert-valkey
+    restart: unless-stopped
+    command: ["valkey-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # 3. Umami Analytics (Auto-hébergé, sans cookie, conforme RGPD)
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    container_name: assoexpert-umami
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-assoexpert}:${POSTGRES_PASSWORD:-assoexpert_local_pwd}@postgres:5432/${POSTGRES_DB:-assoexpert}?schema=umami
+      APP_SECRET: ${UMAMI_APP_SECRET:-umami_local_secret_assoexpert_2026}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # 4. Uptime Kuma (Monitoring de disponibilité auto-hébergé)
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: assoexpert-uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3002:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+
+volumes:
+  postgres_data:
+  valkey_data:
+  uptime_kuma_data:
+
