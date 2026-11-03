@@ -37,6 +37,22 @@ export const sessions = pgTable('sessions', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });
 
+// Jetons à usage unique (magic link, réinitialisation de mot de passe) — empreinte SHA-256 uniquement
+export const verificationTokens = pgTable(
+  'verification_tokens',
+  {
+    id: text('id').primaryKey(),
+    purpose: text('purpose').$type<'magic_link' | 'password_reset'>().notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    organizationId: uuid('organization_id').references(() => organizations.id, { onDelete: 'cascade' }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [index('verification_tokens_user_idx').on(table.userId)]
+);
+
 // 2. Organisations (unité métier multi-tenant)
 export const organizations = pgTable('organizations', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -213,6 +229,7 @@ export const expertTickets = pgTable(
       .$type<'rh' | 'gouvernance' | 'finance' | 'conformite'>()
       .notNull(),
     urgency: text('urgency').notNull().default('normal_48h'),
+    subject: text('subject').notNull().default(''),
     question: text('question').notNull(),
     answer: text('answer'),
     internalNote: text('internal_note'),

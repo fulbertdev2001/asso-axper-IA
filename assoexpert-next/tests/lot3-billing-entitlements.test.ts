@@ -1,5 +1,28 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+import Stripe from 'stripe';
+
+// Le secret doit exister avant la construction du conteneur (import des routes)
+const WEBHOOK_SECRET = vi.hoisted(() => {
+  const secret = 'whsec_test_assoexpert_secret';
+  process.env.STRIPE_WEBHOOK_SECRET = secret;
+  return secret;
+});
+
+const stripeTestClient = new Stripe('sk_test_unused');
+
+function signedWebhookRequest(payload: unknown, signature?: string): NextRequest {
+  const body = JSON.stringify(payload);
+  return new NextRequest('http://localhost:3000/api/stripe/webhook', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'stripe-signature':
+        signature ?? stripeTestClient.webhooks.generateTestHeaderString({ payload: body, secret: WEBHOOK_SECRET })
+    },
+    body
+  });
+}
 import {
   resetBillingStoresForTests,
   orgHasFeature,
@@ -45,40 +68,60 @@ describe('Lot 3 — Abonnements Stripe, Webhooks idempotents & Droits (§7 Lot 3
   });
 
   it('CA Lot 3 #2 : rejouer un webhook Stripe ne crée pas de doublon (table stripe_events)', async () => {
+    // Événement au format Stripe réel : organisation dans les metadata,
+    // formule résolue via le stripe_price_id configuré en base
     const webhookPayload = {
       id: 'evt_stripe_unique_001',
-      type: 'customer.subscription.updated' as const,
+      object: 'event',
+      type: 'customer.subscription.updated',
       data: {
         object: {
-          organizationId: 'org-1',
-          planCode: 'expert' as const,
-          stripeCustomerId: 'cus_AkiligueEspoir75'
+          id: 'sub_org_1',
+          object: 'subscription',
+          customer: 'cus_AkiligueEspoir75',
+          status: 'active',
+          metadata: { organizationId: 'org-1' },
+          current_period_end: Math.floor(new Date('2026-12-31T00:00:00Z').getTime() / 1000),
+          items: { object: 'list', data: [{ id: 'si_1', price: { id: 'price_expert' } }] }
         }
       }
     };
 
-    const req1 = new NextRequest('http://localhost:3000/api/stripe/webhook', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(webhookPayload)
-    });
-    const res1 = await postStripeWebhookRoute(req1);
+    const res1 = await postStripeWebhookRoute(signedWebhookRequest(webhookPayload));
     const data1 = await res1.json();
 
     expect(data1.duplicate).toBe(false);
     expect(data1.subscription.planCode).toBe('expert');
 
     // Rejeu du même événement evt_stripe_unique_001
-    const req2 = new NextRequest('http://localhost:3000/api/stripe/webhook', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(webhookPayload)
-    });
-    const res2 = await postStripeWebhookRoute(req2);
+    const res2 = await postStripeWebhookRoute(signedWebhookRequest(webhookPayload));
     const data2 = await res2.json();
 
     expect(data2.duplicate).toBe(true);
     expect(data2.eventRecord.eventId).toBe('evt_stripe_unique_001');
+  });
+
+  it('Sécurité : un webhook non signé ou mal signé est refusé (400)', async () => {
+    const forged = {
+      id: 'evt_forged_001',
+      type: 'customer.subscription.updated',
+      data: {
+        object: {
+          id: 'sub_org_2',
+          customer: 'cus_MptLilas93',
+          metadata: { organizationId: 'org-2' },
+          items: { data: [{ price: { id: 'price_expert' } }] }
+        }
+      }
+    };
+
+    const unsigned = new NextRequest('http://localhost:3000/api/stripe/webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(forged)
+    });
+    expect((await postStripeWebhookRoute(unsigned)).status).toBe(400);
+    expect((await postStripeWebhookRoute(signedWebhookRequest(forged, 't=1,v1=deadbeef'))).status).toBe(400);
   });
 
   it('CA Lot 3 #3 : couvre la souscription, l’upgrade, l’échec de paiement (grâce 3 jours puis suspension) et la résiliation', () => {

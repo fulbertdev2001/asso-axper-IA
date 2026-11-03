@@ -6,7 +6,7 @@
  * - Traitement idempotent des webhooks Stripe via ISubscriptionRepository.
  */
 
-import { AuthContext, FeatureKey, Plan, Subscription } from '../domain/models';
+import { AuthContext, BillingEvent, FeatureKey, Plan, Subscription } from '../domain/models';
 import { ForbiddenError, NotFoundError } from '../domain/errors';
 import { IPlanRepository, ISubscriptionRepository } from '../repositories/interfaces';
 
@@ -155,6 +155,92 @@ export class BillingService {
 
     const parsed = Number(feature.limitValue);
     return isNaN(parsed) ? defaultValue : parsed;
+  }
+
+  async getFeatureValue(
+    orgId: string,
+    featureKey: FeatureKey,
+    defaultValue: string,
+    now = new Date()
+  ): Promise<string> {
+    const sub = await this.subRepo.findByOrgId(orgId);
+    if (!sub) return defaultValue;
+
+    const isActive = sub.status === 'active';
+    const isInGrace =
+      sub.status === 'past_due' && sub.graceUntil !== null && sub.graceUntil.getTime() > now.getTime();
+
+    if (!isActive && !isInGrace) {
+      return defaultValue;
+    }
+
+    const plan = await this.planRepo.findByCode(sub.planCode);
+    if (!plan) return defaultValue;
+
+    const feature = plan.features.find((f) => f.featureKey === featureKey);
+    if (!feature || !feature.enabled || !feature.limitValue) {
+      return defaultValue;
+    }
+
+    // §4 Stack : claude-sonnet-4-6 des CDC ne doit jamais être utilisé
+    if (featureKey === 'ai.model' && feature.limitValue === 'claude-sonnet-4-6') {
+      return 'claude-sonnet-5';
+    }
+
+    return feature.limitValue;
+  }
+
+  /**
+   * Point d'entrée des webhooks de paiement VÉRIFIÉS (signature contrôlée par `PaymentGateway`).
+   * Résout l'organisation (metadata ou abonnement connu) et la formule (via `stripe_price_id`
+   * configuré en base), puis délègue au traitement idempotent `processStripeWebhook`.
+   */
+  async processBillingEvent(
+    event: BillingEvent,
+    options: { now?: Date; graceDays?: number } = {}
+  ): Promise<
+    | { ignored: true; reason: string; eventId: string }
+    | Awaited<ReturnType<BillingService['processStripeWebhook']>>
+  > {
+    const knownSub = event.stripeSubscriptionId
+      ? await this.subRepo.findByStripeSubscriptionId(event.stripeSubscriptionId)
+      : null;
+    const organizationId = event.organizationId || knownSub?.organizationId || null;
+    if (!organizationId) {
+      return { ignored: true, reason: 'organisation introuvable pour cet événement', eventId: event.id };
+    }
+
+    let planCode: string | undefined;
+    if (event.priceId) {
+      const plan = await this.planRepo.findByStripePriceId(event.priceId);
+      if (!plan) {
+        return { ignored: true, reason: `aucune formule configurée pour le prix ${event.priceId}`, eventId: event.id };
+      }
+      planCode = plan.code;
+    }
+
+    const typeMap: Record<BillingEvent['type'], IncomingStripeWebhookEvent['type']> = {
+      'subscription.upserted': 'customer.subscription.updated',
+      'subscription.deleted': 'customer.subscription.deleted',
+      'payment.failed': 'invoice.payment_failed'
+    };
+
+    return this.processStripeWebhook(
+      {
+        id: event.id,
+        type: typeMap[event.type],
+        data: {
+          object: {
+            organizationId,
+            stripeCustomerId: event.stripeCustomerId || undefined,
+            stripeSubscriptionId: event.stripeSubscriptionId || undefined,
+            planCode,
+            currentPeriodEnd: event.currentPeriodEnd?.toISOString()
+          }
+        }
+      },
+      options
+    );
   }
 
   async processStripeWebhook(

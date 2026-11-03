@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { buildOrganizationAndExpertJsonLd } from '../../../lib/cms/jsonld';
+import { serializeJsonLd } from '../../../lib/cms/serialize';
 
 export const metadata: Metadata = {
   title: 'À propos — Laetitia Badji & Cabinet Maé',
@@ -21,7 +22,7 @@ export default function AProposPage() {
     <main style={{ maxWidth: 920, margin: '0 auto', padding: '64px 24px' }}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <nav aria-label="Fil d’Ariane" style={{ fontSize: 14, marginBottom: 24 }}>
         <Link href="/">Accueil</Link> <span>/</span> <span>À propos</span>

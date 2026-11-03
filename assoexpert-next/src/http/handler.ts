@@ -11,6 +11,7 @@ import { ZodSchema, ZodError } from 'zod';
 import { AuthContext } from '../domain/models';
 import { DomainError, UnauthorizedError, ForbiddenError } from '../domain/errors';
 import { container } from '../container';
+import { SESSION_COOKIE_NAME } from './session-cookie';
 
 export interface ApiHandlerContext<TBody = unknown, TQuery = Record<string, string>> {
   req: NextRequest;
@@ -21,8 +22,8 @@ export interface ApiHandlerContext<TBody = unknown, TQuery = Record<string, stri
 }
 
 export interface ApiHandlerOptions<TBody = unknown, TQuery = Record<string, string>> {
-  bodySchema?: ZodSchema<TBody>;
-  querySchema?: ZodSchema<TQuery>;
+  bodySchema?: ZodSchema<TBody, any, any>;
+  querySchema?: ZodSchema<TQuery, any, any>;
   auth?: boolean;
   admin?: boolean;
   orgScoped?: boolean;
@@ -40,7 +41,7 @@ export function extractSessionToken(req: NextRequest): string | null {
     return customHeader.trim();
   }
 
-  const cookie = req.cookies.get('assoexpert_session');
+  const cookie = req.cookies.get(SESSION_COOKIE_NAME);
   if (cookie?.value) {
     return cookie.value.trim();
   }

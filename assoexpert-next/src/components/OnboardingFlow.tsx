@@ -236,7 +236,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         mainFunders: mainFunders.split(',').map(s => s.trim()).filter(Boolean),
         establishmentsCount: 1,
         accountEmail: leaderEmail.trim(),
-        password: leaderPassword.trim() || 'Asso2026!',
+        password: leaderPassword.trim(),
         members: [
           {
             id: 'mem-' + Date.now(),
@@ -401,7 +401,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                     type={showPassword ? 'text' : 'password'}
                     className="input"
                     style={{ paddingRight: 38 }}
-                    placeholder="Minimum 6 caractères"
+                    placeholder="Minimum 8 caractères"
                     value={leaderPassword}
                     onChange={(e) => setLeaderPassword(e.target.value)}
                     required
@@ -445,8 +445,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   setStep1Error('Veuillez renseigner votre nom, votre fonction et votre adresse email.');
                   return;
                 }
-                if (leaderPassword.trim().length < 6) {
-                  setStep1Error('Votre mot de passe doit contenir au moins 6 caractères.');
+                if (leaderPassword.trim().length < 8) {
+                  setStep1Error('Votre mot de passe doit contenir au moins 8 caractères.');
                   return;
                 }
                 if (leaderPassword !== confirmPassword) {

@@ -52,6 +52,18 @@ export interface AuthContext {
   isPlatformAdmin: boolean;
 }
 
+export type VerificationTokenPurpose = 'magic_link' | 'password_reset';
+
+/** Jeton à usage unique (magic link, réinitialisation) : seule son empreinte SHA-256 est stockée. */
+export interface VerificationToken {
+  id: string;
+  purpose: VerificationTokenPurpose;
+  userId: string;
+  organizationId: string | null;
+  expiresAt: Date;
+  createdAt: Date;
+}
+
 export type MembershipRole = 'owner' | 'member';
 
 export interface Membership {

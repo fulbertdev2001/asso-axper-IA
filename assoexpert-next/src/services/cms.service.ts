@@ -12,8 +12,13 @@ import { ICmsRepository } from '../repositories/interfaces';
 export class CmsService {
   constructor(private readonly cmsRepo: ICmsRepository) {}
 
+  /**
+   * Résout une page publique. `targetSlug` est renvoyé SANS slash initial.
+   * Les brouillons ne sont servis que si `includeDrafts` est demandé (prévisualisation admin).
+   */
   async getPageBySlug(
-    slug: string
+    slug: string,
+    options: { includeDrafts?: boolean } = {}
   ): Promise<{ type: 'page'; page: CmsPage } | { type: 'redirect'; targetSlug: string }> {
     const cleanSlug = slug.replace(/^\/+|\/+$/g, '');
     const page = await this.cmsRepo.findBySlug(cleanSlug);
@@ -24,12 +29,12 @@ export class CmsService {
 
     // Recherche d'une redirection 301 existante (§7 Lot 6 CA #2)
     const redirectTarget = await this.cmsRepo.getRedirect(cleanSlug);
-    if (redirectTarget) {
-      return { type: 'redirect', targetSlug: redirectTarget };
+    const targetSlug = redirectTarget?.replace(/^\/+|\/+$/g, '');
+    if (targetSlug && targetSlug !== cleanSlug) {
+      return { type: 'redirect', targetSlug };
     }
 
-    if (page && page.status === 'draft') {
-      // Les pages brouillons ne sont visibles que si expressément demandées
+    if (page && page.status === 'draft' && options.includeDrafts) {
       return { type: 'page', page };
     }
 

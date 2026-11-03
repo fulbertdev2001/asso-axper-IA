@@ -32,8 +32,10 @@ import {
   ISubscriptionRepository,
   ITicketRepository,
   IAiRepository,
-  ICmsRepository
+  ICmsRepository,
+  IVerificationTokenRepository
 } from '../interfaces';
+import { ConflictError } from '../../domain/errors';
 import {
   User,
   Session,
@@ -49,8 +51,16 @@ import {
   AiUsage,
   CmsPage,
   CmsPageInput,
-  FeatureKey
+  FeatureKey,
+  VerificationToken,
+  VerificationTokenPurpose
 } from '../../domain/models';
+
+/** Code PostgreSQL 23505 : violation de contrainte d'unicité (éventuellement encapsulée par Drizzle). */
+function isUniqueViolation(err: unknown): boolean {
+  const e = err as { code?: string; cause?: { code?: string } } | null;
+  return e?.code === '23505' || e?.cause?.code === '23505';
+}
 
 function getDb() {
   if (!db) {
@@ -177,8 +187,55 @@ export class DrizzleSessionRepository implements ISessionRepository {
     await getDb().delete(schema.sessions).where(eq(schema.sessions.id, tokenHash));
   }
 
+  async deleteByUser(userId: string): Promise<void> {
+    await getDb().delete(schema.sessions).where(eq(schema.sessions.userId, userId));
+  }
+
   async deleteExpired(now = new Date()): Promise<void> {
     await getDb().delete(schema.sessions).where(lt(schema.sessions.expiresAt, now));
+  }
+}
+
+// --- 2bis. Jetons de vérification à usage unique -----------------------------
+
+export class DrizzleVerificationTokenRepository implements IVerificationTokenRepository {
+  async create(token: VerificationToken): Promise<VerificationToken> {
+    const resolvedOrgId = token.organizationId ? toUuid(token.organizationId) : null;
+    await getDb()
+      .insert(schema.verificationTokens)
+      .values({
+        id: token.id,
+        purpose: token.purpose,
+        userId: token.userId,
+        organizationId: resolvedOrgId,
+        expiresAt: token.expiresAt,
+        createdAt: token.createdAt
+      });
+    return { ...token, organizationId: resolvedOrgId };
+  }
+
+  async consume(tokenHash: string, purpose: VerificationTokenPurpose): Promise<VerificationToken | null> {
+    // DELETE ... RETURNING : la consommation est atomique, un jeton ne peut servir qu'une fois
+    const rows = await getDb()
+      .delete(schema.verificationTokens)
+      .where(
+        and(eq(schema.verificationTokens.id, tokenHash), eq(schema.verificationTokens.purpose, purpose))
+      )
+      .returning();
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      id: row.id,
+      purpose: row.purpose,
+      userId: row.userId,
+      organizationId: row.organizationId,
+      expiresAt: row.expiresAt,
+      createdAt: row.createdAt
+    };
+  }
+
+  async deleteExpired(now = new Date()): Promise<void> {
+    await getDb().delete(schema.verificationTokens).where(lt(schema.verificationTokens.expiresAt, now));
   }
 }
 
@@ -516,15 +573,27 @@ export class DrizzleSubscriptionRepository implements ISubscriptionRepository {
       .from(schema.subscriptions)
       .where(eq(schema.subscriptions.organizationId, resolvedOrgId))
       .limit(1);
-    if (!rows[0]) return null;
+    return rows[0] ? this.mapSubscription(rows[0]) : null;
+  }
+
+  async findByStripeSubscriptionId(stripeSubscriptionId: string): Promise<Subscription | null> {
+    const rows = await getDb()
+      .select()
+      .from(schema.subscriptions)
+      .where(eq(schema.subscriptions.stripeSubscriptionId, stripeSubscriptionId))
+      .limit(1);
+    return rows[0] ? this.mapSubscription(rows[0]) : null;
+  }
+
+  private mapSubscription(r: typeof schema.subscriptions.$inferSelect): Subscription {
     return {
-      organizationId: rows[0].organizationId,
-      stripeCustomerId: rows[0].stripeCustomerId,
-      stripeSubscriptionId: rows[0].stripeSubscriptionId,
-      planCode: rows[0].planCode,
-      status: rows[0].status,
-      currentPeriodEnd: rows[0].currentPeriodEnd,
-      graceUntil: rows[0].graceUntil
+      organizationId: r.organizationId,
+      stripeCustomerId: r.stripeCustomerId,
+      stripeSubscriptionId: r.stripeSubscriptionId,
+      planCode: r.planCode,
+      status: r.status,
+      currentPeriodEnd: r.currentPeriodEnd,
+      graceUntil: r.graceUntil
     };
   }
 
@@ -580,22 +649,30 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async create(ticket: ExpertTicket): Promise<ExpertTicket> {
     const resolvedId = toUuid(ticket.id);
     const resolvedOrgId = toUuid(ticket.organizationId);
-    await getDb()
-      .insert(schema.expertTickets)
-      .values({
-        id: resolvedId,
-        ref: ticket.ref,
-        organizationId: resolvedOrgId,
-        userId: ticket.userId,
-        domain: ticket.domain,
-        urgency: ticket.urgency,
-        question: ticket.question,
-        answer: ticket.answer,
-        internalNote: ticket.internalNote,
-        status: ticket.status,
-        answeredAt: ticket.answeredAt,
-        createdAt: ticket.createdAt
-      });
+    try {
+      await getDb()
+        .insert(schema.expertTickets)
+        .values({
+          id: resolvedId,
+          ref: ticket.ref,
+          organizationId: resolvedOrgId,
+          userId: ticket.userId,
+          domain: ticket.domain,
+          urgency: ticket.urgency,
+          subject: ticket.subject,
+          question: ticket.question,
+          answer: ticket.answer,
+          internalNote: ticket.internalNote,
+          status: ticket.status,
+          answeredAt: ticket.answeredAt,
+          createdAt: ticket.createdAt
+        });
+    } catch (err) {
+      if (isUniqueViolation(err)) {
+        throw new ConflictError(`Référence de ticket déjà utilisée : ${ticket.ref}`);
+      }
+      throw err;
+    }
     return { ...ticket, id: resolvedId, organizationId: resolvedOrgId };
   }
 
@@ -653,6 +730,17 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return Number(rows[0]?.count || 0);
   }
 
+  async getMaxRefSequence(year: number): Promise<number> {
+    const prefix = `AE-${year}-`;
+    const rows = await getDb()
+      .select({
+        maxSeq: sql<number | null>`max(cast(split_part(${schema.expertTickets.ref}, '-', 3) as integer))`
+      })
+      .from(schema.expertTickets)
+      .where(sql`${schema.expertTickets.ref} like ${prefix + '%'}`);
+    return Number(rows[0]?.maxSeq || 0);
+  }
+
   async update(id: string, patch: Partial<ExpertTicket>): Promise<ExpertTicket> {
     const resolvedId = toUuid(id);
     const values: Record<string, unknown> = {};
@@ -679,7 +767,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       userId: r.userId,
       domain: r.domain,
       urgency: r.urgency as ExpertTicket['urgency'],
-      subject: r.question.slice(0, 60),
+      subject: r.subject || r.question.slice(0, 60),
       question: r.question,
       answer: r.answer,
       internalNote: r.internalNote,
@@ -753,15 +841,16 @@ export class DrizzleAiRepository implements IAiRepository {
   async deleteConversation(orgId: string, convId: string): Promise<boolean> {
     const resolvedOrgId = toUuid(orgId);
     const resolvedConvId = toUuid(convId);
-    await getDb()
+    const deleted = await getDb()
       .delete(schema.conversations)
       .where(
         and(
           eq(schema.conversations.id, resolvedConvId),
           eq(schema.conversations.organizationId, resolvedOrgId)
         )
-      );
-    return true;
+      )
+      .returning();
+    return deleted.length > 0;
   }
 
   async addMessage(msg: Message): Promise<Message> {

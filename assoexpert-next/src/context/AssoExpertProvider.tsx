@@ -116,13 +116,8 @@ export const AssoExpertProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // La session serveur n'est créée que par une vraie connexion ou inscription (cookie HttpOnly)
       localStorage.setItem('asso_expert_current_org_id', currentOrgId);
-      // Synchronise le cookie de session serveur avec l'organisation courante
-      void fetch('/api/auth/demo-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizationId: currentOrgId })
-      }).catch(() => {});
     }
   }, [currentOrgId]);
 
@@ -266,7 +261,9 @@ export const AssoExpertProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   ) => {
     track('signup_complete', { planCode: selectedPlanCode });
     track('subscription_started', { planCode: selectedPlanCode });
-    setOrganizations((prev) => [newOrg, ...prev]);
+    // Le mot de passe n'est jamais conservé côté navigateur (localStorage)
+    const { password, ...orgWithoutPassword } = newOrg;
+    setOrganizations((prev) => [orgWithoutPassword, ...prev]);
     setCurrentOrgId(newOrg.id);
 
     const renewalDate = new Date();
@@ -297,7 +294,7 @@ export const AssoExpertProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         name: newOrg.members?.[0]
           ? `${newOrg.members[0].firstName} ${newOrg.members[0].lastName}`
           : 'Direction',
-        password: newOrg.password || 'Asso2026!',
+        password: password || undefined,
         roleInOrg: newOrg.members?.[0]?.role || 'Président(e)',
         organization: {
           name: newOrg.name,

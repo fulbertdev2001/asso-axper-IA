@@ -64,7 +64,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [forgotPasswordNotice, setForgotPasswordNotice] = useState(false);
-  const [resetNewPassword, setResetNewPassword] = useState('');
   const [resetSuccessMsg, setResetSuccessMsg] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
 
@@ -74,50 +73,35 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [adminError, setAdminError] = useState<string | null>(null);
 
+  // Mot de passe oublié : envoi d'un lien de réinitialisation à usage unique par email
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
     setResetSuccessMsg(null);
     const cleanEmail = emailInput.trim().toLowerCase();
     if (!cleanEmail) {
-      setAuthError('Veuillez saisir votre adresse email ci-dessous pour modifier votre mot de passe.');
-      return;
-    }
-    if (resetNewPassword.trim().length < 6) {
-      setAuthError('Le nouveau mot de passe doit comporter au moins 6 caractères.');
+      setAuthError('Veuillez saisir votre adresse email ci-dessous pour recevoir le lien de réinitialisation.');
       return;
     }
 
     setIsResetting(true);
     try {
-      const res = await fetch('/api/auth/change-password', {
+      const res = await fetch('/api/auth/password-reset/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, newPassword: resetNewPassword.trim() })
+        body: JSON.stringify({ email: cleanEmail })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setAuthError(data.error || 'Impossible de mettre à jour le mot de passe.');
-        setIsResetting(false);
+        setAuthError(data.error || 'Impossible d’envoyer le lien de réinitialisation.');
         return;
       }
-
-      // Mettre à jour aussi le cache local si l'organisation s'y trouve
-      const matchedOrg = organizations.find(
-        (org) =>
-          (org.accountEmail || '').toLowerCase() === cleanEmail ||
-          (org.members || []).some((m) => m.email.toLowerCase() === cleanEmail)
-      );
-      if (matchedOrg) {
-        matchedOrg.password = resetNewPassword.trim();
-      }
-
-      setPasswordInput(resetNewPassword.trim());
       setForgotPasswordNotice(false);
-      setResetNewPassword('');
-      setResetSuccessMsg('Votre nouveau mot de passe a bien été enregistré en base de données. Vous pouvez maintenant vous connecter.');
+      setResetSuccessMsg(
+        'Si un compte correspond à cette adresse, un lien de réinitialisation (valable 30 minutes) vient de vous être envoyé par email.'
+      );
     } catch {
-      setAuthError('Erreur lors de la modification du mot de passe.');
+      setAuthError('Erreur lors de la demande de réinitialisation.');
     } finally {
       setIsResetting(false);
     }
@@ -150,27 +134,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
       if (res.ok && data.ok) {
         setIsSubmitting(false);
-        onLoginAsOrg(matchedOrg || data.organization || organizations[0]);
+        const loggedOrg = data.organization || matchedOrg;
+        if (!loggedOrg) {
+          setAuthError('Aucune association n’est rattachée à ce compte.');
+          return;
+        }
+        onLoginAsOrg(loggedOrg);
         return;
       }
 
-      // Fallback si le compte vient d'être créé localement dans la session navigateur
-      if (matchedOrg && matchedOrg.password && cleanPass === matchedOrg.password) {
-        await fetch('/api/auth/demo-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ organizationId: matchedOrg.id, email: cleanEmail })
-        }).catch(() => {});
-        setIsSubmitting(false);
-        onLoginAsOrg(matchedOrg);
-        return;
-      }
-
-      if (!matchedOrg && res.status === 401) {
-        setAuthError(data.error || 'Adresse email ou mot de passe incorrect.');
-      } else {
-        setAuthError('Mot de passe incorrect pour ce compte.');
-      }
+      // L'authentification est exclusivement vérifiée côté serveur
+      setAuthError(data.error || 'Adresse email ou mot de passe incorrect.');
     } catch {
       setAuthError('Impossible de joindre le serveur d’authentification.');
     } finally {
@@ -346,28 +320,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       {forgotPasswordNotice && (
                         <div className="ax-card" style={{ padding: 14, marginBottom: 16, border: '1px solid var(--color-border)' }}>
                           <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--color-navy)' }}>
-                            Définir un nouveau mot de passe
+                            Réinitialiser votre mot de passe
                           </div>
                           <p style={{ fontSize: 12, color: 'var(--color-navy-muted)', marginBottom: 10 }}>
-                            Saisissez votre adresse email ci-dessous puis choisissez votre nouveau mot de passe :
+                            Saisissez votre adresse email ci-dessous : nous vous enverrons un lien sécurisé pour définir un nouveau mot de passe.
                           </p>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <input
-                              type="password"
-                              className="ax-input"
-                              placeholder="Nouveau mot de passe (min. 6 caractères)"
-                              value={resetNewPassword}
-                              onChange={(e) => setResetNewPassword(e.target.value)}
-                            />
-                            <button
-                              type="button"
-                              className="ax-btn ax-btn-primary ax-btn-sm"
-                              onClick={handleResetPassword}
-                              disabled={isResetting}
-                            >
-                              {isResetting ? 'Enregistrement…' : 'Valider'}
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            className="ax-btn ax-btn-primary ax-btn-sm"
+                            onClick={handleResetPassword}
+                            disabled={isResetting}
+                          >
+                            {isResetting ? 'Envoi…' : 'Recevoir le lien par email'}
+                          </button>
                         </div>
                       )}
 

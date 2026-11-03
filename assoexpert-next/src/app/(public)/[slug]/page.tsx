@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { container } from '../../../container';
 import { buildCmsPageJsonLd } from '../../../lib/cms/jsonld';
+import { serializeJsonLd } from '../../../lib/cms/serialize';
 
 interface DynamicSeoPageProps {
   params: Promise<{ slug: string }>;
@@ -63,7 +64,7 @@ export default async function DynamicCmsSeoPage({ params }: DynamicSeoPageProps)
     <main style={{ maxWidth: 920, margin: '0 auto', padding: '64px 24px' }}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       {/* Fil d'Ariane */}

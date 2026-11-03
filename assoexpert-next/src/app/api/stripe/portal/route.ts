@@ -1,20 +1,19 @@
 import { createApiHandler } from '../../../../http/handler';
 import { UnauthorizedError } from '../../../../domain/errors';
+import { appBaseUrl } from '../../../../http/session-cookie';
 
+/**
+ * Customer Portal (simulé tant que Stripe n'est pas branché — Lot 3).
+ * L'URL de retour n'est jamais reprise du client (anti open-redirect).
+ */
 export const POST = createApiHandler({
   auth: true,
   orgScoped: true,
   handler: async ({ authContext, req }) => {
     if (!authContext?.organizationId) throw new UnauthorizedError('Session requise.');
-    const body = (await req.json().catch(() => ({}))) as {
-      returnUrl?: string;
-    };
-
-    const baseUrl = body.returnUrl || req.nextUrl.origin;
-    const portalUrl = `${baseUrl}/app/billing?portal=simulated&org=${encodeURIComponent(authContext.organizationId)}`;
 
     return {
-      url: portalUrl,
+      url: `${appBaseUrl(req)}/app/billing?portal=simulated`,
       organizationId: authContext.organizationId
     };
   }

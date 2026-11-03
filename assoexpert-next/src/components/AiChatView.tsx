@@ -97,7 +97,7 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamProgress]);
 
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || inputQuery).trim();
     if (!query || isTyping) return;
 
@@ -113,51 +113,67 @@ export const AiChatView: React.FC<AiChatViewProps> = ({
 
     setMessages(prev => [...prev, userMessage]);
     setIsTyping(true);
-    setStreamProgress('Analyse réglementaire en cours selon votre profil...');
+    setStreamProgress('Analyse réglementaire en cours selon votre profil (Anthropic Claude)...');
 
-    // Enregistrement réel de la conversation, des messages et de ai_usage dans Neon PostgreSQL
-    void fetch('/api/ai/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query,
-        domain: selectedDomain
-      })
-    }).catch(() => {});
+    let response = generateAiResponse(query, selectedDomain, currentOrg, currentPlan.features);
+    let estimatedTokens = 0;
+    let estimatedCost = 0;
 
-    // Simulate modular prompt generation & streaming response
-    setTimeout(() => {
-      const response = generateAiResponse(query, selectedDomain, currentOrg, currentPlan.features);
-      const fullText = response.shortSummary + '\n\n' + response.detailedAnalysis;
-      let currentIndex = 0;
+    try {
+      const apiRes = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: query,
+          domain: selectedDomain
+        })
+      });
 
-      const interval = setInterval(() => {
-        currentIndex += 28;
-        if (currentIndex < fullText.length) {
-          setStreamProgress(fullText.substring(0, currentIndex));
-        } else {
-          clearInterval(interval);
-          setStreamProgress('');
-          setIsTyping(false);
-
-          const estimatedTokens = Math.round(query.length / 4 + fullText.length / 4);
-          const estimatedCost = (estimatedTokens / 1000) * 0.003;
-
-          const assistantMessage: ChatMessage = {
-            id: 'msg-' + (Date.now() + 1),
-            domain: selectedDomain,
-            role: 'assistant',
-            structuredAnswer: response,
-            createdAt: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-            modelUsed: currentPlan.features.aiModel,
-            tokensCount: estimatedTokens
-          };
-
-          setMessages(prev => [...prev, assistantMessage]);
-          onTrackUsage(estimatedTokens, estimatedCost);
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        const serverStructured = data.assistantMessage?.structuredAnswer || data.assistantMessage?.answer;
+        if (serverStructured) {
+          response = serverStructured;
         }
-      }, 30);
-    }, 350);
+        if (data.usage) {
+          estimatedTokens = (data.usage.inputTokens || 0) + (data.usage.outputTokens || 0);
+          estimatedCost = data.usage.costEstimate || 0;
+        }
+      }
+    } catch {
+      // Fallback en cas de coupure réseau
+    }
+
+    const fullText = response.shortSummary + '\n\n' + response.detailedAnalysis;
+    if (!estimatedTokens) {
+      estimatedTokens = Math.round(query.length / 4 + fullText.length / 4);
+      estimatedCost = (estimatedTokens / 1000) * 0.003;
+    }
+
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+      currentIndex += 36;
+      if (currentIndex < fullText.length) {
+        setStreamProgress(fullText.substring(0, currentIndex));
+      } else {
+        clearInterval(interval);
+        setStreamProgress('');
+        setIsTyping(false);
+
+        const assistantMessage: ChatMessage = {
+          id: 'msg-' + (Date.now() + 1),
+          domain: selectedDomain,
+          role: 'assistant',
+          structuredAnswer: response,
+          createdAt: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+          modelUsed: currentPlan.features.aiModel,
+          tokensCount: estimatedTokens
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+        onTrackUsage(estimatedTokens, estimatedCost);
+      }
+    }, 24);
   };
 
   const handleCopyText = (id: string, text: string) => {

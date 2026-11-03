@@ -11,8 +11,9 @@ import { AuthContext, Conversation, DOMAIN_FEATURE, Domain, Message, StructuredA
 import { ForbiddenError, NotFoundError, RateLimitedError, ValidationError } from '../domain/errors';
 import { IAiRepository, IOrgRepository } from '../repositories/interfaces';
 import { BillingService } from './billing.service';
-import { checkRateLimit } from '../lib/rate-limit';
-import { buildPrompt, retrieveContext, PROMPT_VERSION } from '../lib/ai';
+import crypto from 'crypto';
+import { RateLimiter } from '../lib/rate-limit';
+import { buildPrompt, retrieveContext, callAnthropicClaude, sanitizeConfiguredModel } from '../lib/ai';
 import { generateAiResponse } from './aiSimulator';
 import { recordAiUsageForTests } from '../lib/ai/chat-service';
 
@@ -34,7 +35,6 @@ export interface HandleAiChatOutput {
   promptVersion: string;
   brickUnlocked: boolean;
   upgradeSuggested: boolean;
-  systemPromptPreview: string;
   usage: {
     inputTokens: number;
     outputTokens: number;
@@ -46,7 +46,8 @@ export class AiService {
   constructor(
     private readonly aiRepo: IAiRepository,
     private readonly orgRepo: IOrgRepository,
-    private readonly billingService: BillingService
+    private readonly billingService: BillingService,
+    private readonly rateLimiter: RateLimiter
   ) {}
 
   async handleChat(
@@ -59,7 +60,7 @@ export class AiService {
     const orgId = authContext.organizationId;
 
     // 1. Contrôle de fréquence (Rate Limit)
-    const rl = checkRateLimit(authContext.userId);
+    const rl = await this.rateLimiter.consume(`ai:${authContext.userId}`);
     if (!rl.allowed) {
       throw new RateLimitedError('Limite de fréquence atteinte (10 requêtes/minute). Veuillez patienter.');
     }
@@ -127,7 +128,7 @@ export class AiService {
 
     if (!conversationId) {
       const newConv = await this.aiRepo.createConversation({
-        id: `conv-${Date.now()}`,
+        id: crypto.randomUUID(),
         organizationId: orgId,
         userId: authContext.userId,
         domain: input.domain,
@@ -139,7 +140,7 @@ export class AiService {
 
     // 7. Enregistrement de la question utilisateur
     const userMsg: Message = {
-      id: `msg-${Date.now()}-u`,
+      id: crypto.randomUUID(),
       conversationId,
       organizationId: orgId,
       userId: authContext.userId,
@@ -149,10 +150,34 @@ export class AiService {
     };
     await this.aiRepo.addMessage(userMsg);
 
-    // 8. Génération de la réponse structurée (simulateur déterministe certifié)
-    let structuredAnswer: StructuredAnswer;
+    // 8. Lecture du modèle et max_tokens depuis la configuration en base (§3.3 & §3.4)
+    const rawModel = await this.billingService.getFeatureValue(orgId, 'ai.model', 'claude-sonnet-5');
+    const configuredModel = sanitizeConfiguredModel(rawModel);
+    const maxTokens = await this.billingService.getLimit(orgId, 'ai.max_tokens', 2048);
 
-    if (!brickUnlocked) {
+    // 9. Appel au SDK officiel Anthropic (@anthropic-ai/sdk) côté serveur (§4)
+    const anthropicResult = await callAnthropicClaude({
+      systemPrompt,
+      question: input.question,
+      domain: input.domain,
+      configuredModel,
+      maxTokens,
+      brickUnlocked,
+      profileName: orgEntity.name,
+      profileCcn: profile?.ccn || 'CCN 66'
+    });
+
+    let structuredAnswer: StructuredAnswer;
+    let inputTokens: number;
+    let outputTokens: number;
+    let modelUsed = configuredModel;
+
+    if (anthropicResult) {
+      structuredAnswer = anthropicResult.structuredAnswer;
+      inputTokens = anthropicResult.inputTokens;
+      outputTokens = anthropicResult.outputTokens;
+      modelUsed = anthropicResult.modelUsed;
+    } else if (!brickUnlocked) {
       structuredAnswer = {
         shortSummary: `[Niveau Socle Général] La brique « ${input.domain.toUpperCase()} » n'est pas incluse dans votre formule actuelle. Voici les principes généraux applicables à toute association loi 1901 (${profile?.sector || orgEntity.name}).`,
         detailedAnalysis: `Votre question porte sur le domaine « ${input.domain} ». Au niveau socle, nous vous rappelons les obligations générales du Code du travail et de la loi du 1er juillet 1901. Pour débloquer l'analyse approfondie intégrant votre convention collective (${profile?.ccn || 'CCN 66'}) et vos spécificités sectorielles (${profile?.sector || 'Non renseigné'}), passez à la formule supérieure.`,
@@ -165,6 +190,8 @@ export class AiService {
         suggestedTicketDomain: input.domain,
         suggestedTicketQuestion: input.question
       };
+      inputTokens = Math.ceil(input.question.length / 4);
+      outputTokens = Math.ceil(structuredAnswer.detailedAnalysis.length / 4);
     } else {
       const rawAnswer = generateAiResponse(
         input.question,
@@ -191,8 +218,8 @@ export class AiService {
           briqueGouvernance,
           briqueFinance,
           briqueConformite,
-          aiModel: 'claude-3-5-sonnet',
-          maxTokens: 4096,
+          aiModel: configuredModel,
+          maxTokens,
           maxInputChars: maxChars,
           expertQuestionsMonth: 2
         }
@@ -206,11 +233,13 @@ export class AiService {
         suggestedTicketDomain: rawAnswer.suggestedTicketDomain,
         suggestedTicketQuestion: rawAnswer.suggestedTicketQuestion
       };
+      inputTokens = Math.ceil(input.question.length / 4);
+      outputTokens = Math.ceil(structuredAnswer.detailedAnalysis.length / 4);
     }
 
-    // 9. Enregistrement de la réponse assistant
+    // 10. Enregistrement de la réponse assistant
     const assistantMsg: Message = {
-      id: `msg-${Date.now()}-a`,
+      id: crypto.randomUUID(),
       conversationId,
       organizationId: orgId,
       userId: authContext.userId,
@@ -220,16 +249,17 @@ export class AiService {
     };
     await this.aiRepo.addMessage(assistantMsg);
 
-    // 10. Enregistrement métrique d'usage (SANS aucun contenu textuel de la question / réponse §3.7)
-    const inputTokens = Math.ceil(input.question.length / 4);
-    const outputTokens = Math.ceil(structuredAnswer.detailedAnalysis.length / 4);
-    const costEstimate = Math.round((inputTokens * 0.000003 + outputTokens * 0.000015) * 1000000) / 1000000;
+    // 11. Enregistrement métrique d'usage (SANS aucun contenu textuel de la question / réponse §3.7)
+    const isHaiku = modelUsed.includes('haiku');
+    const rateIn = isHaiku ? 0.000001 : 0.000003;
+    const rateOut = isHaiku ? 0.000005 : 0.000015;
+    const costEstimate = Math.round((inputTokens * rateIn + outputTokens * rateOut) * 1000000) / 1000000;
 
     await this.aiRepo.recordUsage({
-      id: `usage-${Date.now()}`,
+      id: crypto.randomUUID(),
       organizationId: orgId,
       userId: authContext.userId,
-      model: 'claude-3-5-sonnet-20241022',
+      model: modelUsed,
       promptVersion,
       inputTokens,
       outputTokens,
@@ -238,11 +268,11 @@ export class AiService {
     });
 
     recordAiUsageForTests({
-      id: `usage-${Date.now()}`,
+      id: crypto.randomUUID(),
       orgId,
       orgName: orgEntity.name,
       organizationId: orgId,
-      model: 'claude-3-5-sonnet-20241022',
+      model: modelUsed,
       promptVersion,
       inputTokens,
       outputTokens,
@@ -262,7 +292,6 @@ export class AiService {
       promptVersion,
       brickUnlocked,
       upgradeSuggested: !brickUnlocked,
-      systemPromptPreview: systemPrompt.slice(0, 300) + '...',
       usage: {
         inputTokens,
         outputTokens,

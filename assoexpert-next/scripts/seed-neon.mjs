@@ -14,23 +14,74 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { neon } from '@neondatabase/serverless';
 
-function getDatabaseUrl() {
-  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+function loadEnvLocal() {
   const envPath = path.resolve(process.cwd(), '.env.local');
   if (fs.existsSync(envPath)) {
     const content = fs.readFileSync(envPath, 'utf8');
-    const match = content.match(/^DATABASE_URL=["']?([^"'\r\n]+)["']?/m);
-    if (match?.[1]) return match[1].trim();
+    for (const line of content.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const eqIdx = trimmed.indexOf('=');
+      if (eqIdx === -1) continue;
+      const key = trimmed.slice(0, eqIdx).trim();
+      const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, '');
+      if (!process.env[key]) {
+        process.env[key] = val;
+      }
+    }
   }
+}
+
+loadEnvLocal();
+
+function getDatabaseUrl() {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
   throw new Error('DATABASE_URL introuvable dans .env.local');
 }
 
+/**
+ * Même format que `src/lib/auth/password.ts` (scrypt, sel aléatoire par mot de passe).
+ * Les mots de passe ne sont JAMAIS écrits dans le repo : ils viennent de l'environnement.
+ *   SEED_ADMIN_PASSWORD : compte administrateur Cabinet Maé (obligatoire)
+ *   SEED_DEMO_PASSWORD  : comptes de démonstration des associations (obligatoire)
+ */
 function hashPassword(password) {
-  return crypto.createHash('sha256').update(password + 'assoexpert_salt_2026').digest('hex');
+  const salt = crypto.randomBytes(16);
+  const key = crypto.scryptSync(password, salt, 64, { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
+  return ['scrypt', 16384, 8, 1, salt.toString('base64'), key.toString('base64')].join('$');
 }
+
+function requiredSecret(name) {
+  const value = process.env[name];
+  if (!value || value.length < 12) {
+    throw new Error(`${name} doit être défini (12 caractères minimum) pour lancer le seed.`);
+  }
+  return value;
+}
+
+const ADMIN_PASSWORD = requiredSecret('SEED_ADMIN_PASSWORD');
+const DEMO_PASSWORD = requiredSecret('SEED_DEMO_PASSWORD');
 
 async function main() {
   const sql = neon(getDatabaseUrl());
+
+  console.log('[0/5] Mise à jour du schéma Neon (verification_tokens & expert_tickets.subject)...');
+  await sql`
+    CREATE TABLE IF NOT EXISTS verification_tokens (
+      id text PRIMARY KEY,
+      purpose text NOT NULL,
+      user_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
+      expires_at timestamptz NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
+  `;
+  await sql`
+    CREATE INDEX IF NOT EXISTS verification_tokens_user_idx ON verification_tokens(user_id)
+  `;
+  await sql`
+    ALTER TABLE expert_tickets ADD COLUMN IF NOT EXISTS subject text NOT NULL DEFAULT ''
+  `;
 
   console.log('[1/5] Insertion des formules (plans) et droits (plan_features)...');
   const plans = [
@@ -121,7 +172,7 @@ async function main() {
       id: 'usr_admin_laetitia',
       email: 'laetitia.badji@cabinet-mae.fr',
       name: 'Laetitia Badji (Cabinet Maé)',
-      passwordHash: hashPassword('CabinetMae2026!'),
+      passwordHash: hashPassword(ADMIN_PASSWORD),
       isPlatformAdmin: true,
       orgId: null
     },
@@ -129,7 +180,7 @@ async function main() {
       id: 'usr_espoir_dir',
       email: 'contact@espoir-solidarite.org',
       name: 'Claire Delorme (Espoir & Solidarité)',
-      passwordHash: hashPassword('Asso2026!'),
+      passwordHash: hashPassword(DEMO_PASSWORD),
       isPlatformAdmin: false,
       orgId: '11111111-1111-4111-8111-111111111111'
     },
@@ -137,7 +188,7 @@ async function main() {
       id: 'usr_mpt_lilas_dir',
       email: 'direction@mpt-lilas.fr',
       name: 'Julien Mercier (MPT des Lilas)',
-      passwordHash: hashPassword('Asso2026!'),
+      passwordHash: hashPassword(DEMO_PASSWORD),
       isPlatformAdmin: false,
       orgId: '22222222-2222-4222-8222-222222222222'
     },
@@ -145,7 +196,7 @@ async function main() {
       id: 'usr_passerelle_avenir_dir',
       email: 'direction@passerelle-avenir.org',
       name: 'Alexandre Dupont (Passerelle Avenir)',
-      passwordHash: hashPassword('Asso2026!'),
+      passwordHash: hashPassword(DEMO_PASSWORD),
       isPlatformAdmin: false,
       orgId: '33333333-3333-4333-8333-333333333333'
     },
@@ -153,7 +204,7 @@ async function main() {
       id: 'usr_tremplin_dir',
       email: 'direction@tremplin-solidarites.org',
       name: 'Claire Delorme (Tremplin)',
-      passwordHash: hashPassword('Asso2026!'),
+      passwordHash: hashPassword(DEMO_PASSWORD),
       isPlatformAdmin: false,
       orgId: '11111111-1111-4111-8111-111111111111'
     },
@@ -161,7 +212,7 @@ async function main() {
       id: 'usr_mpt_dir',
       email: 'contact@mpt-lilas.fr',
       name: 'Marc Lefebvre (MPT Lilas)',
-      passwordHash: hashPassword('Asso2026!'),
+      passwordHash: hashPassword(DEMO_PASSWORD),
       isPlatformAdmin: false,
       orgId: '22222222-2222-4222-8222-222222222222'
     },
@@ -169,7 +220,7 @@ async function main() {
       id: 'usr_passerelle_dir',
       email: 'direction@passerelle-lyon.org',
       name: 'Sophie Bertrand (Passerelle)',
-      passwordHash: hashPassword('Asso2026!'),
+      passwordHash: hashPassword(DEMO_PASSWORD),
       isPlatformAdmin: false,
       orgId: '33333333-3333-4333-8333-333333333333'
     }

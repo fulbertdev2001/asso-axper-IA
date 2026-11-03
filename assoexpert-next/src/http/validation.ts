@@ -6,21 +6,54 @@
 import { z } from 'zod';
 import { DOMAINS } from '../domain/models';
 
+export const MIN_PASSWORD_LENGTH = 8;
+
+const newPasswordField = z
+  .string()
+  .min(MIN_PASSWORD_LENGTH, `Le mot de passe doit comporter au moins ${MIN_PASSWORD_LENGTH} caractères`)
+  .max(200);
+
 export const loginSchema = z.object({
   email: z.string().email('Adresse e-mail invalide'),
-  password: z.string().min(6, 'Le mot de passe doit comporter au moins 6 caractères')
+  // Pas de règle de longueur à la connexion : les comptes existants doivent pouvoir se connecter
+  password: z.string().min(1, 'Mot de passe requis').max(200)
 });
 
+/** Le magic link ne cible qu'un compte existant : l'organisation est déduite côté serveur. */
 export const magicLinkRequestSchema = z.object({
-  email: z.string().email('Adresse e-mail invalide'),
-  organizationId: z.string().min(1, 'ID organisation requis')
+  email: z.string().email('Adresse e-mail invalide')
+});
+
+export const passwordResetRequestSchema = z.object({
+  email: z.string().email('Adresse e-mail invalide')
+});
+
+export const passwordResetConfirmSchema = z.object({
+  token: z.string().min(10, 'Jeton de réinitialisation invalide'),
+  newPassword: newPasswordField
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Mot de passe actuel requis').max(200),
+  newPassword: newPasswordField
+});
+
+const memberSchema = z.object({
+  id: z.string().default(() => `mem-${Date.now()}`),
+  firstName: z.string().max(200),
+  lastName: z.string().max(200),
+  role: z.string().max(200),
+  email: z.string().max(320),
+  phone: z.string().max(50).optional(),
+  idCardNumber: z.string().max(50).optional(),
+  joinedDate: z.string().default(() => new Date().toLocaleDateString('fr-FR'))
 });
 
 export const registerOrgSchema = z.object({
   email: z.string().email('Adresse e-mail requise'),
   name: z.string().min(1).optional().default('Direction'),
   roleInOrg: z.string().default('Direction'),
-  password: z.string().min(6).optional(),
+  password: newPasswordField.optional(),
   organization: z.object({
     name: z.string().min(2, 'Le nom de l’association est requis'),
     siren: z.string().default(''),
@@ -34,20 +67,7 @@ export const registerOrgSchema = z.object({
     governanceSummary: z.string().default(''),
     mainFunders: z.array(z.string()).default([]),
     establishmentsCount: z.coerce.number().int().min(1).default(1),
-    members: z
-      .array(
-        z.object({
-          id: z.string().default(() => `mem-${Date.now()}`),
-          firstName: z.string(),
-          lastName: z.string(),
-          role: z.string(),
-          email: z.string(),
-          phone: z.string().optional(),
-          idCardNumber: z.string().optional(),
-          joinedDate: z.string().default(() => new Date().toLocaleDateString('fr-FR'))
-        })
-      )
-      .default([])
+    members: z.array(memberSchema).max(200).default([])
   })
 });
 
@@ -60,15 +80,43 @@ export const updateOrgProfileSchema = z.object({
   usualAgMonth: z.string().optional(),
   governanceSummary: z.string().optional(),
   mainFunders: z.array(z.string()).optional(),
-  members: z.array(z.any()).optional(),
+  members: z.array(memberSchema).max(200).optional(),
   establishmentsCount: z.coerce.number().int().min(1).optional()
 });
 
-export const aiChatSchema = z.object({
-  domain: z.enum(DOMAINS as unknown as [string, ...string[]]),
-  question: z.string().min(3, 'La question doit comporter au moins 3 caractères').max(10000),
-  conversationId: z.string().optional()
-});
+/**
+ * Corps de PUT /api/org/profile : `{ orgId?, patch }` ou patch « à plat ».
+ * Les champs inconnus (nom, mot de passe, etc.) sont ignorés par Zod.
+ */
+export const updateOrgProfileRequestSchema = z.preprocess(
+  (raw) => {
+    const body = (raw ?? {}) as Record<string, unknown>;
+    return body.patch && typeof body.patch === 'object'
+      ? { orgId: body.orgId, patch: body.patch }
+      : { orgId: body.orgId, patch: body };
+  },
+  z.object({
+    orgId: z.string().optional(),
+    patch: updateOrgProfileSchema
+  })
+);
+
+export const aiChatSchema = z
+  .object({
+    domain: z.enum(DOMAINS as unknown as [string, ...string[]]),
+    question: z.string().min(2).max(10000).optional(),
+    query: z.string().min(2).max(10000).optional(),
+    conversationId: z.string().optional()
+  })
+  .transform((val) => ({
+    domain: val.domain,
+    question: (val.question || val.query || '').trim(),
+    conversationId: val.conversationId
+  }))
+  .refine((val) => val.question.length >= 2, {
+    message: 'La question doit comporter au moins 2 caractères',
+    path: ['question']
+  });
 
 export const createTicketSchema = z.object({
   domain: z.enum(DOMAINS as unknown as [string, ...string[]]),
@@ -127,7 +175,20 @@ export const createCmsPageSchema = z.object({
   verifiedAt: z.string().default(''),
   status: z.enum(['draft', 'published']).default('published'),
   noindex: z.boolean().default(false),
-  breadcrumbs: z.array(z.object({ label: z.string(), href: z.string() })).default([])
+  breadcrumbs: z
+    .array(
+      z.object({
+        label: z.string(),
+        // Liens internes ou http(s) uniquement (pas de `javascript:` dans le fil d'Ariane)
+        href: z.string().regex(/^(\/(?!\/)|https?:\/\/)/, 'Lien de fil d’Ariane invalide')
+      })
+    )
+    .default([])
 });
 
 export const updateCmsPageSchema = createCmsPageSchema.partial();
+
+export const adminUpdateCmsPageSchema = z.object({
+  pageId: z.string().min(1, 'pageId obligatoire'),
+  patch: updateCmsPageSchema
+});

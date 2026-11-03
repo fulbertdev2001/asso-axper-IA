@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { container } from '../../../../container';
 import { createApiHandler } from '../../../../http/handler';
-import { createCmsPageSchema } from '../../../../http/validation';
-import { NotFoundError, UnauthorizedError } from '../../../../domain/errors';
+import { adminUpdateCmsPageSchema, createCmsPageSchema } from '../../../../http/validation';
+import { UnauthorizedError } from '../../../../domain/errors';
 import {
   createOrPublishCmsPageInAdmin,
   updateCmsPageInAdmin
@@ -37,16 +37,9 @@ export const POST = createApiHandler({
 export const PUT = createApiHandler({
   auth: true,
   admin: true,
-  handler: async ({ authContext, req }) => {
+  bodySchema: adminUpdateCmsPageSchema,
+  handler: async ({ authContext, body }) => {
     if (!authContext) throw new UnauthorizedError('Session admin requise.');
-    const body = (await req.json()) as {
-      pageId: string;
-      patch: any;
-    };
-
-    if (!body.pageId || !body.patch) {
-      throw new NotFoundError('pageId et patch sont obligatoires.');
-    }
 
     const page = await container.cmsService.updatePage(authContext, body.pageId, body.patch);
     try {

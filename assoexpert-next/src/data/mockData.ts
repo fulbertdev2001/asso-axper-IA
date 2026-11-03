@@ -47,7 +47,6 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
       }
     ],
     accountEmail: 'contact@espoir-solidarite.org',
-    password: 'Asso2026!'
   },
   {
     id: 'org-2',
@@ -85,7 +84,6 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
       }
     ],
     accountEmail: 'direction@mpt-lilas.fr',
-    password: 'Asso2026!'
   },
   {
     id: 'org-3',
@@ -114,7 +112,6 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
       }
     ],
     accountEmail: 'direction@passerelle-avenir.org',
-    password: 'Asso2026!'
   }
 ];
 

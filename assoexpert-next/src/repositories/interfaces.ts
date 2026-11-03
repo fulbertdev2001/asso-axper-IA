@@ -18,7 +18,9 @@ import {
   Message,
   AiUsage,
   CmsPage,
-  CmsPageInput
+  CmsPageInput,
+  VerificationToken,
+  VerificationTokenPurpose
 } from '../domain/models';
 
 export interface IUserRepository {
@@ -33,6 +35,14 @@ export interface ISessionRepository {
   create(session: Session): Promise<Session>;
   findById(tokenHash: string): Promise<Session | null>;
   delete(tokenHash: string): Promise<void>;
+  deleteByUser(userId: string): Promise<void>;
+  deleteExpired(now?: Date): Promise<void>;
+}
+
+export interface IVerificationTokenRepository {
+  create(token: VerificationToken): Promise<VerificationToken>;
+  /** Supprime atomiquement le jeton et le renvoie (usage unique). */
+  consume(tokenHash: string, purpose: VerificationTokenPurpose): Promise<VerificationToken | null>;
   deleteExpired(now?: Date): Promise<void>;
 }
 
@@ -63,6 +73,7 @@ export interface IPlanRepository {
 
 export interface ISubscriptionRepository {
   findByOrgId(orgId: string): Promise<Subscription | null>;
+  findByStripeSubscriptionId(stripeSubscriptionId: string): Promise<Subscription | null>;
   upsert(sub: Subscription): Promise<Subscription>;
   hasStripeEvent(eventId: string): Promise<boolean>;
   recordStripeEvent(eventId: string, type: string): Promise<void>;
@@ -75,6 +86,8 @@ export interface ITicketRepository {
   listByOrg(orgId: string): Promise<ExpertTicket[]>;
   listAll(): Promise<ExpertTicket[]>;
   countThisMonthByOrg(orgId: string, now?: Date): Promise<number>;
+  /** Plus grand numéro de séquence des références `AE-<year>-NNNNN` (0 si aucune). */
+  getMaxRefSequence(year: number): Promise<number>;
   update(id: string, patch: Partial<ExpertTicket>): Promise<ExpertTicket>;
 }
 

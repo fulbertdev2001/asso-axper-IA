@@ -14,7 +14,8 @@ import {
   ISubscriptionRepository,
   ITicketRepository,
   IAiRepository,
-  ICmsRepository
+  ICmsRepository,
+  IVerificationTokenRepository
 } from './repositories/interfaces';
 
 import {
@@ -26,7 +27,8 @@ import {
   DrizzleSubscriptionRepository,
   DrizzleTicketRepository,
   DrizzleAiRepository,
-  DrizzleCmsRepository
+  DrizzleCmsRepository,
+  DrizzleVerificationTokenRepository
 } from './repositories/drizzle';
 
 import {
@@ -38,7 +40,8 @@ import {
   MemorySubscriptionRepository,
   MemoryTicketRepository,
   MemoryAiRepository,
-  MemoryCmsRepository
+  MemoryCmsRepository,
+  MemoryVerificationTokenRepository
 } from './repositories/memory';
 
 import {
@@ -62,6 +65,9 @@ import { BillingService } from './services/billing.service';
 import { TicketService } from './services/ticket.service';
 import { AiService } from './services/ai.service';
 import { CmsService } from './services/cms.service';
+import { PasswordHasher, ScryptPasswordHasher } from './lib/auth/password';
+import { RateLimiter, createRateLimiter } from './lib/rate-limit';
+import { PaymentGateway, createPaymentGateway } from './lib/payments';
 
 export interface AppContainer {
   repositories: {
@@ -74,6 +80,7 @@ export interface AppContainer {
     ticket: ITicketRepository;
     ai: IAiRepository;
     cms: ICmsRepository;
+    verificationToken: IVerificationTokenRepository;
   };
   authService: AuthService;
   orgService: OrgService;
@@ -82,6 +89,8 @@ export interface AppContainer {
   aiService: AiService;
   cmsService: CmsService;
   mailProvider: MailProvider;
+  paymentGateway: PaymentGateway;
+  rateLimiter: RateLimiter;
   resetForTests: () => void;
 }
 
@@ -262,18 +271,29 @@ function buildDefaultMemoryFixtures() {
     updatedAt: new Date(p.updatedAt)
   }));
 
-  return { users, sessions, memberships, orgs, profiles, plans, subscriptions, tickets, pages };
+  // Les sessions de fixtures ont des jetons connus : elles ne sont jamais chargées en production.
+  const fixtureSessions = process.env.NODE_ENV === 'production' ? [] : sessions;
+
+  return { users, sessions: fixtureSessions, memberships, orgs, profiles, plans, subscriptions, tickets, pages };
 }
 
 export function createContainer(options?: {
   useMemory?: boolean;
   mailProvider?: MailProvider;
+  paymentGateway?: PaymentGateway;
+  rateLimiter?: RateLimiter;
+  passwordHasher?: PasswordHasher;
 }): AppContainer {
   const useMemory =
     options?.useMemory ??
     ((process.env.NODE_ENV === 'test' && !process.env.USE_TEST_DB) || !process.env.DATABASE_URL);
 
   const mailProvider = options?.mailProvider ?? defaultMailProvider;
+  const paymentGateway = options?.paymentGateway ?? createPaymentGateway();
+  const rateLimiter = options?.rateLimiter ?? createRateLimiter();
+  const passwordHasher = options?.passwordHasher ?? new ScryptPasswordHasher();
+  const appBaseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const expertEmail = process.env.EXPERT_NOTIFICATION_EMAIL || 'contact@cabinet-mae.fr';
 
   let userRepo: IUserRepository;
   let sessionRepo: ISessionRepository;
@@ -284,6 +304,7 @@ export function createContainer(options?: {
   let ticketRepo: ITicketRepository;
   let aiRepo: IAiRepository;
   let cmsRepo: ICmsRepository;
+  let tokenRepo: IVerificationTokenRepository;
 
   function initRepos() {
     if (useMemory) {
@@ -297,6 +318,7 @@ export function createContainer(options?: {
       ticketRepo = new MemoryTicketRepository(fixtures.tickets);
       aiRepo = new MemoryAiRepository();
       cmsRepo = new MemoryCmsRepository(fixtures.pages);
+      tokenRepo = new MemoryVerificationTokenRepository();
     } else {
       userRepo = new DrizzleUserRepository();
       sessionRepo = new DrizzleSessionRepository();
@@ -307,26 +329,38 @@ export function createContainer(options?: {
       ticketRepo = new DrizzleTicketRepository();
       aiRepo = new DrizzleAiRepository();
       cmsRepo = new DrizzleCmsRepository();
+      tokenRepo = new DrizzleVerificationTokenRepository();
     }
   }
 
   initRepos();
 
-  let authService = new AuthService(userRepo!, sessionRepo!, membershipRepo!, mailProvider);
-  let orgService = new OrgService(orgRepo!, membershipRepo!, userRepo!, subRepo!);
-  let billingService = new BillingService(planRepo!, subRepo!);
-  let ticketService = new TicketService(ticketRepo!, orgRepo!, billingService, mailProvider);
-  let aiService = new AiService(aiRepo!, orgRepo!, billingService);
-  let cmsService = new CmsService(cmsRepo!);
+  const buildServices = () => {
+    const billing = new BillingService(planRepo!, subRepo!);
+    return {
+      authService: new AuthService(
+        userRepo!,
+        sessionRepo!,
+        membershipRepo!,
+        tokenRepo!,
+        mailProvider,
+        passwordHasher,
+        rateLimiter,
+        { appBaseUrl }
+      ),
+      orgService: new OrgService(orgRepo!, membershipRepo!, userRepo!, subRepo!),
+      billingService: billing,
+      ticketService: new TicketService(ticketRepo!, orgRepo!, userRepo!, billing, mailProvider, expertEmail),
+      aiService: new AiService(aiRepo!, orgRepo!, billing, rateLimiter),
+      cmsService: new CmsService(cmsRepo!)
+    };
+  };
+
+  let services = buildServices();
 
   const resetForTests = () => {
     initRepos();
-    authService = new AuthService(userRepo!, sessionRepo!, membershipRepo!, mailProvider);
-    orgService = new OrgService(orgRepo!, membershipRepo!, userRepo!, subRepo!);
-    billingService = new BillingService(planRepo!, subRepo!);
-    ticketService = new TicketService(ticketRepo!, orgRepo!, billingService, mailProvider);
-    aiService = new AiService(aiRepo!, orgRepo!, billingService);
-    cmsService = new CmsService(cmsRepo!);
+    services = buildServices();
   };
 
   return {
@@ -339,15 +373,18 @@ export function createContainer(options?: {
       get subscription() { return subRepo; },
       get ticket() { return ticketRepo; },
       get ai() { return aiRepo; },
-      get cms() { return cmsRepo; }
+      get cms() { return cmsRepo; },
+      get verificationToken() { return tokenRepo; }
     },
-    get authService() { return authService; },
-    get orgService() { return orgService; },
-    get billingService() { return billingService; },
-    get ticketService() { return ticketService; },
-    get aiService() { return aiService; },
-    get cmsService() { return cmsService; },
+    get authService() { return services.authService; },
+    get orgService() { return services.orgService; },
+    get billingService() { return services.billingService; },
+    get ticketService() { return services.ticketService; },
+    get aiService() { return services.aiService; },
+    get cmsService() { return services.cmsService; },
     mailProvider,
+    paymentGateway,
+    rateLimiter,
     resetForTests
   };
 }

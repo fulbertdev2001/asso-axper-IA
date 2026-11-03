@@ -6,11 +6,20 @@ import {
   DELETE as deleteOrgProfileRoute,
   POST as postOrgProfileRoute
 } from '../src/app/api/org/profile/route';
-import {
-  requestMagicLink,
-  verifyMagicLinkToken
-} from '../src/lib/auth';
+import { createContainer } from '../src/container';
+import { MailProvider, SendMailInput } from '../src/lib/mail';
 import { resetOrgStoreForTests } from '../src/lib/org/service';
+
+function capturingMailProvider() {
+  const sent: SendMailInput[] = [];
+  const provider: MailProvider = {
+    async sendMail(input) {
+      sent.push(input);
+      return { messageId: `test-${sent.length}` };
+    }
+  };
+  return { sent, provider };
+}
 
 describe('Lot 2 — Auth, organisation, profil (§7 Lot 2)', () => {
   beforeEach(() => {
@@ -18,18 +27,22 @@ describe('Lot 2 — Auth, organisation, profil (§7 Lot 2)', () => {
   });
 
   it('génère et vérifie un Magic Link pour ouvrir une session scopée par organisation', async () => {
-    const { token } = await requestMagicLink({
-      email: 'direction@asso-test.org',
-      organizationId: 'org-1'
-    });
+    const { sent, provider } = capturingMailProvider();
+    const c = createContainer({ useMemory: true, mailProvider: provider });
 
-    const verified = verifyMagicLinkToken(token);
-    expect(verified).not.toBeNull();
-    expect(verified?.session.organizationId).toBe('org-1');
-    expect(verified?.session.appRole).toBe('owner');
+    // L'organisation est déduite du membership : le client ne la choisit pas
+    await c.authService.requestMagicLink('direction@tremplin-solidarites.org');
+    expect(sent).toHaveLength(1);
+    const token = decodeURIComponent(sent[0].text.match(/token=([^\s&]+)/)![1]);
+
+    const verified = await c.authService.verifyMagicLink(token);
+    expect(verified.organizationId).toBe('org-1');
+    const ctx = await c.authService.resolveContext(verified.sessionToken);
+    expect(ctx?.organizationId).toBe('org-1');
+    expect(ctx?.isPlatformAdmin).toBe(false);
 
     // Le token est à usage unique
-    expect(verifyMagicLinkToken(token)).toBeNull();
+    await expect(c.authService.verifyMagicLink(token)).rejects.toThrow();
   });
 
   it('crée l’organisation, le membership owner et le profil lors de l’onboarding (POST /api/org/profile)', async () => {

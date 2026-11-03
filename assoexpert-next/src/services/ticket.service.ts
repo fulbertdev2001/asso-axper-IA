@@ -6,11 +6,20 @@
  * - Notifications SMTP via IMailProvider sans dépendance directe à nodemailer.
  */
 
+import crypto from 'crypto';
 import { AuthContext, Domain, ExpertTicket, TicketStatus, TicketUrgency } from '../domain/models';
-import { ForbiddenError, NotFoundError, QuotaExceededError } from '../domain/errors';
-import { ITicketRepository, IOrgRepository } from '../repositories/interfaces';
+import { ConflictError, ForbiddenError, NotFoundError, QuotaExceededError } from '../domain/errors';
+import { ITicketRepository, IOrgRepository, IUserRepository } from '../repositories/interfaces';
 import { BillingService } from './billing.service';
 import { MailProvider } from '../lib/mail';
+import {
+  expertTicketAckEmail,
+  expertTicketAnsweredEmail,
+  expertTicketNotificationEmail
+} from '../lib/mail/templates';
+
+const DEFAULT_EXPERT_EMAIL = 'contact@cabinet-mae.fr';
+const MAX_REF_ATTEMPTS = 5;
 
 export interface CreateTicketServiceInput {
   domain: Domain;
@@ -20,18 +29,35 @@ export interface CreateTicketServiceInput {
 }
 
 export class TicketService {
-  private ticketSequence = 100;
-
   constructor(
     private readonly ticketRepo: ITicketRepository,
     private readonly orgRepo: IOrgRepository,
+    private readonly userRepo: IUserRepository,
     private readonly billingService: BillingService,
-    private readonly mailProvider: MailProvider
+    private readonly mailProvider: MailProvider,
+    private readonly expertEmail: string = DEFAULT_EXPERT_EMAIL
   ) {}
 
-  generateReference(year = 2026): string {
-    const seq = String(++this.ticketSequence).padStart(5, '0');
-    return `AE-${year}-${seq}`;
+  /**
+   * Référence unique lisible `AE-<année>-NNNNN`, calculée depuis la base
+   * (et non depuis un compteur en mémoire remis à zéro à chaque redémarrage).
+   */
+  async generateReference(now = new Date()): Promise<string> {
+    const year = now.getFullYear();
+    const next = (await this.ticketRepo.getMaxRefSequence(year)) + 1;
+    return `AE-${year}-${String(next).padStart(5, '0')}`;
+  }
+
+  /** Insère le ticket en réessayant si une requête concurrente a pris la même référence. */
+  private async insertWithUniqueRef(build: (ref: string) => ExpertTicket): Promise<ExpertTicket> {
+    for (let attempt = 1; ; attempt++) {
+      const ref = await this.generateReference();
+      try {
+        return await this.ticketRepo.create(build(ref));
+      } catch (err) {
+        if (!(err instanceof ConflictError) || attempt >= MAX_REF_ATTEMPTS) throw err;
+      }
+    }
   }
 
   async createTicket(
@@ -60,11 +86,8 @@ export class TicketService {
     }
 
     // 2. Génération de référence et insertion
-    const ref = this.generateReference();
-    const ticketId = `ticket-${Date.now()}`;
-
-    const newTicket: ExpertTicket = {
-      id: ticketId,
+    const created = await this.insertWithUniqueRef((ref) => ({
+      id: crypto.randomUUID(),
       ref,
       organizationId: orgId,
       userId: authContext.userId,
@@ -77,27 +100,27 @@ export class TicketService {
       status: 'pending',
       answeredAt: null,
       createdAt: new Date()
-    };
-
-    const created = await this.ticketRepo.create(newTicket);
+    }));
+    const ref = created.ref;
 
     // 3. Notification email à l'experte et accusé de réception à l'utilisateur
-    const orgProfile = await this.orgRepo.getProfile(orgId);
-    const orgName = orgProfile?.sector ? `${orgProfile.sector} (${orgId})` : orgId;
+    const org = await this.orgRepo.findById(orgId);
+    const orgName = org?.name || orgId;
 
-    const expertEmail = await this.mailProvider.sendMail({
-      to: 'contact@cabinet-mae.fr',
-      subject: `[${ref}] Nouvelle question experte — ${input.domain.toUpperCase()} (${input.urgency || 'normal_48h'})`,
-      text: `Une nouvelle question a été posée par ${authContext.email} pour l'organisation ${orgName}.\n\nObjet : ${input.subject}\n\nQuestion :\n${input.question}`,
-      html: `<h3>Nouvelle question experte AssoExpert</h3><p><strong>Réf :</strong> ${ref}</p><p><strong>Organisation :</strong> ${orgName}</p><p><strong>Auteur :</strong> ${authContext.email}</p><p><strong>Domaine :</strong> ${input.domain}</p><p><strong>Urgence :</strong> ${input.urgency || 'normal_48h'}</p><p><strong>Objet :</strong> ${input.subject}</p><hr/><p>${input.question.replace(/\n/g, '<br/>')}</p>`
-    });
+    const expertEmail = await this.mailProvider.sendMail(
+      expertTicketNotificationEmail({
+        to: this.expertEmail,
+        ref,
+        orgName,
+        authorEmail: authContext.email,
+        domain: input.domain,
+        urgency: input.urgency || 'normal_48h',
+        subject: input.subject,
+        question: input.question
+      })
+    );
 
-    const ackEmail = await this.mailProvider.sendMail({
-      to: authContext.email,
-      subject: `[${ref}] Confirmation de votre question à l'experte — AssoExpert IA`,
-      text: `Bonjour,\n\nVotre question a bien été transmise à Laetitia Badji (Cabinet Maé). Référence : ${ref}.\nUne réponse écrite et vérifiée vous sera apportée sous 48h ouvrées.\n\nCabinet Maé — AssoExpert IA`,
-      html: `<p>Bonjour,</p><p>Votre question a bien été transmise à <strong>Laetitia Badji (Cabinet Maé)</strong>.</p><p><strong>Référence :</strong> ${ref}</p><p>Une réponse écrite vous sera apportée sous 48h ouvrées.</p>`
-    });
+    const ackEmail = await this.mailProvider.sendMail(expertTicketAckEmail(authContext.email, ref));
 
     return {
       ticket: created,
@@ -160,12 +183,16 @@ export class TicketService {
     if (!ticket) {
       ticket = await this.ticketRepo.findByRef(idOrRef);
     }
-    if (!ticket && patch.question) {
+    if (!ticket && patch.question && patch.orgId) {
       // Si le ticket initial n'existait que côté client, on le persiste en base Neon avant mise à jour
+      const orgExists = await this.orgRepo.findById(patch.orgId);
+      if (!orgExists) {
+        throw new NotFoundError(`Organisation introuvable : ${patch.orgId}`);
+      }
       ticket = await this.ticketRepo.create({
-        id: idOrRef.startsWith('AE-') ? `ticket-${Date.now()}` : idOrRef,
-        ref: idOrRef.startsWith('AE-') ? idOrRef : this.generateReference(),
-        organizationId: patch.orgId || 'org-1',
+        id: crypto.randomUUID(),
+        ref: idOrRef.startsWith('AE-') ? idOrRef : await this.generateReference(),
+        organizationId: patch.orgId,
         userId: authContext.userId,
         domain: patch.domain || 'rh',
         urgency: 'normal_48h',
@@ -195,15 +222,12 @@ export class TicketService {
 
     const updated = await this.ticketRepo.update(ticket.id, updates);
 
-    // Notification de réponse au client si une réponse finale est fournie
+    // Notification de la réponse à l'auteur du ticket (et non à l'administratrice connectée)
     if (patch.status === 'answered' && patch.answer) {
-      // Trouver l'email du propriétaire ou du créateur
-      await this.mailProvider.sendMail({
-        to: authContext.email,
-        subject: `[${ticket.ref}] Réponse de l'experte à votre question — AssoExpert IA`,
-        text: `Bonjour,\n\nLaetitia Badji a apporté une réponse à votre question (${ticket.ref}) :\n\n${patch.answer}\n\nCabinet Maé — AssoExpert IA`,
-        html: `<p>Bonjour,</p><p>Laetitia Badji a répondu à votre question (<strong>${ticket.ref}</strong>) :</p><div style="background:#f4f4f5;padding:12px;border-radius:6px;"><p>${patch.answer.replace(/\n/g, '<br/>')}</p></div>`
-      });
+      const author = await this.userRepo.findById(ticket.userId);
+      if (author?.email) {
+        await this.mailProvider.sendMail(expertTicketAnsweredEmail(author.email, ticket.ref, patch.answer));
+      }
     }
 
     return updated;

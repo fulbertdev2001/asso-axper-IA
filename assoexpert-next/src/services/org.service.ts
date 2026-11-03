@@ -5,7 +5,8 @@
  */
 
 import { AuthContext, Organization, OrganizationProfile, OrganizationProfileInput } from '../domain/models';
-import { ForbiddenError, NotFoundError } from '../domain/errors';
+import crypto from 'crypto';
+import { ConflictError, ForbiddenError, NotFoundError } from '../domain/errors';
 import { IOrgRepository, IMembershipRepository, IUserRepository, ISubscriptionRepository } from '../repositories/interfaces';
 
 const ORG_ID_ALIASES: Record<string, string> = {
@@ -76,21 +77,26 @@ export class OrgService {
   }> {
     const cleanEmail = input.email.toLowerCase().trim();
 
-    // 1. Trouver ou créer l'utilisateur
-    let user = await this.userRepo.findByEmail(cleanEmail);
-    if (!user) {
-      user = await this.userRepo.create({
-        id: `user-${Date.now()}`,
-        email: cleanEmail,
-        name: input.name,
-        passwordHash: input.passwordHash ?? null,
-        isPlatformAdmin: false,
-        createdAt: new Date()
-      });
+    // 1. Création de l'utilisateur. Une adresse déjà inscrite est refusée : sinon n'importe qui
+    //    pourrait obtenir une session au nom d'un compte existant (y compris administrateur).
+    const existingUser = await this.userRepo.findByEmail(cleanEmail);
+    if (existingUser) {
+      throw new ConflictError(
+        'Un compte existe déjà avec cette adresse email. Connectez-vous ou réinitialisez votre mot de passe.'
+      );
     }
 
+    const user = await this.userRepo.create({
+      id: `usr_${crypto.randomUUID()}`,
+      email: cleanEmail,
+      name: input.name,
+      passwordHash: input.passwordHash ?? null,
+      isPlatformAdmin: false,
+      createdAt: new Date()
+    });
+
     // 2. Créer l'organisation
-    const orgId = `org-${Date.now()}`;
+    const orgId = crypto.randomUUID();
     const org: Organization = {
       id: orgId,
       name: input.organization.name,
@@ -168,6 +174,17 @@ export class OrgService {
   ): Promise<OrganizationProfile> {
     this.assertTenantAccess(authContext, targetOrgId);
     return await this.orgRepo.updateProfile(targetOrgId, patch);
+  }
+
+  /** Efface les données du profil (droit de suppression §6) après contrôle d'isolation. */
+  async resetProfile(authContext: AuthContext, targetOrgId: string): Promise<OrganizationProfile> {
+    this.assertTenantAccess(authContext, targetOrgId);
+    await this.orgRepo.deleteProfile(targetOrgId);
+    const profile = await this.orgRepo.getProfile(targetOrgId);
+    if (!profile) {
+      throw new NotFoundError(`Profil introuvable pour l'organisation ${targetOrgId}`);
+    }
+    return profile;
   }
 
   async listAllForAdmin(authContext: AuthContext): Promise<Organization[]> {

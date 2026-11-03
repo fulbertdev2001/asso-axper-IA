@@ -4,6 +4,7 @@
  */
 
 import crypto from 'crypto';
+import { ConflictError } from '../../domain/errors';
 import {
   IUserRepository,
   ISessionRepository,
@@ -13,7 +14,8 @@ import {
   ISubscriptionRepository,
   ITicketRepository,
   IAiRepository,
-  ICmsRepository
+  ICmsRepository,
+  IVerificationTokenRepository
 } from '../interfaces';
 import {
   User,
@@ -29,7 +31,9 @@ import {
   Message,
   AiUsage,
   CmsPage,
-  CmsPageInput
+  CmsPageInput,
+  VerificationToken,
+  VerificationTokenPurpose
 } from '../../domain/models';
 
 export class MemoryUserRepository implements IUserRepository {
@@ -100,8 +104,32 @@ export class MemorySessionRepository implements ISessionRepository {
     this.sessions = this.sessions.filter((s) => s.id !== tokenHash);
   }
 
+  async deleteByUser(userId: string): Promise<void> {
+    this.sessions = this.sessions.filter((s) => s.userId !== userId);
+  }
+
   async deleteExpired(now = new Date()): Promise<void> {
     this.sessions = this.sessions.filter((s) => s.expiresAt > now);
+  }
+}
+
+export class MemoryVerificationTokenRepository implements IVerificationTokenRepository {
+  private tokens: VerificationToken[] = [];
+
+  async create(token: VerificationToken): Promise<VerificationToken> {
+    this.tokens.push({ ...token });
+    return token;
+  }
+
+  async consume(tokenHash: string, purpose: VerificationTokenPurpose): Promise<VerificationToken | null> {
+    const index = this.tokens.findIndex((t) => t.id === tokenHash && t.purpose === purpose);
+    if (index === -1) return null;
+    const [token] = this.tokens.splice(index, 1);
+    return { ...token };
+  }
+
+  async deleteExpired(now = new Date()): Promise<void> {
+    this.tokens = this.tokens.filter((t) => t.expiresAt > now);
   }
 }
 
@@ -292,6 +320,13 @@ export class MemorySubscriptionRepository implements ISubscriptionRepository {
     return s ? { ...s } : null;
   }
 
+  async findByStripeSubscriptionId(stripeSubscriptionId: string): Promise<Subscription | null> {
+    for (const s of this.subscriptions.values()) {
+      if (s.stripeSubscriptionId === stripeSubscriptionId) return { ...s };
+    }
+    return null;
+  }
+
   async upsert(sub: Subscription): Promise<Subscription> {
     this.subscriptions.set(sub.organizationId, { ...sub });
     return sub;
@@ -314,8 +349,18 @@ export class MemoryTicketRepository implements ITicketRepository {
   }
 
   async create(ticket: ExpertTicket): Promise<ExpertTicket> {
+    if (this.tickets.some((t) => t.ref === ticket.ref)) {
+      throw new ConflictError(`Référence de ticket déjà utilisée : ${ticket.ref}`);
+    }
     this.tickets.unshift({ ...ticket });
     return ticket;
+  }
+
+  async getMaxRefSequence(year: number): Promise<number> {
+    const prefix = `AE-${year}-`;
+    return this.tickets
+      .filter((t) => t.ref.startsWith(prefix))
+      .reduce((max, t) => Math.max(max, Number(t.ref.slice(prefix.length)) || 0), 0);
   }
 
   async findById(id: string): Promise<ExpertTicket | null> {
@@ -373,10 +418,14 @@ export class MemoryAiRepository implements IAiRepository {
   }
 
   async deleteConversation(orgId: string, convId: string): Promise<boolean> {
+    const before = this.conversations.length;
     this.conversations = this.conversations.filter(
       (x) => !(x.id === convId && x.organizationId === orgId)
     );
-    this.messages = this.messages.filter((m) => m.conversationId !== convId);
+    if (this.conversations.length === before) return false;
+    this.messages = this.messages.filter(
+      (m) => !(m.conversationId === convId && m.organizationId === orgId)
+    );
     return true;
   }
 
