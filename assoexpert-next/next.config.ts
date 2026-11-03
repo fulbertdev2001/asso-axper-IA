@@ -41,7 +41,7 @@ export const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  output: process.env.DOCKER_BUILD === '1' ? 'standalone' : undefined,
   reactStrictMode: true,
   poweredByHeader: false,
   async headers() {

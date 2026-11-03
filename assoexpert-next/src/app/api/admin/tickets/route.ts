@@ -9,8 +9,43 @@ export const GET = createApiHandler({
   admin: true,
   handler: async ({ authContext }) => {
     if (!authContext) throw new UnauthorizedError('Session admin requise.');
-    const tickets = await container.ticketService.listAllForAdmin(authContext);
-    return { tickets };
+    const [tickets, orgs, aiUsageSummary] = await Promise.all([
+      container.ticketService.listAllForAdmin(authContext),
+      container.repositories.org.list(),
+      container.repositories.ai.getUsageSummary()
+    ]);
+
+    const orgNameById = new Map(orgs.map((o) => [o.id, o.name]));
+
+    const enrichedTickets = tickets.map((t) => ({
+      ...t,
+      orgId: t.organizationId,
+      orgName: orgNameById.get(t.organizationId) || 'Association cliente',
+      object: t.subject || t.question.slice(0, 60),
+      internalNotes: t.internalNote || ''
+    }));
+
+    const aiUsageRecords = aiUsageSummary.records.map((r) => ({
+      id: r.id,
+      orgId: r.organizationId,
+      orgName: orgNameById.get(r.organizationId) || 'Association cliente',
+      model: r.model,
+      promptVersion: r.promptVersion,
+      inputTokens: r.inputTokens,
+      outputTokens: r.outputTokens,
+      costEstimateEur: r.costEstimate,
+      createdAt:
+        r.createdAt instanceof Date
+          ? r.createdAt.toLocaleDateString('fr-FR', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          : String(r.createdAt)
+    }));
+
+    return { tickets: enrichedTickets, aiUsageRecords };
   }
 });
 

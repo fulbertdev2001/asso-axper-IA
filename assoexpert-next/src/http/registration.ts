@@ -21,6 +21,7 @@ export const registerOrganizationHandler = createApiHandler({
       name: body.name || 'Direction',
       roleInOrg: body.roleInOrg,
       passwordHash,
+      planCode: body.planCode,
       organization: body.organization
     });
 

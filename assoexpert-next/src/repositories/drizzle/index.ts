@@ -422,9 +422,20 @@ export class DrizzleOrgRepository implements IOrgRepository {
 
   async updateProfile(
     orgId: string,
-    patch: Partial<OrganizationProfileInput>
+    patch: Partial<OrganizationProfileInput> & { name?: string; siren?: string; rna?: string }
   ): Promise<OrganizationProfile> {
     const resolvedOrgId = toUuid(orgId);
+    const orgValues: Record<string, unknown> = {};
+    if (patch.name !== undefined) orgValues.name = patch.name;
+    if (patch.siren !== undefined) orgValues.siren = patch.siren;
+    if (patch.rna !== undefined) orgValues.rna = patch.rna;
+    if (Object.keys(orgValues).length > 0) {
+      await getDb()
+        .update(schema.organizations)
+        .set(orgValues)
+        .where(eq(schema.organizations.id, resolvedOrgId));
+    }
+
     const values: Record<string, unknown> = { updatedAt: new Date() };
     if (patch.sector !== undefined) values.sector = patch.sector;
     if (patch.employeesCount !== undefined) values.employeesCount = patch.employeesCount;
@@ -1004,6 +1015,16 @@ export class DrizzleCmsRepository implements ICmsRepository {
         noindex: input.noindex,
         breadcrumbs: input.breadcrumbs,
         updatedAt: now
+      })
+      .onConflictDoUpdate({
+        target: schema.cmsPages.slug,
+        set: {
+          title: input.title,
+          metaDescription: input.metaDescription,
+          h1: input.h1,
+          status: input.status,
+          updatedAt: now
+        }
       });
 
     return {

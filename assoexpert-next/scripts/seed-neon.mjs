@@ -148,20 +148,14 @@ async function main() {
     await sql`
       INSERT INTO plans (code, label, description, price_monthly_eur, stripe_price_id, highlighted, active, sort)
       VALUES (${p.code}, ${p.label}, ${p.description}, ${p.price}, ${p.stripePriceId}, ${p.highlighted}, true, ${p.sort})
-      ON CONFLICT (code) DO UPDATE SET
-        label = EXCLUDED.label,
-        description = EXCLUDED.description,
-        price_monthly_eur = EXCLUDED.price_monthly_eur,
-        highlighted = EXCLUDED.highlighted
+      ON CONFLICT (code) DO NOTHING
     `;
 
     for (const [featureKey, enabled, limitValue] of p.features) {
       await sql`
         INSERT INTO plan_features (plan_code, feature_key, enabled, limit_value)
         VALUES (${p.code}, ${featureKey}, ${enabled}, ${limitValue})
-        ON CONFLICT (plan_code, feature_key) DO UPDATE SET
-          enabled = EXCLUDED.enabled,
-          limit_value = EXCLUDED.limit_value
+        ON CONFLICT (plan_code, feature_key) DO NOTHING
       `;
     }
   }

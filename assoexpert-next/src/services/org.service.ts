@@ -27,6 +27,7 @@ export interface RegisterOrgServiceInput {
   name: string;
   roleInOrg?: string;
   passwordHash?: string;
+  planCode?: 'initiale' | 'pro' | 'expert';
   organization: {
     name: string;
     siren?: string;
@@ -136,7 +137,7 @@ export class OrgService {
         periodEnd.setDate(periodEnd.getDate() + 30);
         await this.subRepo.upsert({
           organizationId: createdOrg.id,
-          planCode: 'pro',
+          planCode: input.planCode || 'pro',
           status: 'active',
           stripeCustomerId: `cus_${createdOrg.id}`,
           stripeSubscriptionId: `sub_${createdOrg.id}`,

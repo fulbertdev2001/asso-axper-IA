@@ -54,6 +54,7 @@ export const registerOrgSchema = z.object({
   name: z.string().min(1).optional().default('Direction'),
   roleInOrg: z.string().default('Direction'),
   password: newPasswordField.optional(),
+  planCode: z.enum(['initiale', 'pro', 'expert']).optional(),
   organization: z.object({
     name: z.string().min(2, 'Le nom de l’association est requis'),
     siren: z.string().default(''),
@@ -72,6 +73,9 @@ export const registerOrgSchema = z.object({
 });
 
 export const updateOrgProfileSchema = z.object({
+  name: z.string().optional(),
+  siren: z.string().optional(),
+  rna: z.string().optional(),
   sector: z.string().optional(),
   employeesCount: z.coerce.number().int().min(0).max(100).optional(),
   annualBudget: z.coerce.number().min(0).optional(),
@@ -137,29 +141,55 @@ export const adminUpdateTicketSchema = z.object({
   subject: z.string().optional()
 });
 
-export const updatePlanSchema = z.object({
-  planCode: z.string().min(1),
-  patch: z.object({
-    label: z.string().optional(),
-    description: z.string().optional(),
-    priceMonthly: z.coerce.number().min(0).optional(),
-    priceMonthlyEur: z.coerce.number().min(0).optional(),
-    highlighted: z.boolean().optional(),
-    active: z.boolean().optional(),
-    features: z
-      .union([
-        z.array(
-          z.object({
-            featureKey: z.string(),
-            enabled: z.boolean(),
-            limitValue: z.string().nullable().optional()
-          })
-        ),
-        z.record(z.any())
-      ])
-      .optional()
+export const updatePlanSchema = z.preprocess(
+  (raw) => {
+    const body = (raw ?? {}) as Record<string, any>;
+    if (body.planCode && body.patch && typeof body.patch === 'object') {
+      return body;
+    }
+    const planCode = body.planCode || body.code || '';
+    const patch =
+      body.patch && typeof body.patch === 'object'
+        ? body.patch
+        : {
+            label: body.label,
+            description: body.description,
+            priceMonthly: body.priceMonthly,
+            priceMonthlyEur: body.priceMonthlyEur,
+            highlighted: body.highlighted,
+            active: body.active,
+            features:
+              body.features ??
+              (body.expertQuestionsQuota !== undefined
+                ? { expertQuestionsMonth: body.expertQuestionsQuota }
+                : undefined)
+          };
+    return { planCode, patch };
+  },
+  z.object({
+    planCode: z.string().min(1),
+    patch: z.object({
+      label: z.string().optional(),
+      description: z.string().optional(),
+      priceMonthly: z.coerce.number().min(0).optional(),
+      priceMonthlyEur: z.coerce.number().min(0).optional(),
+      highlighted: z.boolean().optional(),
+      active: z.boolean().optional(),
+      features: z
+        .union([
+          z.array(
+            z.object({
+              featureKey: z.string(),
+              enabled: z.boolean(),
+              limitValue: z.string().nullable().optional()
+            })
+          ),
+          z.record(z.any())
+        ])
+        .optional()
+    })
   })
-});
+);
 
 export const createCmsPageSchema = z.object({
   slug: z.string().min(1),

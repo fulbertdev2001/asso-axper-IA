@@ -65,7 +65,10 @@ export class BillingService {
         const featObj = patch.features;
         if (featObj.expertQuestionsMonth !== undefined) {
           const idx = updatedFeatures.findIndex((f) => f.featureKey === 'expert_questions_month');
-          if (idx >= 0) updatedFeatures[idx].limitValue = String(featObj.expertQuestionsMonth);
+          if (idx >= 0) {
+            updatedFeatures[idx].limitValue = String(featObj.expertQuestionsMonth);
+            updatedFeatures[idx].enabled = Number(featObj.expertQuestionsMonth) > 0;
+          }
         }
         if (featObj.briqueConformite !== undefined) {
           const idx = updatedFeatures.findIndex((f) => f.featureKey === 'brique.conformite');

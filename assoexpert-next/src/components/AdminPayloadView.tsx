@@ -63,12 +63,66 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
   onLogout
 }) => {
   const [activeTab, setActiveTab] = useState<'tickets' | 'plans' | 'ai_usage' | 'seo'>('tickets');
+  const [liveTickets, setLiveTickets] = useState<ExpertTicket[]>(tickets);
+  const [liveAiUsage, setLiveAiUsage] = useState<AiUsageRecord[]>(aiUsageRecords);
   const [selectedTicket, setSelectedTicket] = useState<ExpertTicket | null>(tickets[0] || null);
   const [expertReply, setExpertReply] = useState('');
   const [internalNotes, setInternalNotes] = useState('');
   const [editablePlans, setEditablePlans] = useState<Plan[]>([...plans]);
   const [saveToast, setSaveToast] = useState(false);
   const [saveToastMsg, setSaveToastMsg] = useState('Modifications enregistrées');
+
+  React.useEffect(() => {
+    setEditablePlans([...plans]);
+  }, [plans]);
+
+  React.useEffect(() => {
+    setLiveTickets(tickets);
+  }, [tickets]);
+
+  React.useEffect(() => {
+    setLiveAiUsage(aiUsageRecords);
+  }, [aiUsageRecords]);
+
+  // Synchronisation en direct depuis Neon PostgreSQL à l'ouverture du back-office
+  React.useEffect(() => {
+    void fetch('/api/admin/tickets')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data?.tickets) && data.tickets.length > 0) {
+          setLiveTickets(data.tickets);
+          setSelectedTicket((prev) => {
+            const match = prev ? data.tickets.find((t: ExpertTicket) => t.id === prev.id || t.ref === prev.ref) : null;
+            const target = match || data.tickets[0];
+            if (target) {
+              setExpertReply(target.answer || '');
+              setInternalNotes(target.internalNotes || '');
+            }
+            return target || null;
+          });
+        }
+        if (Array.isArray(data?.aiUsageRecords) && data.aiUsageRecords.length > 0) {
+          setLiveAiUsage(data.aiUsageRecords);
+        }
+      })
+      .catch(() => {});
+
+    void fetch('/api/admin/pages')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data?.pages) && data.pages.length > 0) {
+          setSeoPages(
+            data.pages.map((p: any) => ({
+              slug: p.slug.startsWith('/') ? p.slug : `/${p.slug}`,
+              title: p.title,
+              metaDescription: p.metaDescription,
+              h1: p.h1 || p.title
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // SEO CMS State
   const [seoPages, setSeoPages] = useState([
@@ -104,6 +158,7 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
     };
 
     onUpdateTicket(updated);
+    setLiveTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
     setSelectedTicket(updated);
     setSaveToastMsg(
       markAsAnswered
@@ -125,32 +180,45 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
     } : p));
   };
 
-  const handleSaveAllPlans = () => {
+  const handleSaveAllPlans = async () => {
     onUpdatePlans(editablePlans);
     // Persistance réelle des formules et quotas en base Neon PostgreSQL
-    editablePlans.forEach((plan) => {
-      void fetch('/api/admin/plans', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code: plan.code,
-          priceMonthlyEur: plan.priceMonthly,
-          expertQuestionsQuota: plan.features.expertQuestionsMonth
-        })
-      }).catch(() => {});
-    });
+    await Promise.all(
+      editablePlans.map((plan) =>
+        fetch('/api/admin/plans', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            planCode: plan.code,
+            patch: {
+              label: plan.label,
+              description: plan.description,
+              priceMonthlyEur: plan.priceMonthly,
+              features: {
+                expertQuestionsMonth: plan.features.expertQuestionsMonth,
+                briqueRh: plan.features.briqueRh,
+                briqueGouvernance: plan.features.briqueGouvernance,
+                briqueFinance: plan.features.briqueFinance,
+                briqueConformite: plan.features.briqueConformite
+              }
+            }
+          })
+        }).catch(() => null)
+      )
+    );
+    setSaveToastMsg('Formules et quotas enregistrés en base de données !');
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 3000);
   };
 
-  const pendingTicketsCount = tickets.filter(t => t.status !== 'answered').length;
+  const pendingTicketsCount = liveTickets.filter(t => t.status !== 'answered').length;
 
   // Valeurs dérivées en lecture seule (affichage des indicateurs)
-  const countPending = tickets.filter(t => t.status === 'pending').length;
-  const countInProgress = tickets.filter(t => t.status === 'in_progress').length;
-  const countAnswered = tickets.filter(t => t.status === 'answered').length;
-  const totalCost = aiUsageRecords.reduce((sum, r) => sum + r.costEstimateEur, 0);
-  const totalTokens = aiUsageRecords.reduce((sum, r) => sum + r.inputTokens + r.outputTokens, 0);
+  const countPending = liveTickets.filter(t => t.status === 'pending').length;
+  const countInProgress = liveTickets.filter(t => t.status === 'in_progress').length;
+  const countAnswered = liveTickets.filter(t => t.status === 'answered').length;
+  const totalCost = liveAiUsage.reduce((sum, r) => sum + r.costEstimateEur, 0);
+  const totalTokens = liveAiUsage.reduce((sum, r) => sum + r.inputTokens + r.outputTokens, 0);
 
   const navItems: AppShellNavItem<AdminTab>[] = [
     {
@@ -206,9 +274,9 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
             <div className="ax-card">
               <div className="ax-card-head">
                 <div className="ax-card-title">Toutes les questions</div>
-                <span className="ax-count">{tickets.length}</span>
+                <span className="ax-count">{liveTickets.length}</span>
               </div>
-              {tickets.length === 0 ? (
+              {liveTickets.length === 0 ? (
                 <div className="ax-empty">
                   <div className="ax-empty-icon"><Inbox size={22} /></div>
                   <div className="ax-empty-title">Aucune question</div>
@@ -216,7 +284,7 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
                 </div>
               ) : (
                 <div className="ax-list" style={{ borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
-                  {tickets.map((t, i) => {
+                  {liveTickets.map((t, i) => {
                     const status = STATUS_META[t.status];
                     return (
                       <m.button
@@ -483,7 +551,7 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
             </div>
             <div className="ax-stat">
               <div className="ax-stat-label">Requêtes</div>
-              <div className="ax-stat-value">{aiUsageRecords.length}</div>
+              <div className="ax-stat-value">{liveAiUsage.length}</div>
             </div>
             <div className="ax-stat">
               <div className="ax-stat-label">Tokens</div>
@@ -492,7 +560,7 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
           </div>
 
           <div className="ax-card" style={{ overflow: 'hidden' }}>
-            {aiUsageRecords.length === 0 ? (
+            {liveAiUsage.length === 0 ? (
               <div className="ax-empty">
                 <div className="ax-empty-icon"><Cpu size={22} /></div>
                 <div className="ax-empty-title">Aucune utilisation enregistrée</div>
@@ -512,7 +580,7 @@ export const AdminPayloadView: React.FC<AdminPayloadViewProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {aiUsageRecords.map((r) => (
+                    {liveAiUsage.map((r) => (
                       <tr key={r.id}>
                         <td className="ax-strong">{r.orgName}</td>
                         <td className="apv-mono ax-muted ax-hide-sm">{r.model}</td>

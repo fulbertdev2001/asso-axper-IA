@@ -37,6 +37,10 @@ export const OrgProfileView: React.FC<OrgProfileViewProps> = ({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
 
+  React.useEffect(() => {
+    setFormData({ ...currentOrg });
+  }, [currentOrg]);
+
   // New Member Form State
   const [newMemberFirst, setNewMemberFirst] = useState('');
   const [newMemberLast, setNewMemberLast] = useState('');

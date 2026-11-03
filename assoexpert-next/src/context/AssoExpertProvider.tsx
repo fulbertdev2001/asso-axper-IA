@@ -106,6 +106,63 @@ export const AssoExpertProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } catch {
       // Fallback sur les valeurs initiales
     }
+
+    // Synchronisation automatique des formules depuis Neon PostgreSQL
+    void fetch('/api/admin/plans')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.plans && Array.isArray(data.plans) && data.plans.length > 0) {
+          setPlans((prevPlans) =>
+            data.plans.map((dbPlan: any) => {
+              const fallback =
+                prevPlans.find((p) => p.code === dbPlan.code) ||
+                INITIAL_PLANS.find((p) => p.code === dbPlan.code) ||
+                INITIAL_PLANS[0];
+              const featList: Array<{ featureKey: string; enabled: boolean; limitValue: string | null }> =
+                Array.isArray(dbPlan.features) ? dbPlan.features : [];
+              const findFeat = (key: string) => featList.find((f) => f.featureKey === key);
+              const quotaFeat = findFeat('expert_questions_month');
+              const modelFeat = findFeat('ai.model');
+              const maxCharsFeat = findFeat('ai.max_input_chars');
+
+              return {
+                ...fallback,
+                code: dbPlan.code,
+                label: dbPlan.label || fallback.label,
+                description: dbPlan.description || fallback.description,
+                priceMonthly:
+                  typeof dbPlan.priceMonthlyEur === 'number'
+                    ? dbPlan.priceMonthlyEur
+                    : typeof dbPlan.priceMonthly === 'number'
+                      ? dbPlan.priceMonthly
+                      : fallback.priceMonthly,
+                highlighted:
+                  typeof dbPlan.highlighted === 'boolean' ? dbPlan.highlighted : fallback.highlighted,
+                features: {
+                  ...fallback.features,
+                  briqueRh: findFeat('brique.rh')?.enabled ?? fallback.features.briqueRh,
+                  briqueGouvernance:
+                    findFeat('brique.gouvernance')?.enabled ?? fallback.features.briqueGouvernance,
+                  briqueFinance:
+                    findFeat('brique.finance')?.enabled ?? fallback.features.briqueFinance,
+                  briqueConformite:
+                    findFeat('brique.conformite')?.enabled ?? fallback.features.briqueConformite,
+                  aiModel: modelFeat?.limitValue || fallback.features.aiModel,
+                  expertQuestionsMonth:
+                    quotaFeat?.limitValue !== undefined && quotaFeat?.limitValue !== null
+                      ? parseInt(quotaFeat.limitValue, 10) || 0
+                      : fallback.features.expertQuestionsMonth,
+                  maxInputChars:
+                    maxCharsFeat?.limitValue !== undefined && maxCharsFeat?.limitValue !== null
+                      ? parseInt(maxCharsFeat.limitValue, 10) || fallback.features.maxInputChars
+                      : fallback.features.maxInputChars
+                }
+              };
+            })
+          );
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -119,6 +176,36 @@ export const AssoExpertProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       // La session serveur n'est créée que par une vraie connexion ou inscription (cookie HttpOnly)
       localStorage.setItem('asso_expert_current_org_id', currentOrgId);
     }
+    // Synchronisation de la session, de l'abonnement et des tickets depuis Neon PostgreSQL
+    void fetch('/api/auth/session')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data?.authenticated) return;
+        if (data.organization) {
+          const dbOrg = data.organization as Organization;
+          setOrganizations((prev) => {
+            const exists = prev.some((o) => o.id === dbOrg.id);
+            return exists ? prev.map((o) => (o.id === dbOrg.id ? dbOrg : o)) : [dbOrg, ...prev];
+          });
+          setCurrentOrgId(dbOrg.id);
+          if (data.subscription) {
+            setSubscriptions((prev) => ({
+              ...prev,
+              [dbOrg.id]: data.subscription
+            }));
+          }
+        }
+        if (Array.isArray(data.tickets) && data.tickets.length > 0) {
+          setTickets((prev) => {
+            const dbTickets = data.tickets as ExpertTicket[];
+            const dbIds = new Set(dbTickets.map((t) => t.id));
+            const dbRefs = new Set(dbTickets.map((t) => t.ref));
+            const remaining = prev.filter((t) => !dbIds.has(t.id) && !dbRefs.has(t.ref));
+            return [...dbTickets, ...remaining];
+          });
+        }
+      })
+      .catch(() => {});
   }, [currentOrgId]);
 
   useEffect(() => {
@@ -213,7 +300,24 @@ export const AssoExpertProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         subject: newTicket.object,
         question: newTicket.question
       })
-    }).catch(() => {});
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.ticket) {
+          setTickets((prev) =>
+            prev.map((t) =>
+              t.id === newTicket.id
+                ? {
+                    ...t,
+                    id: data.ticket.id || t.id,
+                    ref: data.ticket.ref || t.ref
+                  }
+                : t
+            )
+          );
+        }
+      })
+      .catch(() => {});
   };
 
   const handleUpdateTicket = (updatedTicket: ExpertTicket) => {
@@ -296,6 +400,7 @@ export const AssoExpertProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           : 'Direction',
         password: password || undefined,
         roleInOrg: newOrg.members?.[0]?.role || 'Président(e)',
+        planCode: selectedPlanCode,
         organization: {
           name: newOrg.name,
           siren: newOrg.siren,
@@ -312,7 +417,26 @@ export const AssoExpertProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           members: newOrg.members
         }
       })
-    }).catch(() => {});
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.organization?.id) {
+          const dbId = data.organization.id as string;
+          setOrganizations((prev) =>
+            prev.map((o) => (o.id === newOrg.id ? { ...o, id: dbId } : o))
+          );
+          setSubscriptions((prev) => {
+            const currentSub = prev[newOrg.id];
+            if (!currentSub) return prev;
+            return {
+              ...prev,
+              [dbId]: { ...currentSub, stripeCustomerId: `cus_${dbId}` }
+            };
+          });
+          setCurrentOrgId(dbId);
+        }
+      })
+      .catch(() => {});
   };
 
   return (

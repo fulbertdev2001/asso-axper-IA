@@ -47,9 +47,73 @@ const currentSession = createApiHandler({
     }
 
     let orgName: string | null = null;
+    let organization = null;
+    let subscription = null;
+    let tickets: unknown[] = [];
+
     if (authContext.organizationId) {
-      const org = await container.repositories.org.findById(authContext.organizationId);
+      const [org, profile, sub, orgTickets, usedCount] = await Promise.all([
+        container.repositories.org.findById(authContext.organizationId),
+        container.repositories.org.getProfile(authContext.organizationId),
+        container.repositories.subscription.findByOrgId(authContext.organizationId),
+        container.repositories.ticket.listByOrg(authContext.organizationId),
+        container.repositories.ticket.countThisMonthByOrg(authContext.organizationId)
+      ]);
       orgName = org?.name ?? null;
+      if (org && profile) {
+        organization = {
+          id: org.id,
+          name: org.name,
+          siren: org.siren,
+          rna: org.rna,
+          sector: profile.sector,
+          employeesCount: profile.employeesCount,
+          annualBudget: profile.annualBudget,
+          ccn: profile.ccn,
+          fiscalYearEnd: profile.fiscalYearEnd,
+          usualAgMonth: profile.usualAgMonth,
+          governanceSummary: profile.governanceSummary,
+          mainFunders: profile.mainFunders,
+          establishmentsCount: profile.establishmentsCount,
+          members: profile.members,
+          accountEmail: authContext.email
+        };
+      }
+      if (sub) {
+        subscription = {
+          planCode: sub.planCode,
+          status: sub.status,
+          currentPeriodEnd:
+            sub.currentPeriodEnd instanceof Date
+              ? sub.currentPeriodEnd.toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                })
+              : String(sub.currentPeriodEnd),
+          graceUntil: sub.graceUntil ? String(sub.graceUntil) : null,
+          stripeCustomerId: sub.stripeCustomerId,
+          questionsUsedThisMonth: usedCount
+        };
+      }
+      tickets = orgTickets.map((t) => ({
+        id: t.id,
+        ref: t.ref,
+        orgId: t.organizationId,
+        orgName: org?.name || 'Mon association',
+        domain: t.domain,
+        urgency: t.urgency,
+        object: t.subject || t.question.slice(0, 60),
+        question: t.question,
+        answer: t.answer ?? undefined,
+        status: t.status,
+        createdAt: t.createdAt instanceof Date ? t.createdAt.toISOString() : String(t.createdAt),
+        answeredAt: t.answeredAt
+          ? t.answeredAt instanceof Date
+            ? t.answeredAt.toISOString()
+            : String(t.answeredAt)
+          : undefined
+      }));
     }
 
     return {
@@ -61,7 +125,10 @@ const currentSession = createApiHandler({
         orgName,
         isPlatformAdmin: authContext.isPlatformAdmin,
         appRole: authContext.isPlatformAdmin ? 'admin_platform' : 'owner'
-      }
+      },
+      organization,
+      subscription,
+      tickets
     };
   }
 });
@@ -103,9 +170,17 @@ const login = createApiHandler({
     const logged = await container.authService.loginWithPassword(body.email, body.password);
 
     let organization = null;
+    let subscription = null;
+    let tickets: unknown[] = [];
+
     if (logged.organizationId) {
-      const org = await container.repositories.org.findById(logged.organizationId);
-      const profile = await container.repositories.org.getProfile(logged.organizationId);
+      const [org, profile, sub, orgTickets, usedCount] = await Promise.all([
+        container.repositories.org.findById(logged.organizationId),
+        container.repositories.org.getProfile(logged.organizationId),
+        container.repositories.subscription.findByOrgId(logged.organizationId),
+        container.repositories.ticket.listByOrg(logged.organizationId),
+        container.repositories.ticket.countThisMonthByOrg(logged.organizationId)
+      ]);
       if (org && profile) {
         organization = {
           id: org.id,
@@ -125,13 +200,50 @@ const login = createApiHandler({
           accountEmail: logged.user.email
         };
       }
+      if (sub) {
+        subscription = {
+          planCode: sub.planCode,
+          status: sub.status,
+          currentPeriodEnd:
+            sub.currentPeriodEnd instanceof Date
+              ? sub.currentPeriodEnd.toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                })
+              : String(sub.currentPeriodEnd),
+          graceUntil: sub.graceUntil ? String(sub.graceUntil) : null,
+          stripeCustomerId: sub.stripeCustomerId,
+          questionsUsedThisMonth: usedCount
+        };
+      }
+      tickets = orgTickets.map((t) => ({
+        id: t.id,
+        ref: t.ref,
+        orgId: t.organizationId,
+        orgName: org?.name || 'Mon association',
+        domain: t.domain,
+        urgency: t.urgency,
+        object: t.subject || t.question.slice(0, 60),
+        question: t.question,
+        answer: t.answer ?? undefined,
+        status: t.status,
+        createdAt: t.createdAt instanceof Date ? t.createdAt.toISOString() : String(t.createdAt),
+        answeredAt: t.answeredAt
+          ? t.answeredAt instanceof Date
+            ? t.answeredAt.toISOString()
+            : String(t.answeredAt)
+          : undefined
+      }));
     }
 
     const response = NextResponse.json({
       ok: true,
       user: logged.user,
       organizationId: logged.organizationId,
-      organization
+      organization,
+      subscription,
+      tickets
     });
     return setSessionCookie(response, logged.sessionToken);
   }
